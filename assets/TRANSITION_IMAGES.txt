@@ -1,0 +1,7 @@
+Place the subject transition images here:
+
+- materials-transition.png
+- math-transition.png
+
+The app will show materials-transition.png for Materials Science and
+math-transition.png for Mathematics during the 2 second subject entry splash.

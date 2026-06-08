@@ -1,0 +1,25 @@
+# Local/dev helpers
+start.bat
+
+# Netlify-only files
+_headers
+_redirects
+netlify.toml
+
+# Database/admin setup files
+*.sql
+
+# Source/archive files that are not needed by the web app
+*.pdf
+*.zip
+
+# Accidental/generated local files
+-
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+*.log
+
+# Vercel local metadata
+.vercel/

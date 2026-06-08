@@ -1,0 +1,23 @@
+# Local/dev helpers
+start.bat
+README.md
+
+# Netlify-only files
+_headers
+_redirects
+netlify.toml
+
+# Database/admin setup files should not be publicly served
+*.sql
+
+# Source/archive files that are not needed by the web app
+*.pdf
+*.zip
+
+# Accidental/generated local files
+-
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+*.log

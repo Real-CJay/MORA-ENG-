@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1">
+<meta name="theme-color" content="#101320">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mora Quiz">
+<title>Mora Quiz</title>
+<script>
+  (function bootMoraTheme() {
+    const KEY = 'mora_theme';
+    const DARK_COLOR = '#101320';
+    const LIGHT_COLOR = '#edf4ff';
+    const media = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+
+    function storedTheme() {
+      try {
+        const value = localStorage.getItem(KEY);
+        return value === 'light' || value === 'dark' ? value : null;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function resolvedTheme() {
+      return storedTheme() || (media && media.matches ? 'dark' : 'light');
+    }
+
+    function updateThemeButton() {
+      const btn = document.getElementById('themeToggleBtn');
+      if (!btn) return;
+      const current = resolvedTheme();
+      const next = current === 'dark' ? 'light' : 'dark';
+      btn.setAttribute('aria-label', `Switch to ${next} mode`);
+      btn.setAttribute('title', `Switch to ${next} mode`);
+      btn.innerHTML = current === 'dark'
+        ? '<span class="theme-toggle-sun" aria-hidden="true"></span>'
+        : '<span class="theme-toggle-moon" aria-hidden="true"></span>';
+    }
+
+    function applyTheme(theme) {
+      const resolved = theme === 'dark' ? 'dark' : 'light';
+      document.documentElement.dataset.theme = resolved;
+      document.documentElement.style.colorScheme = resolved;
+      const meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.setAttribute('content', resolved === 'dark' ? DARK_COLOR : LIGHT_COLOR);
+      updateThemeButton();
+    }
+
+    window.getThemePreference = storedTheme;
+    window.getResolvedTheme = resolvedTheme;
+    window.setThemePreference = function setThemePreference(theme) {
+      if (theme !== 'light' && theme !== 'dark') return;
+      try { localStorage.setItem(KEY, theme); } catch (e) {}
+      applyTheme(theme);
+    };
+    window.toggleTheme = function toggleTheme() {
+      window.setThemePreference(resolvedTheme() === 'dark' ? 'light' : 'dark');
+    };
+    window.updateThemeButton = updateThemeButton;
+
+    if (media) {
+      const onSystemChange = () => {
+        if (!storedTheme()) applyTheme(resolvedTheme());
+      };
+      if (media.addEventListener) media.addEventListener('change', onSystemChange);
+      else if (media.addListener) media.addListener(onSystemChange);
+    }
+
+    applyTheme(resolvedTheme());
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', updateThemeButton, { once: true });
+    } else {
+      updateThemeButton();
+    }
+  })();
+</script>
+<script>
+  if (location.protocol === 'http:' || location.protocol === 'https:') {
+    document.write('<link rel="manifest" href="/manifest.json?v=82">');
+  }
+</script>
+<link rel="icon" type="image/png" sizes="192x192" href="assets/icons/icon-192.png">
+<link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+<link rel="stylesheet" href="/quiz_style.css?v=82">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+</head>
+<body>
+
+<div class="nav-bar">
+  <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
+    <div class="nav-brand" onclick="stopTimer();state.screen='landing';renderApp()" style="cursor:pointer;" title="Go to home">
+      <span class="nav-mark" aria-hidden="true"><span>MQ</span></span>
+      <span class="nav-title"><strong>Mora</strong><em>Quiz</em></span>
+    </div>
+    <!-- Auth pill ï¿½ populated by renderAuthPill() -->
+    <div style="display:flex;align-items:center;gap:10px;">
+      <button id="themeToggleBtn" class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme" title="Toggle theme"></button>
+      <button id="pwaInstallNavBtn" class="pwa-install-nav" onclick="pwaPromptInstall()" style="display:none;">Install</button>
+      <div id="authPill" style="display:flex;align-items:center;"></div>
+    </div>
+  </div>
+  <div id="nav-back"></div>
+  <!-- Questions zoom controls ï¿½ shown only in split mode -->
+  <div id="appZoomBar" style="display:none;align-items:center;gap:5px;margin-top:2px;">
+    <span style="font-size:0.72rem;color:var(--text-muted);">Zoom</span>
+    <button onclick="splitZoomApp(-1)" title="Zoom out" style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;color:var(--text);width:20px;height:20px;cursor:pointer;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;font-family:inherit;line-height:1;">-</button>
+    <span id="appZoomLabel" style="font-size:0.72rem;color:var(--text-muted);min-width:32px;text-align:center;font-family:'DM Mono',monospace;">100%</span>
+    <button onclick="splitZoomApp(+1)" title="Zoom in" style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;color:var(--text);width:20px;height:20px;cursor:pointer;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;font-family:inherit;line-height:1;">+</button>
+    <button onclick="splitZoomApp(0,true)" title="Reset zoom" style="background:none;border:none;color:var(--text-muted);font-size:0.7rem;cursor:pointer;padding:0 2px;font-family:'DM Mono',monospace;opacity:0.7;">-</button>
+  </div>
+</div>
+
+<div id="offlineBanner" class="pwa-banner offline" style="display:none;">
+  <span>Offline mode. Loaded quizzes still work, but cloud sync and Januda Ayya need internet.</span>
+</div>
+<div id="updateBanner" class="pwa-banner update" style="display:none;">
+  <span>New version available.</span>
+  <button onclick="pwaApplyUpdate()">Refresh</button>
+</div>
+
+<div id="app"></div>
+
+<button class="chat-toggle" onclick="toggleChat()" aria-label="Januda Ayya"><span class="chat-mark">JA</span><span class="chat-label">Ask Januda Ayya</span></button>
+<div class="chat-window" id="chatWindow" style="display:none;">
+  <div class="chat-resize-nw" id="chatResizeNW"></div>
+  <div class="chat-resize-n"  id="chatResizeN"></div>
+  <div class="chat-resize-w"  id="chatResizeW"></div>
+
+  <div class="chat-header">
+    <h3>Januda Ayya</h3>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div class="chat-win-controls">
+        <button class="chat-wc-btn" id="chatWcMin" onclick="chatWinMinimize()" title="Minimize">
+          <svg width="10" height="10" viewBox="0 0 10 10"><line x1="1" y1="9" x2="9" y2="9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </button>
+        <button class="chat-wc-btn" id="chatWcSnap" title="Snap / Restore"
+          onmouseenter="chatSnapHover(event)" onmouseleave="chatSnapLeave()" onclick="chatSnapClick()">
+          <svg width="10" height="10" viewBox="0 0 10 10"><rect x="1" y="1" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="1" y="1" width="4" height="8" rx="1.5" fill="currentColor" opacity="0.25"/></svg>
+        </button>
+        <button class="chat-wc-btn" id="chatWcMax" title="Maximize"
+          onmouseenter="chatMaxHover(event)" onmouseleave="chatMaxLeave()" onclick="chatWinMaximize()">
+          <svg width="10" height="10" viewBox="0 0 10 10"><rect x="1" y="1" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/></svg>
+        </button>
+        <button class="chat-wc-btn" onclick="toggleChat()" title="Close" style="margin-left:2px;">
+          <svg width="10" height="10" viewBox="0 0 10 10"><line x1="2" y1="2" x2="8" y2="8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="8" y1="2" x2="2" y2="8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="chat-body" id="chatBody"></div>
+
+  <div class="chat-input-area" id="chatInputArea">
+    <input type="text" id="chatInput" placeholder="Ask Januda Ayya anything..."
+           onkeypress="if(event.key==='Enter') sendChatMessage()">
+    <button id="chatSendBtn" onclick="sendChatMessage()">Send</button>
+  </div>
+
+  <!-- Model selector -->
+  <div style="display:flex;align-items:center;justify-content:flex-end;padding:4px 10px 6px;border-top:1px solid var(--border);background:var(--surface);position:relative;">
+    <button id="modelDropdownBtn" onclick="toggleModelDropdown(event)"
+      style="display:flex;align-items:center;gap:5px;background:transparent;border:1px solid var(--border);border-radius:20px;color:var(--text-muted);padding:3px 10px;cursor:pointer;font-size:0.72rem;font-family:inherit;transition:border-color 0.15s,color 0.15s;"
+      title="Switch AI model">
+      <span id="modelDropdownLabel">Qwen3 235B</span>
+      <svg width="9" height="9" viewBox="0 0 10 10" fill="none" style="opacity:0.5;">
+        <path d="M2 6.5L5 3.5L8 6.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <div id="modelDropdown" style="display:none;position:absolute;bottom:calc(100% + 6px);right:10px;width:260px;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:0 -4px 32px rgba(0,0,0,0.5);z-index:200;overflow:hidden;">
+      <div style="padding:8px 12px 6px;font-size:0.7rem;color:var(--text-muted);letter-spacing:0.08em;text-transform:uppercase;border-bottom:1px solid var(--border);font-weight:600;">Select AI Model</div>
+      <div id="mdOptGroq" onclick="selectProvider('groq')" style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;transition:background 0.12s;" class="dd-opt">
+        <span style="font-size:0.75rem;font-family:'DM Mono',monospace;font-weight:700;color:var(--text-muted);">G</span>
+        <div style="flex:1;">
+          <div style="font-size:0.85rem;font-weight:600;color:var(--text);">GPT-OSS 120B</div>
+          <div style="font-size:0.72rem;color:var(--text-muted);">via Groq - No key needed</div>
+        </div>
+        <span id="mdCheckGroq" style="color:var(--accent);font-size:0.9rem;display:none;">-</span>
+      </div>
+      <div style="height:1px;background:var(--border);margin:0 14px;"></div>
+      <div id="mdOptQwen" onclick="selectProvider('qwen')" style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;transition:background 0.12s;" class="dd-opt">
+        <span style="font-size:0.75rem;font-family:'DM Mono',monospace;font-weight:700;color:var(--text-muted);">Q</span>
+        <div style="flex:1;">
+          <div style="font-size:0.85rem;font-weight:600;color:var(--text);">Qwen3 235B</div>
+          <div style="font-size:0.72rem;color:var(--text-muted);">via OpenRouter - No key needed</div>
+        </div>
+        <span id="mdCheckQwen" style="color:var(--accent);font-size:0.9rem;">-</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Timer Modal -->
+<div id="timerModal" style="display:none;">
+  <div class="timer-modal-overlay" onclick="if(event.target===this)closeTimerModal()">
+    <div class="timer-modal" id="timerModalBox">
+      <button class="timer-modal-close" type="button" onclick="closeTimerModal()" aria-label="Cancel quiz start">&times;</button>
+      <h2 id="timerModalTitle">Set a Time Limit?</h2>
+      <p id="timerModalSubtitle">Choose a time limit for your quiz, or skip to start without one.</p>
+      <div class="timer-option-grid" id="timerOptionGrid"></div>
+      <div class="timer-custom-row">
+        <input type="number" id="timerCustomInput" min="1" max="180" placeholder="-"
+          oninput="selectCustomTimer(this.value)"
+          onfocus="clearPresetSelection()">
+        <span>min custom</span>
+      </div>
+      <div class="timer-modal-btns">
+        <button class="btn-start" id="timerStartBtn" onclick="confirmTimer()">Start Quiz</button>
+        <button class="btn-skip" onclick="confirmTimer(true)">No Timer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Image Viewer Lightbox -->
+<div id="imgViewer" style="display:none;">
+  <div id="imgViewerBackdrop" onclick="closeImgViewer()"></div>
+  <div id="imgViewerWrap">
+    <div id="imgViewerZoomHint">Scroll to zoom - Drag to pan</div>
+    <img id="imgViewerImg" src="" alt="">
+  </div>
+  <button id="imgViewerClose" onclick="closeImgViewer()" title="Close">&times;</button>
+  <div id="imgViewerBottomBar">
+    <button id="imgViewerEyeBtn" onclick="toggleImgViewerQuestion()">
+      <span id="imgViewerEyeIcon">&times;</span>
+      <span id="imgViewerEyeLabel">Show question</span>
+    </button>
+    <div id="imgViewerQPanel"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/quiz_data.js?v=82"></script>
+<script src="/auth.js?v=82"></script>
+<script src="/quiz_app.js?v=82"></script>
+<script src="/pwa.js?v=82"></script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
