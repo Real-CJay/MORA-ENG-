@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 2,
+  "subject": "cs",
+  "bucket": "pastPaper",
+  "stimuli": {},
+  "images": {},
+  "questions": [
+    {
+      "id": "BAD_DUPLICATE_ID",
+      "subject": "cs",
+      "unit": "Algorithms",
+      "topic": "Tracing",
+      "year": "2024",
+      "type": "mcq",
+      "body": [
+        { "type": "text", "value": "Which option should be selected?" }
+      ],
+      "options": [
+        { "label": "a", "body": [{ "type": "text", "value": "First option" }] },
+        { "label": "b", "body": [{ "type": "text", "value": "Second option" }] }
+      ],
+      "answer": { "mode": "single", "value": "z" },
+      "explanation": [
+        { "type": "text", "value": "This answer label is intentionally invalid." }
+      ],
+      "source": { "pdf": "broken-demo.pdf", "page": 1, "qno": 1 },
+      "status": "published"
+    },
+    {
+      "id": "BAD_DUPLICATE_ID",
+      "subject": "cs",
+      "unit": "Algorithms",
+      "topic": "Tracing",
+      "year": "2024",
+      "type": "mcq",
+      "body": [
+        { "type": "text", "value": "This MCQ intentionally has too few options." }
+      ],
+      "options": [
+        { "label": "a", "body": [{ "type": "text", "value": "Only option" }] }
+      ],
+      "answer": { "mode": "single", "value": "a" },
+      "explanation": [
+        { "type": "text", "value": "The validator should reject an MCQ with only one option." }
+      ],
+      "source": { "pdf": "broken-demo.pdf", "page": 1, "qno": 2 },
+      "status": "published"
+    },
+    {
+      "id": "BAD_MISSING_IMAGE",
+      "subject": "cs",
+      "unit": "Flowcharts",
+      "topic": "Shared figures",
+      "year": "2024",
+      "type": "image_based",
+      "body": [
+        { "type": "text", "value": "Use the missing figure to answer the question." },
+        { "type": "image", "assetId": "missing_flowchart_fig" }
+      ],
+      "images": ["missing_flowchart_fig"],
+      "options": [
+        { "label": "a", "body": [{ "type": "text", "value": "10" }] },
+        { "label": "b", "body": [{ "type": "text", "value": "15" }] }
+      ],
+      "answer": { "mode": "single", "value": "a" },
+      "explanation": [
+        { "type": "text", "value": "The image asset is intentionally absent from the registry." }
+      ],
+      "source": { "pdf": "broken-demo.pdf", "page": 2, "qno": 3 },
+      "status": "published"
+    }
+  ]
+}

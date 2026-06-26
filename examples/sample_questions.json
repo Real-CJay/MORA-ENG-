@@ -1,0 +1,414 @@
+{
+  "schemaVersion": 2,
+  "subject": "cs",
+  "bucket": "pastPaper",
+  "stimuli": {
+    "CS1033_2024_FLOWCHART": {
+      "title": "CS flowchart",
+      "body": [
+        {
+          "type": "text",
+          "value": "Use the following flowchart to answer the next two questions. The variables start as shown in the first process box."
+        }
+      ],
+      "images": ["cs_flowchart_fig"]
+    }
+  },
+  "images": {
+    "materials_stiffness_fig": {
+      "src": "IMAGES/Materials Science/Past Papers/2019/greatest-stiffness.png",
+      "alt": "A stress-strain graph comparing four materials with different initial slopes.",
+      "sourcePage": 3
+    },
+    "cs_flowchart_fig": {
+      "src": "IMAGES/Computer Science/Past Papers/2024/cs-flowchart.png",
+      "alt": "A flowchart that initializes n and sum, loops while n is less than or equal to 5, updates sum, and increments n.",
+      "sourcePage": 4
+    }
+  },
+  "questions": [
+    {
+      "id": "FLUID_2024_KINVISC_MCQ",
+      "subject": "fluid",
+      "unit": "Fluid Properties",
+      "topic": "Kinematic viscosity",
+      "year": "2024",
+      "type": "mcq",
+      "body": [
+        {
+          "type": "text",
+          "value": "A fluid has dynamic viscosity \\(\\mu = 1.0 \\times 10^{-3}\\,\\mathrm{Pa\\,s}\\) and density \\(\\rho = 1000\\,\\mathrm{kg/m^3}\\). What is its kinematic viscosity \\(\\nu\\)?"
+        }
+      ],
+      "options": [
+        {
+          "label": "a",
+          "body": [{ "type": "text", "value": "$1.0 \\times 10^{-3}\\,\\mathrm{m^2/s}$" }]
+        },
+        {
+          "label": "b",
+          "body": [{ "type": "text", "value": "$1.0 \\times 10^{-4}\\,\\mathrm{m^2/s}$" }]
+        },
+        {
+          "label": "c",
+          "body": [{ "type": "text", "value": "$1.0 \\times 10^{-6}\\,\\mathrm{m^2/s}$" }]
+        },
+        {
+          "label": "d",
+          "body": [{ "type": "text", "value": "$1.0 \\times 10^{6}\\,\\mathrm{m^2/s}$" }]
+        }
+      ],
+      "answer": { "mode": "single", "value": "c" },
+      "explanation": [
+        {
+          "type": "text",
+          "value": "Kinematic viscosity is \\(\\nu = \\mu/\\rho\\). Therefore \\(\\nu = (1.0 \\times 10^{-3})/1000 = 1.0 \\times 10^{-6}\\,\\mathrm{m^2/s}\\)."
+        }
+      ],
+      "source": { "pdf": "Fluid_Mechanics_2024.pdf", "page": 2, "qno": 1 },
+      "status": "published"
+    },
+    {
+      "id": "MAT_2019_STIFFNESS_IMAGE",
+      "subject": "materials",
+      "unit": "Mechanical Properties",
+      "topic": "Elastic modulus",
+      "year": "2019",
+      "type": "image_based",
+      "body": [
+        {
+          "type": "text",
+          "value": "The figure shows stress-strain curves for four materials. Which material has the greatest stiffness?"
+        },
+        {
+          "type": "image",
+          "assetId": "materials_stiffness_fig"
+        }
+      ],
+      "options": [
+        {
+          "label": "a",
+          "body": [{ "type": "text", "value": "Material A" }]
+        },
+        {
+          "label": "b",
+          "body": [{ "type": "text", "value": "Material B" }]
+        },
+        {
+          "label": "c",
+          "body": [{ "type": "text", "value": "Material C" }]
+        },
+        {
+          "label": "d",
+          "body": [{ "type": "text", "value": "Material D" }]
+        }
+      ],
+      "answer": { "mode": "single", "value": "a" },
+      "explanation": [
+        {
+          "type": "text",
+          "value": "Stiffness is proportional to Young's modulus, which is the initial slope of the stress-strain curve. Material A has the steepest initial slope."
+        }
+      ],
+      "source": { "pdf": "Materials_2019.pdf", "page": 3, "qno": 4 },
+      "images": ["materials_stiffness_fig"],
+      "status": "published"
+    },
+    {
+      "id": "MATH_RA_CAUCHY_STRUCTURED",
+      "subject": "math",
+      "unit": "Real Analysis",
+      "topic": "Cauchy sequences",
+      "year": "2024",
+      "type": "structured",
+      "body": [
+        {
+          "type": "text",
+          "value": "Prove that every convergent sequence in \\(\\mathbb{R}\\) is a Cauchy sequence."
+        }
+      ],
+      "answer": { "mode": "self_mark", "value": null },
+      "explanation": [
+        {
+          "type": "text",
+          "value": "Let \\((x_n)\\) converge to \\(L\\). For any \\(\\epsilon \\gt 0\\), choose \\(N\\) such that \\(|x_n - L| \\lt \\epsilon/2\\) for all \\(n \\ge N\\). If \\(m,n \\ge N\\), then \\(|x_n - x_m| \\le |x_n - L| + |x_m - L| \\lt \\epsilon\\). Hence \\((x_n)\\) is Cauchy."
+        }
+      ],
+      "source": { "pdf": "MA1014_2024.pdf", "page": 5, "qno": 2 },
+      "status": "published"
+    },
+    {
+      "id": "CS1033_2024_FLOW_Q1",
+      "subject": "cs",
+      "unit": "Algorithms",
+      "topic": "Flowcharts",
+      "year": "2024",
+      "type": "mcq",
+      "stimulusId": "CS1033_2024_FLOWCHART",
+      "body": [],
+      "options": [
+        {
+          "label": "a",
+          "body": [{ "type": "text", "value": "10" }]
+        },
+        {
+          "label": "b",
+          "body": [{ "type": "text", "value": "15" }]
+        },
+        {
+          "label": "c",
+          "body": [{ "type": "text", "value": "20" }]
+        },
+        {
+          "label": "d",
+          "body": [{ "type": "text", "value": "25" }]
+        }
+      ],
+      "answer": { "mode": "single", "value": "b" },
+      "explanation": [
+        {
+          "type": "text",
+          "value": "The loop adds 1 + 2 + 3 + 4 + 5, so the final sum is 15."
+        }
+      ],
+      "source": { "pdf": "CS1033_2024.pdf", "page": 4, "qno": 7 },
+      "status": "published"
+    },
+    {
+      "id": "CS1033_2024_FLOW_Q2",
+      "subject": "cs",
+      "unit": "Algorithms",
+      "topic": "Flowcharts",
+      "year": "2024",
+      "type": "mcq",
+      "stimulusId": "CS1033_2024_FLOWCHART",
+      "body": [
+        {
+          "type": "text",
+          "value": "How many times is the loop body executed?"
+        }
+      ],
+      "options": [
+        {
+          "label": "a",
+          "body": [{ "type": "text", "value": "4" }]
+        },
+        {
+          "label": "b",
+          "body": [{ "type": "text", "value": "5" }]
+        },
+        {
+          "label": "c",
+          "body": [{ "type": "text", "value": "6" }]
+        },
+        {
+          "label": "d",
+          "body": [{ "type": "text", "value": "15" }]
+        }
+      ],
+      "answer": { "mode": "single", "value": "b" },
+      "explanation": [
+        {
+          "type": "text",
+          "value": "The loop runs once for each value n = 1, 2, 3, 4, 5."
+        }
+      ],
+      "source": { "pdf": "CS1033_2024.pdf", "page": 4, "qno": 8 },
+      "status": "published"
+    },
+    {
+      "id": "FLUID_2024_KINVISC_NUMERIC_REL",
+      "subject": "fluid",
+      "unit": "Fluid Properties",
+      "topic": "Kinematic viscosity",
+      "year": "2024",
+      "type": "numeric",
+      "body": [
+        {
+          "type": "text",
+          "value": "Enter the kinematic viscosity in \\(\\mathrm{m^2/s}\\) for \\(\\mu = 1.0 \\times 10^{-3}\\,\\mathrm{Pa\\,s}\\) and \\(\\rho = 1000\\,\\mathrm{kg/m^3}\\)."
+        }
+      ],
+      "answer": {
+        "mode": "numeric",
+        "value": 0.000001,
+        "tolerance": 0.02,
+        "toleranceType": "relative"
+      },
+      "explanation": [
+        {
+          "type": "math",
+          "latex": "\\nu = \\frac{\\mu}{\\rho} = \\frac{1.0 \\times 10^{-3}}{1000} = 1.0 \\times 10^{-6}\\,\\mathrm{m^2/s}",
+          "display": true
+        }
+      ],
+      "source": { "pdf": "Fluid_Mechanics_2024.pdf", "page": 2, "qno": 1 },
+      "status": "published"
+    },
+    {
+      "id": "MATH_ZERO_NEAR_NUMERIC_ABS",
+      "subject": "math",
+      "unit": "ODEs",
+      "topic": "Equilibrium error",
+      "year": "2024",
+      "type": "numeric",
+      "body": [
+        {
+          "type": "text",
+          "value": "A computed residual should be zero. Enter the residual if the accepted absolute error is 0.5."
+        }
+      ],
+      "answer": {
+        "mode": "numeric",
+        "value": 0,
+        "tolerance": 0.5,
+        "toleranceType": "absolute"
+      },
+      "explanation": [
+        {
+          "type": "text",
+          "value": "Because the correct value is zero, a relative tolerance would be meaningless. Use an absolute tolerance."
+        }
+      ],
+      "source": { "pdf": "MA1014_2024.pdf", "page": 6, "qno": 3 },
+      "status": "published"
+    },
+    {
+      "id": "MATH_ROOTS_MULTI_NUMERIC",
+      "subject": "math",
+      "unit": "Real Analysis",
+      "topic": "Quadratic equations",
+      "year": "2024",
+      "type": "numeric",
+      "body": [
+        {
+          "type": "text",
+          "value": "Find all real roots of \\(x^2 - 4 = 0\\). The renderer should give two input fields, or an equivalent multi-entry input, because both roots are required."
+        }
+      ],
+      "answer": {
+        "mode": "numeric",
+        "value": [2, -2],
+        "matchMode": "all",
+        "tolerance": 0.01,
+        "toleranceType": "absolute"
+      },
+      "explanation": [
+        {
+          "type": "text",
+          "value": "Factor \\(x^2 - 4\\) as \\((x - 2)(x + 2)\\). The roots are \\(2\\) and \\(-2\\), and both are required."
+        }
+      ],
+      "source": { "pdf": "MA1014_2024.pdf", "page": 7, "qno": 4 },
+      "status": "published"
+    },
+    {
+      "id": "GEN_EU_SHORT_ANY",
+      "subject": "cs",
+      "unit": "General Knowledge",
+      "topic": "Accepted alternatives",
+      "year": "2024",
+      "type": "short_answer",
+      "body": [
+        {
+          "type": "text",
+          "value": "Write the common abbreviation or full name for the European Union."
+        }
+      ],
+      "answer": {
+        "mode": "text",
+        "value": ["EU", "European Union"],
+        "matchMode": "any"
+      },
+      "explanation": [
+        {
+          "type": "text",
+          "value": "This is one blank with two accepted phrasings."
+        }
+      ],
+      "source": { "pdf": "General_2024.pdf", "page": 1, "qno": 1 },
+      "status": "published"
+    },
+    {
+      "id": "PHYS_SI_UNITS_TEXT_ALL",
+      "subject": "mechanics",
+      "unit": "Units",
+      "topic": "SI base units",
+      "year": "2024",
+      "type": "short_answer",
+      "body": [
+        {
+          "type": "text",
+          "value": "Name the two SI base units required here: length and mass."
+        }
+      ],
+      "answer": {
+        "mode": "text",
+        "value": ["metre", "kilogram"],
+        "matchMode": "all",
+        "extraAllowed": false
+      },
+      "explanation": [
+        {
+          "type": "text",
+          "value": "The SI base unit for length is metre, and the SI base unit for mass is kilogram."
+        }
+      ],
+      "source": { "pdf": "Mechanics_2024.pdf", "page": 1, "qno": 2 },
+      "status": "published"
+    },
+    {
+      "id": "MAT_BOND_MULTI_SELECT",
+      "subject": "materials",
+      "unit": "Atomic Bonding",
+      "topic": "Bond directionality",
+      "year": "2024",
+      "type": "multi_select",
+      "body": [
+        {
+          "type": "text",
+          "value": "Select all bond types that are generally non-directional."
+        }
+      ],
+      "options": [
+        {
+          "label": "a",
+          "body": [{ "type": "text", "value": "Ionic bond" }]
+        },
+        {
+          "label": "b",
+          "body": [{ "type": "text", "value": "Covalent bond" }]
+        },
+        {
+          "label": "c",
+          "body": [{ "type": "text", "value": "Metallic bond" }]
+        },
+        {
+          "label": "d",
+          "body": [{ "type": "text", "value": "Directional covalent network" }]
+        }
+      ],
+      "answer": { "mode": "multiple", "value": ["a", "c"] },
+      "explanation": [
+        {
+          "type": "text",
+          "value": "Ionic and metallic bonds are commonly treated as non-directional. Covalent bonding is directional."
+        }
+      ],
+      "source": { "pdf": "Materials_2024.pdf", "page": 2, "qno": 3 },
+      "status": "published"
+    },
+    {
+      "id": "LEGACY_CS_OUTPUT_001",
+      "unit": 2,
+      "year": "2024",
+      "text": "What is printed by the following Python code?\\nprint(2 + 3)",
+      "opts": ["2", "3", "5", "23"],
+      "ans": "c",
+      "exp": "The expression 2 + 3 is evaluated numerically, so the output is 5.",
+      "type": "mcq",
+      "img": "IMAGES/Computer Science/Past Papers/2024/python-output.png",
+      "imgAlt": "A short Python code snippet."
+    }
+  ]
+}
