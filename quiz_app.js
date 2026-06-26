@@ -4489,12 +4489,26 @@ async function fetchGroq(userPrompt) {
   return fetchJanudaProxy('groq', userPrompt);
 }
 
+async function getCurrentSupabaseAccessTokenSafely() {
+  try {
+    if (typeof _sb === 'undefined' || !_sb?.auth?.getSession) return null;
+    const { data } = await _sb.auth.getSession();
+    return data?.session?.access_token || null;
+  } catch {
+    return null;
+  }
+}
+
 async function fetchJanudaProxy(provider, userPrompt) {
+  const headers = {
+    'Content-Type': 'application/json'
+  };
+  const token = await getCurrentSupabaseAccessTokenSafely();
+  if (token) headers.Authorization = `Bearer ${token}`;
+
   const res = await fetch('/api/januda', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
+    headers,
     body: JSON.stringify({
       provider,
       systemPrompt: getSystemPrompt(),
