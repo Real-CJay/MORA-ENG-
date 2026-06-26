@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fluid Mechanics Ordered Study Guide</title>
+  <script>
+    window.MathJax = { tex: { inlineMath: [['\\(','\\)'], ['$', '$']], displayMath: [['\\[','\\]']] }, svg: { fontCache: 'global' } };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <style>
+    :root{
+      --ink:#102033;
+      --muted:#64748b;
+      --blue:#0f6fff;
+      --blue2:#00a3c7;
+      --soft:#eef8ff;
+      --soft2:#f7fbff;
+      --line:#d8e8f5;
+      --card:#ffffff;
+      --accent:#173c78;
+      --good:#0f8f62;
+      --warn:#b46900;
+      --shadow:0 18px 45px rgba(15, 111, 255, .10);
+      --radius:22px;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(0,163,199,.15), transparent 30rem),
+        linear-gradient(180deg,#fbfdff 0%,#f4faff 100%);
+      line-height:1.65;
+    }
+    .hero{
+      position:relative;
+      overflow:hidden;
+      padding:64px 24px 54px;
+      color:#fff;
+      background:linear-gradient(135deg,#083066 0%,#0d6efd 58%,#00a3c7 100%);
+    }
+    .hero:after{
+      content:"";
+      position:absolute;
+      inset:auto -10% -70px -10%;
+      height:150px;
+      background:rgba(255,255,255,.22);
+      border-radius:50% 50% 0 0;
+      transform:rotate(-2deg);
+    }
+    .hero-inner{max-width:1180px;margin:auto;position:relative;z-index:1}
+    .eyebrow{letter-spacing:.18em;text-transform:uppercase;font-weight:750;font-size:.78rem;opacity:.88}
+    h1{font-size:clamp(2.1rem,6vw,4.6rem);line-height:1.02;margin:14px 0 14px;letter-spacing:-.05em}
+    .hero p{font-size:clamp(1rem,2vw,1.25rem);max-width:820px;opacity:.94;margin:0}
+    .container{max-width:1180px;margin:auto;padding:30px 18px 72px}
+    .topnav{
+      position:sticky;
+      top:0;
+      z-index:20;
+      background:rgba(255,255,255,.84);
+      backdrop-filter:blur(14px);
+      border-bottom:1px solid var(--line);
+      box-shadow:0 7px 20px rgba(16,32,51,.04);
+    }
+    .navscroll{max-width:1180px;margin:auto;display:flex;gap:10px;overflow:auto;padding:11px 18px;scrollbar-width:thin}
+    .navscroll a{white-space:nowrap;text-decoration:none;color:#15406f;background:#f0f7ff;border:1px solid #d7eafb;border-radius:999px;padding:8px 12px;font-size:.88rem;font-weight:700}
+    .navscroll a:hover{background:#dff1ff;color:#0d50a4}
+    .learning-map{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:14px;
+      margin:26px 0 34px;
+    }
+    .step{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:15px;
+      box-shadow:var(--shadow);
+      min-height:112px;
+    }
+    .step b{display:block;color:var(--accent);font-size:.95rem;margin-bottom:5px}
+    .step span{color:var(--muted);font-size:.9rem}
+    section{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:28px;
+      margin:24px 0;
+      box-shadow:var(--shadow);
+    }
+    section h2{font-size:clamp(1.55rem,4vw,2.35rem);line-height:1.15;margin:0 0 10px;color:#0b376f;letter-spacing:-.035em}
+    section h3{font-size:1.22rem;margin:26px 0 10px;color:#173c78}
+    .subtitle{color:var(--muted);margin-top:0;max-width:900px}
+    .grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,.9fr);gap:22px;align-items:start}
+    .grid.equal{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:16px 0}
+    .card,.law,.formula,.tip,.exam,.mini{
+      border:1px solid var(--line);
+      background:var(--soft2);
+      border-radius:18px;
+      padding:16px;
+    }
+    .law{background:linear-gradient(180deg,#f0f8ff,#fff);border-left:5px solid var(--blue)}
+    .formula{background:#071b33;color:#eef8ff;border:0;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+    .formula .label{font-size:.82rem;text-transform:uppercase;letter-spacing:.12em;color:#9bd9ff;font-weight:800;margin-bottom:6px}
+    .formula code,.eq{font-family:"Cascadia Code","Consolas",monospace;font-size:1.02rem}
+    .formula .note{color:#b8c8dc;font-size:.92rem;margin-top:8px}
+    .tip{background:#fff9e8;border-color:#ffe1a3;color:#5b3a00}
+    .exam{background:#effdf8;border-color:#bef4db;color:#073e2c}
+    .visual{
+      background:linear-gradient(180deg,#eef9ff,#ffffff);
+      border:1px solid #d8edf9;
+      border-radius:20px;
+      padding:16px;
+      overflow:visible;
+    }
+    .visual svg{width:100%;height:auto;display:block;shape-rendering:geometricPrecision;text-rendering:geometricPrecision}
+    .caption{font-size:.86rem;color:var(--muted);margin:8px 4px 0;text-align:center}
+    .pill{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:#edf7ff;color:#0e5ea8;border:1px solid #cce8ff;font-size:.82rem;font-weight:800;margin:2px}
+    table{width:100%;border-collapse:separate;border-spacing:0;margin:14px 0;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:#fff}
+    th,td{padding:12px 13px;border-bottom:1px solid var(--line);vertical-align:top}
+    th{background:#eaf6ff;text-align:left;color:#0e3b72;font-size:.9rem}
+    tr:last-child td{border-bottom:0}
+    details{border:1px solid var(--line);border-radius:15px;padding:14px 16px;background:#fbfdff;margin:11px 0}
+    summary{cursor:pointer;font-weight:800;color:#103d74}
+    .flowchart{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:14px 0}
+    .flowchart div{position:relative;background:#f2f9ff;border:1px solid #cfe7fa;border-radius:16px;padding:14px;min-height:90px;font-weight:750;color:#0b376f}
+    .flowchart div:not(:last-child):after{content:"→";position:absolute;right:-18px;top:32px;color:#0f6fff;font-size:1.4rem;font-weight:900}
+    .quick-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+    .source-box{font-size:.9rem;color:#54647a;background:#f7fbff;border:1px dashed #bed7ea;border-radius:16px;padding:14px}
+    .tagline{font-weight:850;color:#0e3b72}
+    .small{font-size:.92rem;color:var(--muted)}
+    .svg-label{font:700 13.5px Inter, sans-serif;fill:#123;paint-order:stroke;stroke:rgba(255,255,255,.9);stroke-width:3px;stroke-linejoin:round}
+    .svg-small{font:600 11.5px Inter, sans-serif;fill:#356;paint-order:stroke;stroke:rgba(255,255,255,.9);stroke-width:2.4px;stroke-linejoin:round}
+    .terms-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:14px 0 0}
+    .term-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 12px 10px}
+    .term-card b{display:block;color:#0e3b72;margin-bottom:4px}
+    .term-card span{display:block;color:var(--muted);font-size:.89rem;line-height:1.45}
+    .eq-intro{margin-top:14px}
+    .water{fill:#cdefff;stroke:#0e7fb7;stroke-width:2}
+    .solid{stroke:#102033;stroke-width:3;fill:#ffffff}
+    .arrow{stroke:#0f6fff;stroke-width:3;marker-end:url(#arrow)}
+    .force{stroke:#e3532f;stroke-width:3;marker-end:url(#arrowRed)}
+    .axis{stroke:#8998aa;stroke-width:1.5}
+    .dash{stroke-dasharray:6 6}
+    @media (max-width:900px){.learning-map,.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.grid,.grid.equal{grid-template-columns:1fr}.flowchart{grid-template-columns:1fr}.flowchart div:after{display:none}}
+    @media (max-width:560px){section{padding:20px}.learning-map,.cards,.quick-grid{grid-template-columns:1fr}}
+    @media print{.topnav{display:none}body{background:#fff}.hero{background:#0d4c91}.container{max-width:none}.section{break-inside:avoid}section{box-shadow:none;break-inside:avoid}.formula{background:#f2f7ff;color:#111;border:1px solid #d5e8fb}.formula .label,.formula .note{color:#334}}
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="eyebrow">CE1023 Fluid Mechanics - Ordered Study Guide</div>
+      <h1>Learn Fluid Mechanics in the right order.</h1>
+      <p>This guide starts from what a fluid is, then builds properties, pressure, thrust, buoyancy, relative equilibrium, flow laws, momentum and fluid machinery. It is arranged in the order you would naturally learn the subject.</p>
+    </div>
+  </header>
+
+  <nav class="topnav">
+    <div class="navscroll">
+      <a href="#map">Learning order</a>
+      <a href="#symbols">Symbols & terms</a>
+      <a href="#fluids">1. Fluids</a>
+      <a href="#properties">2. Properties</a>
+      <a href="#pressure">3. Static pressure</a>
+      <a href="#measurement">4. Measurement</a>
+      <a href="#thrust-plane">5. Plane thrust</a>
+      <a href="#thrust-curved">6. Curved thrust</a>
+      <a href="#buoyancy">7. Buoyancy</a>
+      <a href="#relative">8. Relative equilibrium</a>
+      <a href="#flow">9. Flow laws</a>
+      <a href="#momentum">10. Momentum</a>
+      <a href="#machinery">11. Machinery</a>
+      <a href="#formula-sheet">Formula sheet</a>
+    </div>
+  </nav>
+
+  <main class="container">
+    <section id="map">
+      <h2>The learning path</h2>
+      <p class="subtitle">Fluid mechanics becomes much easier if you learn it in this sequence. Every later topic uses the earlier ideas.</p>
+      <div class="learning-map">
+        <div class="step"><b>1. Matter that flows</b><span>Fluids, continuum idea, density and viscosity.</span></div>
+        <div class="step"><b>2. Fluids at rest</b><span>Pressure, Pascal's law, pressure variation with depth.</span></div>
+        <div class="step"><b>3. Resultant forces</b><span>Hydrostatic thrust on plane and curved surfaces.</span></div>
+        <div class="step"><b>4. Floating bodies</b><span>Buoyancy, Archimedes' principle, stability and metacentre.</span></div>
+        <div class="step"><b>5. Moving containers</b><span>Relative equilibrium and forced vortex.</span></div>
+        <div class="step"><b>6. Fluids in motion</b><span>Control volume, continuity and Bernoulli.</span></div>
+        <div class="step"><b>7. Forces from flow</b><span>Momentum equation, jets, bends and vanes.</span></div>
+        <div class="step"><b>8. Machines</b><span>Pumps and turbines as energy transfer devices.</span></div>
+      </div>
+      <div class="exam"><b>Exam mindset:</b> first identify whether the fluid is at rest, relatively at rest, or flowing. Then choose hydrostatics, relative equilibrium, or conservation laws.</div>
+    </section>
+
+    <section id="symbols">
+      <h2>Symbols and terms used in the equations</h2>
+      <p class="subtitle">Before solving problems, get comfortable with the symbols. Most equations in fluid mechanics are short, but every symbol carries a physical meaning.</p>
+      <div class="terms-grid">
+        <div class="term-card"><b>\(\rho\)</b><span>Density, mass per unit volume (kg/m³).</span></div>
+        <div class="term-card"><b>\(\gamma\)</b><span>Specific weight, weight per unit volume; \(\gamma=\rho g\) (N/m³).</span></div>
+        <div class="term-card"><b>\(\mu\)</b><span>Dynamic viscosity, resistance to shear flow (Pa·s).</span></div>
+        <div class="term-card"><b>\(\nu\)</b><span>Kinematic viscosity, \(\nu=\mu/\rho\) (m²/s).</span></div>
+        <div class="term-card"><b>\(p\)</b><span>Pressure, normal force per unit area (Pa).</span></div>
+        <div class="term-card"><b>\(h\), \(z\)</b><span>Heights: \(h\) is usually depth below free surface; \(z\) is elevation from a datum.</span></div>
+        <div class="term-card"><b>\(A\), \(V\)</b><span>Area and velocity. In pipes, \(Q=AV\).</span></div>
+        <div class="term-card"><b>\(Q\), \(\dot m\)</b><span>Discharge (m³/s) and mass flow rate (kg/s), where \(\dot m=\rho Q\).</span></div>
+        <div class="term-card"><b>\(H\)</b><span>Total head: elevation head + pressure head + velocity head.</span></div>
+        <div class="term-card"><b>\(F\), \(F_H\), \(F_V\), \(F_R\)</b><span>Force, horizontal component, vertical component, and resultant hydrostatic force.</span></div>
+        <div class="term-card"><b>\(U\), \(W\)</b><span>Upthrust/buoyant force and weight.</span></div>
+        <div class="term-card"><b>\(G\), \(B\), \(M\)</b><span>Centre of gravity, centre of buoyancy, and metacentre.</span></div>
+        <div class="term-card"><b>\(I_G\), \(I\)</b><span>Second moment of area. Used in centre of pressure and metacentric height.</span></div>
+        <div class="term-card"><b>\(a_x,a_y,a_z\)</b><span>Container accelerations along axes in relative equilibrium.</span></div>
+        <div class="term-card"><b>\(\omega\), \(r\)</b><span>Angular speed and radius in vortex motion.</span></div>
+        <div class="term-card"><b>\(H_P,H_L,H_T\)</b><span>Pump head added, head loss, and turbine head removed.</span></div>
+      </div>
+      <div class="tip eq-intro"><b>Reading equations tip:</b> whenever you see an equation, first say in words what each symbol means. This prevents memorising formulas without understanding them.</div>
+    </section>
+
+    <section id="fluids">
+      <h2>1. What is a fluid?</h2>
+      <p class="subtitle">A fluid is a substance that continuously deforms under shear stress, however small the shear stress is. Liquids and gases are fluids. In equilibrium, there is no flow and no shear force; only normal pressure forces act.</p>
+      <div class="grid">
+        <div>
+          <div class="law">
+            <b>Definition</b><br>
+            A fluid cannot permanently resist shear deformation. A solid can resist shear; a fluid keeps changing shape while shear is applied.
+          </div>
+          <table>
+            <tr><th>State</th><th>Volume</th><th>Shape</th><th>Compressibility</th></tr>
+            <tr><td>Solid</td><td>Fixed</td><td>Fixed</td><td>Low</td></tr>
+            <tr><td>Liquid</td><td>Fixed</td><td>No fixed shape</td><td>Low</td></tr>
+            <tr><td>Gas</td><td>No fixed volume</td><td>No fixed shape</td><td>High</td></tr>
+          </table>
+          <div class="tip"><b>Important idea:</b> in statics, pressure forces are normal to surfaces. That is why hydrostatic thrust acts perpendicular to a submerged plane surface.</div>
+        </div>
+        <div class="visual">
+          <svg viewBox="0 0 520 360" role="img" aria-label="Solid liquid gas molecular spacing">
+            <defs>
+              <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0f6fff"/></marker>
+              <marker id="arrowRed" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e3532f"/></marker>
+            </defs>
+            <rect x="24" y="32" width="130" height="130" rx="18" fill="#f1f7ff" stroke="#b9d9ef"/>
+            <rect x="195" y="32" width="130" height="130" rx="18" fill="#f1f7ff" stroke="#b9d9ef"/>
+            <rect x="366" y="32" width="130" height="130" rx="18" fill="#f1f7ff" stroke="#b9d9ef"/>
+            <g fill="#0f6fff" opacity=".85">
+              <script type="application/ecmascript"><![CDATA[]]></script>
+              <circle cx="54" cy="62" r="9"/><circle cx="82" cy="62" r="9"/><circle cx="110" cy="62" r="9"/><circle cx="138" cy="62" r="9"/>
+              <circle cx="54" cy="90" r="9"/><circle cx="82" cy="90" r="9"/><circle cx="110" cy="90" r="9"/><circle cx="138" cy="90" r="9"/>
+              <circle cx="54" cy="118" r="9"/><circle cx="82" cy="118" r="9"/><circle cx="110" cy="118" r="9"/><circle cx="138" cy="118" r="9"/>
+              <circle cx="54" cy="146" r="9"/><circle cx="82" cy="146" r="9"/><circle cx="110" cy="146" r="9"/><circle cx="138" cy="146" r="9"/>
+              <circle cx="225" cy="63" r="8"/><circle cx="258" cy="72" r="8"/><circle cx="292" cy="58" r="8"/><circle cx="230" cy="108" r="8"/><circle cx="270" cy="112" r="8"/><circle cx="304" cy="103" r="8"/><circle cx="246" cy="142" r="8"/><circle cx="285" cy="145" r="8"/><circle cx="217" cy="137" r="8"/>
+              <circle cx="403" cy="67" r="8"/><circle cx="461" cy="88" r="8"/><circle cx="424" cy="134" r="8"/><circle cx="480" cy="143" r="8"/><circle cx="388" cy="112" r="8"/>
+            </g>
+            <text x="89" y="200" text-anchor="middle" class="svg-label">Solid</text>
+            <text x="260" y="200" text-anchor="middle" class="svg-label">Liquid</text>
+            <text x="431" y="200" text-anchor="middle" class="svg-label">Gas</text>
+            <text x="89" y="232" text-anchor="middle" class="svg-small">fixed shape</text>
+            <text x="260" y="232" text-anchor="middle" class="svg-small">flows, fixed volume</text>
+            <text x="431" y="232" text-anchor="middle" class="svg-small">flows, compressible</text>
+            <line x1="75" y1="296" x2="235" y2="296" class="force"/>
+            <rect x="70" y="274" width="170" height="44" rx="10" fill="none" stroke="#102033" stroke-width="2"/>
+            <text x="155" y="346" text-anchor="middle" class="svg-small">shear stress causes continuous deformation in fluids</text>
+          </svg>
+          <div class="caption">Solid resists shear; liquid and gas flow under shear.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="properties">
+      <h2>2. Fluid properties you must know first</h2>
+      <p class="subtitle">These properties are the language used in every equation after this point.</p>
+      <div class="cards">
+        <div class="card"><b>Density</b><div class="eq">\(\rho=\dfrac{m}{V}\)</div><span class="small">Units: kg/m³</span></div>
+        <div class="card"><b>Specific weight</b><div class="eq">\(\gamma=\dfrac{W}{V}=\rho g\)</div><span class="small">Units: N/m³</span></div>
+        <div class="card"><b>Relative density</b><div class="eq">\(S=\dfrac{\rho}{\rho_w}\)</div><span class="small">Dimensionless</span></div>
+        <div class="card"><b>Bulk modulus</b><div class="eq">\(K=-\dfrac{dp}{dV/V}=\rho\dfrac{dp}{d\rho}\)</div><span class="small">High K = low compressibility</span></div>
+        <div class="card"><b>Surface tension</b><div class="eq">\(\sigma=\dfrac{F}{L}\)</div><span class="small">Important in capillarity/small scale</span></div>
+        <div class="card"><b>Kinematic viscosity</b><div class="eq">\(\nu=\dfrac{\mu}{\rho}\)</div><span class="small">Units: m²/s</span></div>
+      </div>
+      <div class="grid equal">
+        <div>
+          <h3>Newton's law of viscosity</h3>
+          <div class="formula">
+            <div class="label">Viscous shear law</div>
+            \[\tau=\mu\frac{\partial v}{\partial y}\]
+            <div class="note">Valid for Newtonian fluids: water, air, many common oils under usual conditions.</div>
+          </div>
+          <details>
+            <summary>Physical meaning</summary>
+            If one layer of fluid moves faster than the neighboring layer, internal friction appears between the layers. The stronger the velocity gradient, the larger the shear stress.
+          </details>
+        </div>
+        <div class="visual">
+          <svg viewBox="0 0 520 310" role="img" aria-label="Velocity gradient and viscosity">
+            <defs>
+              <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0f6fff"/></marker>
+              <marker id="arrowRed" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e3532f"/></marker>
+            </defs>
+            <rect x="70" y="50" width="350" height="180" fill="#dff5ff" stroke="#8fd2ef"/>
+            <line x1="70" y1="50" x2="420" y2="50" stroke="#102033" stroke-width="5"/>
+            <line x1="70" y1="230" x2="420" y2="230" stroke="#102033" stroke-width="5"/>
+            <line x1="95" y1="204" x2="160" y2="204" class="arrow"/>
+            <line x1="95" y1="166" x2="205" y2="166" class="arrow"/>
+            <line x1="95" y1="128" x2="250" y2="128" class="arrow"/>
+            <line x1="95" y1="90" x2="295" y2="90" class="arrow"/>
+            <line x1="455" y1="230" x2="455" y2="50" class="axis"/>
+            <line x1="455" y1="230" x2="493" y2="230" class="axis"/>
+            <text x="467" y="74" class="svg-label">y</text>
+            <text x="488" y="250" class="svg-label">v</text>
+            <text x="246" y="278" text-anchor="middle" class="svg-small">velocity increases from bottom plate to top plate</text>
+            <text x="250" y="32" text-anchor="middle" class="svg-label">τ = μ(dv/dy)</text>
+          </svg>
+          <div class="caption">Viscosity connects shear stress to velocity gradient.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="pressure">
+      <h2>3. Static fluid pressure</h2>
+      <p class="subtitle">Now we enter fluid statics: the study of fluids in equilibrium. No flow means no shear stress, so pressure acts normally and equally in all directions at a point.</p>
+      <div class="grid">
+        <div>
+          <div class="law"><b>Pascal's law</b><br>The hydrostatic pressure at a point is the same in all directions.</div>
+          <div class="formula">
+            <div class="label">Pressure definition</div>
+            \[p=\frac{F}{A}\]
+            <div class="note">Pressure is a scalar, but the force caused by pressure is normal to the surface.</div>
+          </div>
+          <h3>Hydrostatic pressure variation</h3>
+          <div class="formula">
+            <div class="label">Fluid at rest</div>
+            \[\frac{dp}{dz}=-\rho g\]
+            \[p_2-p_1=\rho g h=\gamma h\]
+          </div>
+          <p>For a free surface open to the atmosphere, using gauge pressure:</p>
+          <div class="formula"><div class="label">Depth h below free surface</div>\[p=\rho gh=\gamma h\]</div>
+          <div class="terms-grid eq-intro">
+            <div class="term-card"><b>\(p\)</b><span>Gauge pressure at the point.</span></div>
+            <div class="term-card"><b>\(\rho\)</b><span>Density of the liquid.</span></div>
+            <div class="term-card"><b>\(g\)</b><span>Acceleration due to gravity.</span></div>
+            <div class="term-card"><b>\(h\)</b><span>Vertical depth below free surface.</span></div>
+            <div class="term-card"><b>\(\gamma\)</b><span>Specific weight of the liquid, \(\rho g\).</span></div>
+          </div>
+        </div>
+        <div class="visual">
+          <svg viewBox="0 0 520 430" role="img" aria-label="Pascal law and pressure variation">
+            <defs>
+              <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0f6fff"/></marker>
+              <marker id="arrowRed" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e3532f"/></marker>
+            </defs>
+            <rect x="52" y="52" width="180" height="140" rx="18" fill="#f4fbff" stroke="#c8e7fa"/>
+            <circle cx="142" cy="122" r="8" fill="#102033"/>
+            <line x1="142" y1="122" x2="142" y2="70" class="force"/>
+            <line x1="142" y1="122" x2="194" y2="122" class="force"/>
+            <line x1="142" y1="122" x2="142" y2="174" class="force"/>
+            <line x1="142" y1="122" x2="90" y2="122" class="force"/>
+            <text x="142" y="218" text-anchor="middle" class="svg-label">p₁ = p₂ = p₃ = p₄</text>
+            <rect x="295" y="55" width="145" height="270" rx="8" fill="#fff" stroke="#102033" stroke-width="3"/>
+            <path d="M295 110 H440 V325 H295 Z" fill="#d5f3ff"/>
+            <line x1="295" y1="110" x2="440" y2="110" stroke="#0e7fb7" stroke-width="3"/>
+            <line x1="450" y1="110" x2="450" y2="325" stroke="#64748b" stroke-width="2"/>
+            <line x1="450" y1="110" x2="467" y2="110" stroke="#64748b"/>
+            <line x1="450" y1="325" x2="467" y2="325" stroke="#64748b"/>
+            <text x="474" y="223" class="svg-label">h</text>
+            <path d="M300 110 L300 325 L420 325 Z" fill="#61c6ef" opacity=".65" stroke="#0e7fb7"/>
+            <text x="346" y="356" text-anchor="middle" class="svg-label">pressure diagram</text>
+            <text x="364" y="390" text-anchor="middle" class="svg-small">p increases linearly with depth</text>
+          </svg>
+          <div class="caption">At a point pressure is equal in all directions; with depth it increases linearly.</div>
+        </div>
+      </div>
+      <details>
+        <summary>Absolute, gauge and vacuum pressure</summary>
+        <div class="quick-grid">
+          <div class="mini"><b>Absolute pressure</b><br>Measured from absolute vacuum.<br>\(p_{abs}=p_{atm}+p_g\)</div>
+          <div class="mini"><b>Gauge pressure</b><br>Measured relative to atmosphere.<br>\(p_g=p_{abs}-p_{atm}\)</div>
+          <div class="mini"><b>Vacuum pressure</b><br>When pressure is below atmospheric.<br>\(p_{vac}=p_{atm}-p_{abs}\)</div>
+          <div class="mini"><b>Pressure head</b><br>Pressure expressed as liquid column height.<br>\(h=p/\gamma\)</div>
+        </div>
+      </details>
+    </section>
+
+    <section id="measurement">
+      <h2>4. Measuring pressure: heads, piezometers and manometers</h2>
+      <p class="subtitle">Once pressure is understood, measurement devices are only applications of the hydrostatic pressure law.</p>
+      <div class="grid">
+        <div>
+          <h3>Piezometric head</h3>
+          <div class="formula">
+            <div class="label">Piezometric head</div>
+            \[H_p=z+\frac{p}{\gamma}\]
+          </div>
+          <p>This is elevation head plus pressure head. It does not include velocity head.</p>
+          <h3>Differential manometer rule</h3>
+          <p>For two points A and B in the same liquid connected by a heavier manometric liquid:</p>
+          <div class="formula">
+            <div class="label">Common mercury differential manometer result</div>
+            \[\left(\frac{p_A}{\gamma_w}+z_A\right)-\left(\frac{p_B}{\gamma_w}+z_B\right)=(S_m-1)h\]
+            <div class="note">The \((S_m-1)\) appears because the manometer liquid replaces the same height of pipe liquid. It is not just mercury head; it is excess head over water.</div>
+          </div>
+        </div>
+        <div class="visual">
+          <svg viewBox="0 0 520 390" role="img" aria-label="Piezometer and differential manometer">
+            <defs>
+              <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0f6fff"/></marker>
+              <marker id="arrowRed" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e3532f"/></marker>
+            </defs>
+            <text x="130" y="30" text-anchor="middle" class="svg-label">Piezometer</text>
+            <rect x="45" y="160" width="170" height="45" rx="20" fill="#d5f3ff" stroke="#0e7fb7" stroke-width="3"/>
+            <rect x="122" y="58" width="28" height="102" fill="#d5f3ff" stroke="#102033" stroke-width="3"/>
+            <line x1="122" y1="58" x2="150" y2="58" stroke="#102033" stroke-width="3"/>
+            <line x1="156" y1="160" x2="156" y2="58" stroke="#64748b" stroke-width="1.5"/>
+            <text x="164" y="112" class="svg-label">p/γ</text>
+            <circle cx="132" cy="182" r="5" fill="#102033"/><text x="112" y="186" class="svg-label">A</text>
+
+            <text x="370" y="30" text-anchor="middle" class="svg-label">Differential manometer</text>
+            <rect x="285" y="103" width="170" height="38" rx="17" fill="#d5f3ff" stroke="#0e7fb7" stroke-width="3"/>
+            <path d="M315 122 V270 Q315 318 363 318 Q411 318 411 270 V122" fill="none" stroke="#102033" stroke-width="8" stroke-linecap="round"/>
+            <path d="M315 218 V270 Q315 318 363 318 Q411 318 411 270 V178" fill="none" stroke="#7c8794" stroke-width="17" stroke-linecap="round"/>
+            <line x1="438" y1="178" x2="438" y2="218" stroke="#64748b" stroke-width="2"/>
+            <line x1="426" y1="178" x2="452" y2="178" stroke="#64748b"/>
+            <line x1="426" y1="218" x2="452" y2="218" stroke="#64748b"/>
+            <text x="456" y="204" class="svg-label">h</text>
+            <circle cx="315" cy="122" r="5" fill="#102033"/><text x="301" y="96" class="svg-label">A</text>
+            <circle cx="411" cy="122" r="5" fill="#102033"/><text x="420" y="96" class="svg-label">B</text>
+            <text x="363" y="352" text-anchor="middle" class="svg-small">heavy liquid e.g. mercury</text>
+          </svg>
+          <div class="caption">Piezometers measure pressure head directly; differential manometers compare two piezometric heads.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="thrust-plane">
+      <h2>5. Hydrostatic thrust on plane surfaces</h2>
+      <p class="subtitle">After pressure, the next question is: what is the single resultant force on a whole submerged surface?</p>
+      <div class="grid">
+        <div>
+          <div class="law"><b>Hydrostatic thrust</b><br>The resultant force exerted by a fluid in equilibrium on a submerged surface. Direction is normal to the plane surface.</div>
+          <h3>Magnitude</h3>
+          <div class="formula">
+            <div class="label">General plane surface</div>
+            \[F=\int_A p\,dA\]
+            \[F=\rho g A \bar h=A p_G\]
+            <div class="note">\(\bar h\) is the vertical depth of the centroid. \(p_G\) is pressure at the centroid.</div>
+          </div>
+          <h3>Line of action / centre of pressure</h3>
+          <div class="formula">
+            <div class="label">Distance along inclined plane from free surface</div>
+            \[y_C=\bar y+\frac{I_G}{A\bar y}\]
+            \[h_C=y_C\sin\theta\]
+          </div>
+          <div class="tip"><b>Why centre of pressure is below centroid:</b> deeper parts have larger pressure, so the resultant shifts toward the deeper side. Therefore usually \(y_C>\bar y\).</div>
+          <div class="terms-grid eq-intro">
+            <div class="term-card"><b>\(F\)</b><span>Resultant hydrostatic thrust on the whole surface.</span></div>
+            <div class="term-card"><b>\(A\)</b><span>Submerged area of the plane surface.</span></div>
+            <div class="term-card"><b>\(\bar h\)</b><span>Vertical depth of the centroid \(G\).</span></div>
+            <div class="term-card"><b>\(p_G\)</b><span>Pressure at the centroid of the area.</span></div>
+            <div class="term-card"><b>\(\bar y\), \(y_C\)</b><span>Distances along the plane to centroid and centre of pressure.</span></div>
+            <div class="term-card"><b>\(I_G\)</b><span>Second moment of area about centroidal axis parallel to free surface.</span></div>
+          </div>
+        </div>
+        <div class="visual">
+          <svg viewBox="0 0 520 430" role="img" aria-label="Plane hydrostatic thrust on an inclined surface">
+            <defs>
+              <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0f6fff"/></marker>
+              <marker id="arrowRed" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e3532f"/></marker>
+            </defs>
+            <rect x="34" y="36" width="420" height="332" rx="22" fill="#dcf6ff"/>
+            <line x1="48" y1="74" x2="442" y2="74" stroke="#0e7fb7" stroke-width="4"/>
+            <text x="58" y="58" class="svg-small">free surface</text>
+            <line x1="208" y1="116" x2="314" y2="330" stroke="#102033" stroke-width="6"/>
+            <line x1="198" y1="94" x2="220" y2="140" stroke="#64748b" stroke-dasharray="5 5"/>
+            <circle cx="254" cy="210" r="6" fill="#102033"/><text x="268" y="206" class="svg-label">G</text>
+            <circle cx="282" cy="266" r="6" fill="#e3532f"/><text x="296" y="266" class="svg-label">C</text>
+            <line x1="214" y1="150" x2="155" y2="175" class="force"/>
+            <line x1="234" y1="190" x2="162" y2="221" class="force"/>
+            <line x1="254" y1="230" x2="169" y2="268" class="force"/>
+            <line x1="274" y1="270" x2="176" y2="314" class="force"/>
+            <line x1="282" y1="266" x2="168" y2="317" class="force"/>
+            <text x="142" y="324" class="svg-label">F</text>
+            <line x1="208" y1="116" x2="254" y2="210" stroke="#64748b" stroke-dasharray="5 5"/>
+            <line x1="208" y1="116" x2="282" y2="266" stroke="#64748b" stroke-dasharray="5 5"/>
+            <text x="222" y="154" class="svg-small">ȳ</text>
+            <text x="250" y="176" class="svg-small">y<tspan baseline-shift="sub">C</tspan></text>
+            <line x1="314" y1="116" x2="348" y2="116" stroke="#9db2c7" stroke-dasharray="5 5"/>
+            <line x1="314" y1="330" x2="348" y2="330" stroke="#9db2c7" stroke-dasharray="5 5"/>
+            <path d="M348 116 L348 330 L432 330 Z" fill="#7cc9ea" opacity=".72" stroke="#0e7fb7" stroke-width="2"/>
+            <text x="390" y="356" text-anchor="middle" class="svg-small">pressure diagram</text>
+          </svg>
+          <div class="caption">The resultant acts normal to the surface and below the centroid.</div>
+        </div>
+      </div>
+      <details>
+        <summary>Pressure diagram shortcut</summary>
+        For vertical rectangular surfaces, the pressure diagram is triangular if it starts at the free surface and trapezoidal if the top is already submerged. The thrust per unit width is the area of this pressure diagram. The line of action passes through the centroid of the pressure diagram.
+      </details>
+    </section>
+
+    <section id="thrust-curved">
+      <h2>6. Hydrostatic thrust on curved surfaces</h2>
+      <p class="subtitle">For curved surfaces, pressure forces are normal at every point, so the resultant is found by components.</p>
+      <div class="grid">
+        <div>
+          <div class="formula">
+            <div class="label">Curved surface components</div>
+            \[F_H=\text{force on vertical projection}\]
+            \[F_V=\text{weight of imaginary liquid above surface}\]
+            \[F_R=\sqrt{F_H^2+F_V^2}\]
+            \[\tan\theta=\frac{F_V}{F_H}\]
+          </div>
+          <div class="exam"><b>Procedure:</b> take the horizontal component using the vertical projected area. Take the vertical component using the weight of water directly above the curved surface, including sign depending on whether water is above or below the surface.</div>
+        </div>
+        <div class="visual">
+          <svg viewBox="0 0 520 370" role="img" aria-label="Curved surface hydrostatic force components">
+            <defs>
+              <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0f6fff"/></marker>
+              <marker id="arrowRed" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e3532f"/></marker>
+            </defs>
+            <rect x="50" y="42" width="250" height="250" fill="#dff5ff" stroke="#b9e6f5"/>
+            <line x1="50" y1="42" x2="300" y2="42" stroke="#0e7fb7" stroke-width="4"/>
+            <text x="92" y="24" class="svg-small">free surface</text>
+            <path d="M300 88 Q220 165 300 242" fill="#fff" stroke="#102033" stroke-width="5"/>
+            <path d="M300 88 Q220 165 300 242 L300 88" fill="#91dcf5" opacity=".48" stroke="#5da9cf" stroke-width="1.5"/>
+            <line x1="300" y1="88" x2="300" y2="242" stroke="#102033" stroke-width="2" stroke-dasharray="6 6"/>
+            <text x="276" y="70" text-anchor="middle" class="svg-small">vertical projection</text>
+            <text x="232" y="166" text-anchor="middle" class="svg-small">imaginary liquid</text>
+            <line x1="300" y1="165" x2="388" y2="165" class="force"/>
+            <text x="401" y="149" class="svg-label">F<tspan baseline-shift="sub">H</tspan></text>
+            <line x1="238" y1="165" x2="238" y2="258" class="force"/>
+            <text x="218" y="272" class="svg-label">F<tspan baseline-shift="sub">V</tspan></text>
+            <line x1="300" y1="165" x2="378" y2="243" class="arrow"/>
+            <text x="390" y="248" class="svg-label">F<tspan baseline-shift="sub">R</tspan></text>
+            <path d="M334 165 A34 34 0 0 1 336 198" fill="none" stroke="#e3532f" stroke-width="3"/>
+            <text x="343" y="191" class="svg-small">θ</text>
+          </svg>
+          <div class="caption">Resolve a curved-surface force into horizontal and vertical components.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="buoyancy">
+      <h2>7. Buoyancy, floating and stability</h2>
+      <p class="subtitle">Buoyancy is hydrostatic thrust integrated over the whole body. The horizontal components cancel; the vertical resultant is the upthrust.</p>
+      <div class="grid">
+        <div>
+          <div class="law"><b>Archimedes' principle</b><br>The buoyant force on a body equals the weight of the displaced fluid and acts upward through the centre of buoyancy.</div>
+          <div class="formula">
+            <div class="label">Buoyancy</div>
+            \[U=\rho g V_{disp}=\gamma V_{disp}\]
+          </div>
+          <h3>Equilibrium conditions</h3>
+          <table>
+            <tr><th>Condition</th><th>Meaning</th></tr>
+            <tr><td>\(U=W\)</td><td>Vertical equilibrium</td></tr>
+            <tr><td>\(U>W\)</td><td>Body rises</td></tr>
+            <tr><td>\(U<W\)</td><td>Body sinks</td></tr>
+          </table>
+          <h3>Two immiscible fluids</h3>
+          <div class="formula"><div class="label">Total upthrust</div>\[U=V_1\rho_1g+V_2\rho_2g\]</div>
+          <div class="terms-grid eq-intro">
+            <div class="term-card"><b>\(U\)</b><span>Buoyant force (upthrust).</span></div>
+            <div class="term-card"><b>\(V_{disp}\)</b><span>Volume of displaced fluid.</span></div>
+            <div class="term-card"><b>\(W\)</b><span>Weight of the body.</span></div>
+            <div class="term-card"><b>\(B, G, M\)</b><span>Centre of buoyancy, centre of gravity, and metacentre.</span></div>
+            <div class="term-card"><b>\(GM\)</b><span>Metacentric height; positive for stable floating equilibrium.</span></div>
+          </div>
+        </div>
+        <div class="visual">
+          <svg viewBox="0 0 520 430" role="img" aria-label="Buoyancy and floating stability">
+            <defs>
+              <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0f6fff"/></marker>
+              <marker id="arrowRed" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e3532f"/></marker>
+            </defs>
+            <rect x="42" y="82" width="438" height="264" fill="#dff5ff" stroke="#b9e6f5"/>
+            <line x1="42" y1="132" x2="480" y2="132" stroke="#0e7fb7" stroke-width="4"/>
+            <rect x="120" y="188" width="108" height="122" rx="20" fill="#fff" stroke="#102033" stroke-width="3"/>
+            <circle cx="174" cy="228" r="5" fill="#0f6fff"/><text x="188" y="228" class="svg-label">B</text>
+            <circle cx="174" cy="250" r="5" fill="#102033"/><text x="188" y="250" class="svg-label">G</text>
+            <line x1="174" y1="258" x2="174" y2="176" class="arrow"/>
+            <line x1="174" y1="238" x2="174" y2="298" class="force"/>
+            <text x="148" y="176" class="svg-label">U</text><text x="148" y="300" class="svg-label">W</text>
+            <polygon points="305,112 418,130 400,242 287,224" fill="#fff" stroke="#102033" stroke-width="3" stroke-linejoin="round"/>
+            <line x1="350" y1="68" x2="350" y2="252" stroke="#64748b" stroke-dasharray="5 5"/>
+            <circle cx="350" cy="134" r="5" fill="#102033"/><text x="364" y="134" class="svg-label">M</text>
+            <circle cx="350" cy="168" r="5" fill="#102033"/><text x="364" y="168" class="svg-label">G</text>
+            <circle cx="324" cy="206" r="5" fill="#0f6fff"/><text x="292" y="210" class="svg-label">B'</text>
+            <line x1="324" y1="214" x2="324" y2="130" class="arrow"/>
+            <text x="304" y="150" class="svg-label">U</text>
+            <line x1="350" y1="176" x2="350" y2="230" class="force"/>
+            <text x="360" y="212" class="svg-label">W</text>
+            <text x="350" y="380" text-anchor="middle" class="svg-small">If M is above G, the tilted floating body is stable.</text>
+          </svg>
+          <div class="caption">Buoyancy acts through B. For floating stability, use the metacentre M.</div>
+        </div>
+      </div>
+      <div class="grid equal">
+        <div>
+          <h3>Fully submerged stability</h3>
+          <table>
+            <tr><th>Relative position</th><th>Equilibrium</th></tr>
+            <tr><td>\(B\) above \(G\)</td><td>Stable</td></tr>
+            <tr><td>\(B\) below \(G\)</td><td>Unstable</td></tr>
+            <tr><td>\(B\equiv G\)</td><td>Neutral</td></tr>
+          </table>
+          <div class="formula"><div class="label">Small angle restoring moment</div>\[M_R=W(GB)\sin\theta\approx W(GB)\theta\]</div>
+        </div>
+        <div>
+          <h3>Floating body stability</h3>
+          <table>
+            <tr><th>Metacentric condition</th><th>Equilibrium</th></tr>
+            <tr><td>\(GM>0\)</td><td>Stable</td></tr>
+            <tr><td>\(GM<0\)</td><td>Unstable</td></tr>
+            <tr><td>\(GM=0\)</td><td>Neutral</td></tr>
+          </table>
+          <div class="formula"><div class="label">Metacentric height</div>\[BM=\frac{I}{V}\qquad GM=BM-BG\]\[M_R=W(GM)\sin\theta\]</div>
+        </div>
+      </div>
+      <details>
+        <summary>Experimental metacentric height</summary>
+        Move a known weight \(P\) by distance \(x\), measure small tilt angle \(\theta\):
+        \[GM=\frac{Px}{W\tan\theta}\approx\frac{Px}{W\theta}\]
+      </details>
+      <details>
+        <summary>Free surface effect</summary>
+        Liquid cargo can reduce stability because the liquid shifts during tilt. Effective metacentric height decreases:
+        \[GM_{effective}=GM-GN\]
+        Splitting the liquid into smaller compartments reduces this effect.
+      </details>
+    </section>
+
+    <section id="relative">
+      <h2>8. Relative equilibrium of fluids</h2>
+      <p class="subtitle">A fluid in a moving container may still be at rest relative to the container. Since there is no relative motion between fluid particles, fluid statics can still be used.</p>
+      <div class="grid">
+        <div>
+          <h3>Linear acceleration</h3>
+          <div class="formula">
+            <div class="label">Pressure field in accelerating container</div>
+            \[dp=-\rho a_xdx-\rho a_ydy-\rho(a_z+g)dz\]
+            \[p=-\rho a_xx-\rho a_yy-\rho(a_z+g)z+C\]
+          </div>
+          <div class="formula">
+            <div class="label">Free surface</div>
+            \[\rho a_xx+\rho a_yy+\rho(a_z+g)z=C\]
+            \[\tan\theta_x=\frac{dz}{dx}=-\frac{a_x}{a_z+g}\]
+          </div>
+          <div class="tip"><b>Special case:</b> if acceleration is horizontal only, the magnitude of the free-surface slope is \(\tan\theta=a/g\).</div>
+          <div class="terms-grid eq-intro">
+            <div class="term-card"><b>\(a_x,a_y,a_z\)</b><span>Acceleration components of the container.</span></div>
+            <div class="term-card"><b>\(C\)</b><span>Integration constant defining the free-surface plane.</span></div>
+            <div class="term-card"><b>\(\theta\)</b><span>Inclination of the free surface.</span></div>
+          </div>
+        </div>
+        <div class="visual">
+          <svg viewBox="0 0 520 385" role="img" aria-label="Tank under horizontal acceleration">
+            <defs>
+              <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0f6fff"/></marker>
+              <marker id="arrowRed" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e3532f"/></marker>
+            </defs>
+            <rect x="82" y="84" width="326" height="208" fill="#fff" stroke="#102033" stroke-width="5"/>
+            <line x1="110" y1="164" x2="382" y2="218" stroke="#0e7fb7" stroke-width="4"/>
+            <polygon points="86,164 405,218 405,292 86,292" fill="#d5f3ff" stroke="#0e7fb7" stroke-width="3"/>
+            <line x1="82" y1="164" x2="408" y2="164" stroke="#9db2c7" stroke-width="1.8" stroke-dasharray="6 6"/>
+            <line x1="58" y1="332" x2="184" y2="332" class="arrow"/>
+            <text x="194" y="332" class="svg-label">a</text>
+            <path d="M240 165 A44 44 0 0 1 325 186" fill="none" stroke="#e3532f" stroke-width="3"/>
+            <text x="282" y="166" class="svg-label">θ</text>
+            <text x="245" y="48" text-anchor="middle" class="svg-label">free surface becomes a plane</text>
+            <text x="245" y="358" text-anchor="middle" class="svg-small">tank accelerates right → liquid rises on the left and falls on the right</text>
+          </svg>
+          <div class="caption">Relative equilibrium under horizontal acceleration.</div>
+        </div>
+      </div>
+      <div class="grid">
+        <div>
+          <h3>Forced vortex motion</h3>
+          <p>If a vessel rotates at constant angular velocity, the fluid rotates with it like a rigid body.</p>
+          <div class="formula">
+            <div class="label">Forced vortex</div>
+            \[v=r\omega\]
+            \[\frac{\partial p}{\partial r}=\rho r\omega^2\]
+            \[p=\frac{\rho\omega^2r^2}{2}-\rho gz+C\]
+            \[z=z_0+\frac{\omega^2r^2}{2g}\]
+          </div>
+        </div>
+        <div class="visual">
+          <svg viewBox="0 0 520 390" role="img" aria-label="Forced vortex paraboloid free surface">
+            <defs>
+              <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0f6fff"/></marker>
+            </defs>
+            <ellipse cx="260" cy="86" rx="110" ry="26" fill="#fff" stroke="#102033" stroke-width="4"/>
+            <line x1="150" y1="86" x2="150" y2="318" stroke="#102033" stroke-width="4"/>
+            <line x1="370" y1="86" x2="370" y2="318" stroke="#102033" stroke-width="4"/>
+            <ellipse cx="260" cy="318" rx="110" ry="20" fill="none" stroke="#102033" stroke-width="4"/>
+            <path d="M150 170 Q260 240 370 170 L370 318 L150 318 Z" fill="#d5f3ff" stroke="#0e7fb7" stroke-width="3"/>
+            <path d="M150 170 Q260 240 370 170" fill="none" stroke="#1f6feb" stroke-width="5"/>
+            <line x1="260" y1="78" x2="260" y2="324" stroke="#64748b" stroke-dasharray="5 5"/>
+            <ellipse cx="260" cy="54" rx="42" ry="18" fill="none" stroke="#e3532f" stroke-width="3"/>
+            <path d="M221 54 A42 18 0 0 1 298 54" fill="none" stroke="#e3532f" stroke-width="3" marker-end="url(#arrow)"/>
+            <text x="306" y="58" class="svg-label">ω</text>
+            <text x="260" y="352" text-anchor="middle" class="svg-small">free surface is paraboloid: z ∝ r²</text>
+          </svg>
+          <div class="caption">In a forced vortex, the free surface is parabolic.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="flow">
+      <h2>9. Fluids in motion: control volume, mass and energy</h2>
+      <p class="subtitle">Now the fluid is flowing. We stop tracking every particle and use a control volume: a real or imaginary region through which fluid flows.</p>
+      <div class="grid">
+        <div>
+          <h3>Control volume idea</h3>
+          <div class="law">Conservation laws are applied to flow through the control volume: mass, energy and momentum.</div>
+          <h3>Conservation of mass</h3>
+          <div class="formula">
+            <div class="label">Continuity equation</div>
+            \[\dot m_{in}-\dot m_{out}=\frac{dm_{CV}}{dt}\]
+            <div class="note">Steady incompressible single-inlet/single-outlet flow:</div>
+            \[Q=A V=\text{constant}\]
+            \[A_1V_1=A_2V_2\]
+          </div>
+          <h3>Bernoulli and total head</h3>
+          <div class="formula">
+            <div class="label">Total head</div>
+            \[H=z+\frac{p}{\rho g}+\frac{V^2}{2g}\]
+            \[z_1+\frac{p_1}{\rho g}+\frac{V_1^2}{2g}=z_2+\frac{p_2}{\rho g}+\frac{V_2^2}{2g}\]
+          </div>
+          <div class="formula">
+            <div class="label">Steady flow energy equation</div>
+            \[H_1+H_P=H_2+H_L+H_T\]
+            <div class="note">Pump adds head; turbine removes head; losses consume head.</div>
+          </div>
+          <div class="terms-grid eq-intro">
+            <div class="term-card"><b>\(Q\)</b><span>Discharge or volume flow rate.</span></div>
+            <div class="term-card"><b>\(A, V\)</b><span>Flow area and mean velocity.</span></div>
+            <div class="term-card"><b>\(z\)</b><span>Elevation head measured from a datum.</span></div>
+            <div class="term-card"><b>\(p/(\rho g)\)</b><span>Pressure head.</span></div>
+            <div class="term-card"><b>\(V^2/(2g)\)</b><span>Velocity head.</span></div>
+            <div class="term-card"><b>\(H_P,H_L,H_T\)</b><span>Pump head added, loss head, and turbine head extracted.</span></div>
+          </div>
+        </div>
+        <div class="visual">
+          <svg viewBox="0 0 520 460" role="img" aria-label="Continuity and Bernoulli visual">
+            <defs>
+              <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0f6fff"/></marker>
+              <marker id="arrowRed" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e3532f"/></marker>
+            </defs>
+            <path d="M56 118 C145 82 225 98 296 126 C356 150 412 140 464 108 L464 206 C409 235 344 230 285 204 C225 178 145 174 56 210 Z" fill="#d5f3ff" stroke="#0e7fb7" stroke-width="3"/>
+            <line x1="82" y1="164" x2="162" y2="154" class="arrow"/><text x="90" y="144" class="svg-label">A₁,V₁</text>
+            <line x1="328" y1="168" x2="430" y2="148" class="arrow"/><text x="376" y="136" class="svg-label">A₂,V₂</text>
+            <text x="260" y="58" text-anchor="middle" class="svg-label">A₁V₁ = A₂V₂</text>
+            <line x1="90" y1="312" x2="446" y2="312" stroke="#102033" stroke-width="3"/>
+            <line x1="155" y1="312" x2="155" y2="214" stroke="#64748b" stroke-dasharray="5 5"/>
+            <line x1="385" y1="312" x2="385" y2="214" stroke="#64748b" stroke-dasharray="5 5"/>
+            <text x="130" y="338" class="svg-small">section 1</text>
+            <text x="360" y="338" class="svg-small">section 2</text>
+            <path d="M118 278 C190 244 278 250 422 224" fill="none" stroke="#1f6feb" stroke-width="5"/>
+            <circle cx="155" cy="267" r="4" fill="#1f6feb"/>
+            <circle cx="385" cy="231" r="4" fill="#1f6feb"/>
+            <text x="260" y="402" text-anchor="middle" class="svg-label">Bernoulli: elevation head + pressure head + velocity head</text>
+          </svg>
+          <div class="caption">Continuity links area and velocity; Bernoulli links pressure, speed and elevation.</div>
+        </div>
+      </div>
+      <details>
+        <summary>When can Bernoulli be used directly?</summary>
+        Use it for steady, incompressible, frictionless flow along a streamline. In real pipe problems, extend it using head loss and pump/turbine head.
+      </details>
+    </section>
+
+    <section id="momentum">
+      <h2>10. Conservation of momentum</h2>
+      <p class="subtitle">Energy tells you pressure/speed/head. Momentum tells you force. Use it for jets, pipe bends, nozzles, vanes and propellers.</p>
+      <div class="grid">
+        <div>
+          <div class="law"><b>Newton's second law for flow</b><br>The net external force on a control volume equals the rate of change of momentum of the fluid.</div>
+          <div class="formula">
+            <div class="label">Steady flow momentum equation</div>
+            \[\sum F=\dot m(V_{out}-V_{in})\]
+            \[\sum F_x=\rho Q(V_{2x}-V_{1x})\]
+            \[\sum F_y=\rho Q(V_{2y}-V_{1y})\]
+          </div>
+          <div class="exam"><b>Sign warning:</b> this gives force on the fluid. The force of the fluid on the pipe/vane is equal and opposite.</div>
+          <div class="terms-grid eq-intro">
+            <div class="term-card"><b>\(\sum F\)</b><span>Net external force acting on the chosen control volume.</span></div>
+            <div class="term-card"><b>\(\dot m\)</b><span>Mass flow rate of fluid through the control volume.</span></div>
+            <div class="term-card"><b>\(V_{1x},V_{2x}\)</b><span>x-components of inlet and outlet velocity.</span></div>
+            <div class="term-card"><b>\(V_{1y},V_{2y}\)</b><span>y-components of inlet and outlet velocity.</span></div>
+            <div class="term-card"><b>\(R_x,R_y\)</b><span>Reaction components usually solved from momentum balance.</span></div>
+          </div>
+          <h3>Momentum problem checklist</h3>
+          <ol>
+            <li>Draw a control volume.</li>
+            <li>Resolve inlet and outlet velocities into components.</li>
+            <li>Show pressure forces, weight if needed, and reactions.</li>
+            <li>Apply continuity to get \(Q\) or velocities.</li>
+            <li>Apply momentum in x and y separately.</li>
+          </ol>
+        </div>
+        <div class="visual">
+          <svg viewBox="0 0 520 420" role="img" aria-label="Pipe bend momentum force components">
+            <defs>
+              <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0f6fff"/></marker>
+              <marker id="arrowRed" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e3532f"/></marker>
+            </defs>
+            <rect x="54" y="72" width="330" height="232" rx="28" fill="none" stroke="#0f6fff" stroke-dasharray="8 6"/>
+            <path d="M82 230 L252 230 Q352 230 352 130 L352 72" fill="none" stroke="#102033" stroke-width="54" stroke-linecap="round"/>
+            <path d="M82 230 L252 230 Q352 230 352 130 L352 72" fill="none" stroke="#d5f3ff" stroke-width="42" stroke-linecap="round"/>
+            <line x1="72" y1="230" x2="178" y2="230" class="arrow"/><text x="94" y="206" class="svg-label">V₁</text>
+            <line x1="352" y1="88" x2="352" y2="20" class="arrow"/><text x="368" y="56" class="svg-label">V₂</text>
+            <line x1="260" y1="286" x2="190" y2="286" class="force"/><text x="176" y="292" class="svg-label">R<tspan baseline-shift="sub">x</tspan></text>
+            <line x1="260" y1="286" x2="260" y2="346" class="force"/><text x="270" y="344" class="svg-label">R<tspan baseline-shift="sub">y</tspan></text>
+            <text x="219" y="390" text-anchor="middle" class="svg-small">control volume around pipe bend</text>
+          </svg>
+          <div class="caption">Velocity direction changes, so momentum changes, so a force is required.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="machinery">
+      <h2>11. Fluid machinery: pumps and turbines</h2>
+      <p class="subtitle">Fluid machines transfer energy between a moving/rotating machine part and a fluid.</p>
+      <div class="grid equal">
+        <div>
+          <h3>Pumps</h3>
+          <div class="law"><b>Energy direction:</b> machine → fluid. A pump adds head to the liquid.</div>
+          <div class="formula">
+            <div class="label">Pump head and power</div>
+            \[H_P=H_2-H_1+H_L\]
+            \[P_w=\rho gQH_P\]
+            \[\eta_p=\frac{\rho gQH_P}{P_{input}}\]
+          </div>
+          <div class="terms-grid eq-intro">
+            <div class="term-card"><b>\(H_P\)</b><span>Head added by the pump.</span></div>
+            <div class="term-card"><b>\(P_w\)</b><span>Water power transferred to the fluid.</span></div>
+            <div class="term-card"><b>\(\eta_p\)</b><span>Pump efficiency.</span></div>
+            <div class="term-card"><b>\(Q\)</b><span>Discharge through the machine.</span></div>
+          </div>
+          <table>
+            <tr><th>Arrangement</th><th>Effect</th></tr>
+            <tr><td>Series</td><td>Heads add: \(H_T=H_1+H_2\)</td></tr>
+            <tr><td>Parallel</td><td>Discharges add: \(Q_T=Q_1+Q_2\)</td></tr>
+          </table>
+        </div>
+        <div>
+          <h3>Turbines</h3>
+          <div class="law"><b>Energy direction:</b> fluid → machine. A turbine extracts head from flowing water.</div>
+          <div class="formula">
+            <div class="label">Turbine power</div>
+            \[P_h=\rho gQH\]
+            \[P_{out}=\eta_t\rho gQH\]
+          </div>
+          <div class="terms-grid eq-intro">
+            <div class="term-card"><b>\(P_h\)</b><span>Hydraulic power available in the fluid.</span></div>
+            <div class="term-card"><b>\(P_{out}\)</b><span>Useful shaft power output.</span></div>
+            <div class="term-card"><b>\(\eta_t\)</b><span>Turbine efficiency.</span></div>
+            <div class="term-card"><b>\(H\)</b><span>Head available across the turbine.</span></div>
+          </div>
+          <table>
+            <tr><th>Type</th><th>Typical idea</th></tr>
+            <tr><td>Impulse</td><td>Jet strikes buckets; high head applications.</td></tr>
+            <tr><td>Reaction</td><td>Pressure changes through runner; Francis/Kaplan examples.</td></tr>
+          </table>
+        </div>
+      </div>
+      <div class="visual">
+        <svg viewBox="0 0 980 360" role="img" aria-label="Pump and turbine energy direction">
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0f6fff"/></marker>
+            <marker id="arrowRed" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e3532f"/></marker>
+          </defs>
+          <rect x="42" y="54" width="170" height="82" rx="22" fill="#f2f9ff" stroke="#b9d9ef"/>
+          <rect x="298" y="54" width="170" height="82" rx="22" fill="#f2f9ff" stroke="#b9d9ef"/>
+          <text x="127" y="103" text-anchor="middle" class="svg-label">Machine</text>
+          <text x="383" y="103" text-anchor="middle" class="svg-label">Fluid</text>
+          <line x1="216" y1="95" x2="292" y2="95" class="arrow"/>
+          <text x="254" y="74" text-anchor="middle" class="svg-small">Pump adds energy</text>
+
+          <rect x="522" y="54" width="170" height="82" rx="22" fill="#f2f9ff" stroke="#b9d9ef"/>
+          <rect x="768" y="54" width="170" height="82" rx="22" fill="#f2f9ff" stroke="#b9d9ef"/>
+          <text x="607" y="103" text-anchor="middle" class="svg-label">Fluid</text>
+          <text x="853" y="103" text-anchor="middle" class="svg-label">Machine</text>
+          <line x1="696" y1="95" x2="762" y2="95" class="arrow"/>
+          <text x="729" y="74" text-anchor="middle" class="svg-small">Turbine extracts energy</text>
+
+          <path d="M92 250 C152 208 232 208 362 226" fill="none" stroke="#1f6feb" stroke-width="5"/>
+          <text x="226" y="272" text-anchor="middle" class="svg-small">pump characteristic</text>
+          <text x="226" y="292" text-anchor="middle" class="svg-small">head depends on discharge</text>
+
+          <path d="M570 226 C670 258 768 258 856 194" fill="none" stroke="#e3532f" stroke-width="5"/>
+          <text x="712" y="272" text-anchor="middle" class="svg-small">turbine output depends</text>
+          <text x="712" y="292" text-anchor="middle" class="svg-small">on available head and flow</text>
+        </svg>
+        <div class="caption">Pumps and turbines are opposite energy-transfer devices.</div>
+      </div>
+      <details>
+        <summary>Positive displacement vs rotodynamic machines</summary>
+        Positive displacement machines trap fluid in an enclosed volume and force it out by mechanical action. Rotodynamic machines exchange energy between a flowing fluid and a rotating impeller, runner or rotor.
+      </details>
+    </section>
+
+    <section id="formula-sheet">
+      <h2>One-page formula sheet</h2>
+      <p class="subtitle">Use this as the quick revision page before solving problems.</p>
+      <div class="quick-grid">
+        <div class="formula"><div class="label">Properties</div>\[\rho=m/V,\quad \gamma=\rho g,\quad S=\rho/\rho_w\]\[\tau=\mu\frac{dv}{dy},\quad \nu=\mu/\rho\]</div>
+        <div class="formula"><div class="label">Hydrostatic pressure</div>\[p=F/A,\quad p=\rho gh=\gamma h\]\[p_{abs}=p_{atm}+p_g\]</div>
+        <div class="formula"><div class="label">Plane hydrostatic thrust</div>\[F=\rho gA\bar h=Ap_G\]\[y_C=\bar y+\frac{I_G}{A\bar y}\]</div>
+        <div class="formula"><div class="label">Curved surface</div>\[F_R=\sqrt{F_H^2+F_V^2}\]\[F_H=\text{vertical projection force}\]</div>
+        <div class="formula"><div class="label">Buoyancy</div>\[U=\rho gV_{disp}\]\[BM=I/V,\quad GM=BM-BG\]</div>
+        <div class="formula"><div class="label">Relative equilibrium</div>\[dp=-\rho a_xdx-\rho a_ydy-\rho(a_z+g)dz\]\[z=z_0+\frac{\omega^2r^2}{2g}\]</div>
+        <div class="formula"><div class="label">Continuity + Bernoulli</div>\[Q=AV,\quad A_1V_1=A_2V_2\]\[H=z+\frac{p}{\rho g}+\frac{V^2}{2g}\]</div>
+        <div class="formula"><div class="label">Momentum + machinery</div>\[\sum F=\rho Q(V_2-V_1)\]\[P=\rho gQH,\quad \eta=P_{out}/P_{in}\]</div>
+      </div>
+      <h3>Which equation should I choose?</h3>
+      <div class="flowchart">
+        <div>Fluid at rest?<br><span class="small">Use pressure / thrust</span></div>
+        <div>Floating body?<br><span class="small">Use buoyancy / GM</span></div>
+        <div>Accelerating container?<br><span class="small">Use relative equilibrium</span></div>
+        <div>Flow speed/pressure?<br><span class="small">Use continuity + energy</span></div>
+        <div>Force due to flow?<br><span class="small">Use momentum</span></div>
+      </div>
+      <div class="source-box">
+        <span class="tagline">Source map used to build this guide:</span> L1 Fluids for definitions and properties; L2 Static Fluid Pressure for pressure and Pascal's law; L3 Hydrostatic Thrust for thrust on plane/curved surfaces; L5 Buoyancy for Archimedes, equilibrium and stability; Relative Equilibrium for accelerating/rotating fluids; Analysis of Fluid Flow 1 and 2 for continuity, Bernoulli and momentum; Fluid Machinery 1 and 2 for pumps and turbines.
+      </div>
+    </section>
+  </main>
+</body>
+</html>

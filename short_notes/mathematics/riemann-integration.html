@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Riemann Integration — MA1014</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f5f3fc;--sidebar:#fff;--card:#fff;
+  --accent:#5b4fcf;--accent-s:#ede9ff;--accent-m:#9b8fef;
+  --blue:#3a6fd8;--blue-s:#e8effe;
+  --gold:#c49200;--gold-s:#fffbec;
+  --text:#1a1730;--tm:#4a4570;--ts:#8a84a8;
+  --border:#e2ddf2;--form:#f0eeff;--proof:#fafafe;
+  --sw:230px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.7}
+
+/* ── Layout ── */
+.layout{display:flex;min-height:100vh}
+.sidebar{width:var(--sw);background:var(--sidebar);border-right:1px solid var(--border);position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:100;padding:1.75rem 0 2rem}
+.sb-brand{font-family:'Playfair Display',serif;font-size:.95rem;font-weight:700;color:var(--text);padding:0 1.4rem 1.25rem;border-bottom:1px solid var(--border);margin-bottom:.85rem;letter-spacing:-.01em}
+.sb-sub{font-size:.67rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--ts);display:block;margin-top:.2rem}
+.nav-list{list-style:none}
+.nav-list a{display:block;padding:.42rem 1.4rem;color:var(--tm);text-decoration:none;font-size:.82rem;font-weight:400;transition:all .15s;border-left:2px solid transparent}
+.nav-list a:hover{color:var(--accent);background:var(--accent-s)}
+.nav-list a.active{color:var(--accent);border-left-color:var(--accent);background:var(--accent-s);font-weight:500}
+.main{margin-left:var(--sw);flex:1;padding:3rem 3.5rem 6rem;max-width:calc(var(--sw) + 820px)}
+
+/* ── Section shell ── */
+.sec{margin-bottom:5.5rem}
+.eyebrow{font-size:.67rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:.7rem}
+.sec-title{font-family:'Playfair Display',serif;font-size:2.1rem;font-weight:700;line-height:1.2;margin-bottom:1.1rem}
+.sec-intro{color:var(--tm);font-size:.93rem;margin-bottom:2rem;max-width:660px;line-height:1.8}
+h3{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:600;color:var(--text);margin:2rem 0 .65rem}
+p{color:var(--tm);margin-bottom:.9rem;line-height:1.75}
+
+/* ── Boxes ── */
+.thm,.defn,.prop{border-radius:0 8px 8px 0;padding:1.1rem 1.4rem;margin:1.1rem 0;border:1px solid}
+.thm{background:var(--accent-s);border-color:var(--border);border-left:3px solid var(--accent)}
+.defn{background:var(--blue-s);border-color:#d5e1f8;border-left:3px solid var(--blue)}
+.prop{background:#f2fff8;border-color:#c8f0da;border-left:3px solid #2da865}
+.box-label{font-size:.67rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.45rem}
+.thm .box-label{color:var(--accent)}
+.defn .box-label{color:var(--blue)}
+.prop .box-label{color:#2da865}
+.box-body{color:var(--text);font-size:.91rem;line-height:1.7}
+
+.intuition{background:var(--gold-s);border:1px solid #f0e0a0;border-left:3px solid var(--gold);border-radius:0 8px 8px 0;padding:.9rem 1.2rem;margin:.9rem 0;font-size:.86rem;color:#4a3800}
+.intuition .box-label{color:var(--gold)}
+
+.formula{background:var(--form);border:1px solid var(--border);border-radius:8px;padding:1.1rem 1.25rem;text-align:center;margin:1.1rem 0;overflow-x:auto}
+.formula-sm{background:var(--form);border:1px solid var(--border);border-radius:6px;padding:.7rem 1rem;margin:.7rem 0;overflow-x:auto}
+
+/* ── Proof toggle ── */
+.proof-btn{cursor:pointer;background:none;border:none;color:var(--accent);font-size:.8rem;font-weight:500;font-family:'Inter',sans-serif;padding:.35rem 0;display:flex;align-items:center;gap:.4rem;margin:.6rem 0}
+.proof-btn::before{content:'▶';font-size:.6rem;transition:transform .2s}
+.proof-btn.open::before{transform:rotate(90deg)}
+.proof-box{background:var(--proof);border:1px solid var(--border);border-radius:8px;padding:1.1rem 1.4rem;margin-bottom:1.1rem;font-size:.86rem;color:var(--tm);display:none}
+.proof-box.show{display:block}
+
+/* ── Widget ── */
+.widget{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.4rem;margin:1.5rem 0}
+.widget-title{font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ts);margin-bottom:1rem}
+.ctrl{display:flex;align-items:center;gap:10px;margin-bottom:.6rem}
+.ctrl label{font-size:.8rem;color:var(--ts);min-width:75px}
+.ctrl input[type=range]{flex:1;accent-color:var(--accent)}
+.ctrl span{font-size:.8rem;font-weight:500;color:var(--text);min-width:44px}
+.pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:.9rem}
+.pill{background:var(--accent-s);border-radius:20px;padding:.25rem .8rem;font-size:.76rem;color:var(--accent);font-weight:500}
+.pill-g{background:#e8fff3;color:#1a8a4a}
+.pill-r{background:#fff0f0;color:#c0392b}
+canvas{width:100%;border-radius:8px;border:1px solid var(--border);display:block;background:#fff}
+.cvote{font-size:.75rem;color:var(--ts);margin-top:.45rem;text-align:center}
+.tab-row{display:flex;gap:8px;margin-bottom:1rem}
+.tab-btn{font-size:.78rem;padding:5px 12px;border-radius:20px;border:1px solid var(--border);cursor:pointer;background:var(--card);color:var(--tm);font-family:'Inter',sans-serif}
+.tab-btn.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* ── Transform grid ── */
+.tgrid{display:grid;grid-template-columns:1fr 1fr;gap:.9rem;margin:1rem 0}
+.tcard{background:var(--form);border:1px solid var(--border);border-radius:8px;padding:.9rem 1rem}
+.tcard-lbl{font-size:.67rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ts);margin-bottom:.45rem}
+.tcard .formula-sm{background:#fff;margin:.5rem 0 0}
+
+/* ── Table ── */
+table{width:100%;border-collapse:collapse;font-size:.86rem;margin:1rem 0}
+th{background:var(--accent-s);color:var(--accent);font-weight:600;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;padding:.55rem .9rem;text-align:left}
+td{padding:.55rem .9rem;border-bottom:1px solid var(--border);color:var(--tm);vertical-align:top}
+tr:last-child td{border-bottom:none}
+
+/* ── Overview hero ── */
+.hero{background:linear-gradient(135deg,var(--accent-s) 0%,#fff 65%);border:1px solid var(--border);border-radius:12px;padding:2rem 2.25rem;margin-bottom:2rem}
+.hero-formula{font-family:'Playfair Display',serif;font-size:1.9rem;color:var(--accent);margin:.9rem 0;text-align:center}
+
+/* ── Exam checklist ── */
+.checklist{list-style:none}
+.checklist li{display:flex;align-items:flex-start;gap:.75rem;padding:.5rem 0;border-bottom:1px solid var(--border);font-size:.88rem;color:var(--tm)}
+.checklist li::before{content:'○';color:var(--accent);font-size:1rem;flex-shrink:0;margin-top:.05rem}
+.checklist li strong{color:var(--text)}
+
+.kdiv{height:1px;background:var(--border);margin:1.5rem 0}
+</style>
+
+<style id="inserted-keypoints-style">
+.keypoints-added{
+  background:linear-gradient(180deg,#fff 0%,#faf8ff 100%)!important;
+  border:1px solid var(--border,#e2ddf2)!important;
+  border-left:3px solid var(--accent,#5b4fcf)!important;
+  border-radius:0 8px 8px 0!important;
+  padding:1.05rem 1.25rem!important;
+  margin:1.15rem 0!important;
+  box-shadow:none!important;
+}
+.keypoints-added.blue{
+  background:var(--blue-s,#e8effe)!important;
+  border-color:#d5e1f8!important;
+  border-left-color:var(--blue,#3a6fd8)!important;
+}
+.keypoints-added.green{
+  background:var(--green-s,#f2fff8)!important;
+  border-color:#c8f0da!important;
+  border-left-color:var(--green,#2da865)!important;
+}
+.keypoints-added.gold{
+  background:var(--gold-s,#fffbec)!important;
+  border-color:#f0e0a0!important;
+  border-left-color:var(--gold,#c49200)!important;
+}
+.keypoints-added.cool{
+  background:linear-gradient(180deg,#fbfdff 0%,#f0f9ff 100%)!important;
+  border-color:#c9e5f6!important;
+  border-left-color:#78b7df!important;
+}
+.keypoints-added .box-lbl,
+.keypoints-added h3{
+  color:var(--accent,#5b4fcf)!important;
+}
+.keypoints-added.blue .box-lbl,
+.keypoints-added.blue h3{color:var(--blue,#3a6fd8)!important;}
+.keypoints-added.green .box-lbl,
+.keypoints-added.green h3{color:var(--green,#2da865)!important;}
+.keypoints-added.gold .box-lbl,
+.keypoints-added.gold h3{color:var(--gold,#c49200)!important;}
+.keypoints-added.cool .box-lbl,
+.keypoints-added.cool h3{color:#3d759a!important;}
+.keypoints-added .box-lbl{
+  font-size:.67rem!important;font-weight:700!important;letter-spacing:.1em!important;
+  text-transform:uppercase!important;margin-bottom:.45rem!important;
+}
+.keypoints-added details{
+  background:linear-gradient(180deg,#fbfdff 0%,#f0f9ff 100%)!important;
+  border:1px solid #c9e5f6!important;
+  border-left:4px solid #78b7df!important;
+  border-radius:0 10px 10px 0!important;
+  padding:0!important;
+  overflow:hidden!important;
+  margin:.9rem 0!important;
+}
+.keypoints-added summary{
+  cursor:pointer!important;
+  padding:.85rem 1rem!important;
+  font-weight:600!important;
+  color:#3d759a!important;
+  list-style:none!important;
+}
+.keypoints-added summary::-webkit-details-marker{display:none!important}
+.keypoints-added summary::after{
+  content:'click to expand';
+  float:right;
+  font-size:.68rem;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:#4f6678;
+  font-weight:700;
+}
+.keypoints-added details[open] summary::after{content:'click to fold'}
+.keypoints-added .example-body{padding:1rem 1.15rem!important}
+.keypoints-added .formula{
+  background:rgba(255,255,255,.55)!important;
+  border:1px solid var(--border,#e2ddf2)!important;
+  border-radius:8px!important;
+  padding:.85rem 1rem!important;
+  margin:.7rem 0!important;
+  overflow-x:auto!important;
+}
+</style>
+
+</head>
+<body>
+<div class="layout">
+
+<!-- ═══════════ SIDEBAR ═══════════ -->
+<nav class="sidebar">
+  <div class="sb-brand">MA1014 Guide<span class="sb-sub">Riemann Integration</span></div>
+  <ul class="nav-list">
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#partitions">Partitions &amp; Sums</a></li>
+    <li><a href="#integrability">Riemann Integrability</a></li>
+    <li><a href="#integrability-extra-facts">Extra integrability facts</a></li>
+    <li><a href="#cauchy">Cauchy Criterion</a></li>
+    <li><a href="#properties">Properties</a></li>
+    <li><a href="#upper-lower-negative-function">-f sums</a></li>
+    <li><a href="#mvt">MVT for Integrals</a></li>
+    <li><a href="#sequences">Sequences of Functions</a></li>
+    <li><a href="#ftc">Fundamental Theorem</a></li>
+    <li><a href="#improper">Improper Integrals</a></li>
+    <li><a href="#betagamma">Beta &amp; Gamma</a></li>
+    <li><a href="#beta-gamma-extra-examples">Extra examples</a></li>
+    <li><a href="#exam">Exam Checklist</a></li>
+  </ul>
+</nav>
+
+<!-- ═══════════ MAIN ═══════════ -->
+<main class="main">
+
+<!-- ── 1. OVERVIEW ── -->
+<section class="sec" id="overview">
+  <div class="eyebrow">MA1014 Mathematics · Riemann Integration</div>
+  <h2 class="sec-title">Overview</h2>
+  <p class="sec-intro">The Riemann integral formalises the idea of signed area under a curve. For a bounded function $f:[a,b]\to\mathbb{R}$ we ask: can we assign a well-defined number to the area? The answer is yes — by squeezing upper and lower rectangular approximations until they agree.</p>
+
+  <div class="hero">
+    <p style="color:var(--tm);font-size:.88rem;margin-bottom:.5rem">The Riemann integral of $f$ on $[a,b]$ is the unique value squeezed between every lower and upper sum:</p>
+    <div class="hero-formula">$L(f,P) \;\le\; \displaystyle\int_a^b f \;\le\; U(f,P)$</div>
+    <p style="color:var(--ts);font-size:.8rem;text-align:center;margin:0">defined when $\sup_P L(f,P) = \inf_P U(f,P)$</p>
+  </div>
+
+  <table>
+    <tr><th>Concept</th><th>Key Idea</th><th>Section</th></tr>
+    <tr><td>Partitions &amp; Sums</td><td>Approximate area with rectangles; refine partitions</td><td>§2</td></tr>
+    <tr><td>Integrability</td><td>Upper integral = lower integral</td><td>§3</td></tr>
+    <tr><td>Cauchy Criterion</td><td>$U - L \lt \varepsilon$ for some partition</td><td>§4</td></tr>
+    <tr><td>Properties</td><td>Linearity, monotonicity, splitting</td><td>§5</td></tr>
+    <tr><td>MVT for Integrals</td><td>$f$ hits its average value at some point</td><td>§6</td></tr>
+    <tr><td>Uniform Convergence</td><td>When $\lim\int f_n = \int\lim f_n$</td><td>§7</td></tr>
+    <tr><td>FTC I &amp; II</td><td>Integration and differentiation are inverses</td><td>§8</td></tr>
+    <tr><td>Improper Integrals</td><td>Limits replacing problematic endpoints</td><td>§9</td></tr>
+    <tr><td>Beta &amp; Gamma</td><td>Continuous factorial; flexible bump on $[0,1]$</td><td>§10</td></tr>
+  </table>
+</section>
+
+<!-- ── 2. PARTITIONS & SUMS ── -->
+<section class="sec" id="partitions">
+  <div class="eyebrow">MA1014 Mathematics · Riemann Integration</div>
+  <h2 class="sec-title">Partitions &amp; Riemann Sums</h2>
+  <p class="sec-intro">We slice $[a,b]$ into sub-intervals, build rectangles above and below the curve, then take the inf/sup over all possible slicings.</p>
+
+  <div class="defn">
+    <div class="box-label">Definition — Partition</div>
+    <div class="box-body">A partition $P$ of $[a,b]$ is a finite set of almost-disjoint sub-intervals $\{I_1,\dots,I_n\}$ with $\bigcup I_k=[a,b]$, determined by endpoints $a=x_0\lt x_1\lt\cdots\lt x_n=b$.</div>
+  </div>
+
+  <div class="defn">
+    <div class="box-label">Definition — Upper &amp; Lower Sums</div>
+    <div class="box-body">
+      With $M_k=\sup_{I_k}f$ and $m_k=\inf_{I_k}f$:
+      $$U(f;P)=\sum_{k=1}^n M_k|I_k|, \qquad L(f;P)=\sum_{k=1}^n m_k|I_k|$$
+    </div>
+  </div>
+
+  <div class="widget">
+    <div class="widget-title">Interactive — Riemann Sums</div>
+    <div class="ctrl"><label>Partitions $n$</label><input type="range" id="rs-n" min="2" max="40" value="4"><span id="rs-nv">4</span></div>
+    <div class="pills">
+      <span class="pill" id="rs-U">U(f,P) = —</span>
+      <span class="pill" id="rs-L">L(f,P) = —</span>
+      <span class="pill" id="rs-gap">Gap = —</span>
+    </div>
+    <canvas id="cvRS" width="700" height="240"></canvas>
+    <p class="cvote">$f(x)=\sin(\pi x/2)+1.2$ on $[0,2]$. As $n\to\infty$, upper (blue) and lower (indigo) sums squeeze together.</p>
+  </div>
+
+  <div class="thm">
+    <div class="box-label">Lemma 0.2.1</div>
+    <div class="box-body">For any bounded $f$ on $[a,b]$ and any partition $P$: $\;L(f,P)\le U(f,P)$.</div>
+  </div>
+
+  <h3>Refinements</h3>
+  <p>$Q$ is a <em>refinement</em> of $P$ if $P\subseteq Q$ (more points added). Adding points can only improve the approximation.</p>
+
+  <div class="thm">
+    <div class="box-label">Lemma 0.2.2 — Refinement</div>
+    <div class="box-body">If $Q$ is a refinement of $P$: $\;L(f,P)\le L(f,Q)\le U(f,Q)\le U(f,P)$.</div>
+  </div>
+  <div class="intuition"><div class="box-label">Intuition</div>Adding partition points tightens the rectangles. Lower sums can only increase; upper sums can only decrease.</div>
+
+  <div class="thm">
+    <div class="box-label">Lemma 0.2.3</div>
+    <div class="box-body">For any two partitions $P_1, P_2$: $\;L(f,P_1)\le U(f,P_2)$.</div>
+  </div>
+  <button class="proof-btn">Show Proof</button>
+  <div class="proof-box">Let $Q=P_1\cup P_2$ (common refinement of both). Then $L(f,P_1)\le L(f,Q)\le U(f,Q)\le U(f,P_2)$.</div>
+</section>
+
+<!-- ── 3. RIEMANN INTEGRABILITY ── -->
+<section class="sec" id="integrability">
+  <div class="eyebrow">MA1014 Mathematics · Riemann Integration</div>
+  <h2 class="sec-title">Riemann Integrability</h2>
+  <p class="sec-intro">The upper integral is the best (lowest) upper estimate; the lower integral the best (highest) lower estimate. Integrability means these two estimates agree.</p>
+
+  <div class="defn">
+    <div class="box-label">Definition — Upper &amp; Lower Integrals</div>
+    <div class="box-body">$$U(f)=\inf_P U(f,P), \qquad L(f)=\sup_P L(f,P)$$</div>
+  </div>
+
+  <div class="thm">
+    <div class="box-label">Lemma 0.2.4</div>
+    <div class="box-body">For any bounded $f$ on $[a,b]$: $\;L(f)\le U(f)$.</div>
+  </div>
+
+  <div class="defn">
+    <div class="box-label">Definition — Riemann Integrable</div>
+    <div class="box-body">A bounded function $f:[a,b]\to\mathbb{R}$ is <strong>Riemann integrable</strong> if $U(f)=L(f)$. In that case:
+    $$\int_a^b f(x)\,dx \;=\; U(f) = L(f)$$</div>
+  </div>
+
+  <div class="intuition"><div class="box-label">Intuition</div>The signed area exists exactly when the upper and lower rectangles can be made arbitrarily close — there's no ambiguity in the area value.</div>
+
+  <h3>Key Examples</h3>
+  <table>
+    <tr><th>Function</th><th>Integrable?</th><th>Reason</th></tr>
+    <tr><td>$f(x)=C$ (constant)</td><td>✓ Yes</td><td>$U=L=C(b-a)$ for every partition</td></tr>
+    <tr><td>$f(x)=1/x$ on $[0,1]$</td><td>✗ No</td><td>Unbounded — $\sup_{[0,x_1]}f=\infty$</td></tr>
+    <tr><td>$f(x)=0$ except $f(0)=1$</td><td>✓ Yes</td><td>Single point doesn't affect the inf/sup argument</td></tr>
+    <tr><td>Dirichlet function (1 on rationals, 0 elsewhere)</td><td>✗ No</td><td>Every sub-interval has $M_k=1,\,m_k=0$, so $U-L=b-a$ always</td></tr>
+  </table>
+
+  <div class="thm">
+    <div class="box-label">Theorem 0.3.5 — Sequential Characterisation</div>
+    <div class="box-body">$f$ is Riemann integrable iff there exists a sequence of partitions $(P_n)$ with $\lim_{n\to\infty}[U(f;P_n)-L(f;P_n)]=0$. In that case $\int_a^b f=\lim U(f;P_n)=\lim L(f;P_n)$.</div>
+  </div>
+</section>
+
+<!-- ── 4. CAUCHY CRITERION ── -->
+
+<div class="keypoints-added green" id="integrability-extra-facts">
+  <div class="box-lbl">Extra integrability facts</div>
+  <ul>
+    <li>If \(f\) is Riemann integrable, then \(|f|\) is Riemann integrable.</li>
+    <li>If \(f\) is Riemann integrable, then \(f^n\) is Riemann integrable for every positive integer \(n\).</li>
+    <li>Changing a bounded function at finitely many points does not affect Riemann integrability or the value of the integral.</li>
+  </ul>
+  <p>Example: on \([0,m]\), a function equal to \(1\) except at the finitely many integers is Riemann integrable and has the same integral as \(1\).</p>
+</div>
+
+<div class="keypoints-added cool" id="thomae-function-extra">
+  <div class="box-lbl">Thomae's function</div>
+  <p>Thomae's function is</p>
+  <div class="formula">\[
+  f(x)=
+  \begin{cases}
+  1/q,& x=p/q \text{ in lowest terms},\\
+  0,& x \text{ irrational}.
+  \end{cases}
+  \]</div>
+  <p>It is discontinuous at rationals, continuous at irrationals, Riemann integrable on \([0,1]\), and</p>
+  <div class="formula">\[
+  \boxed{\int_0^1 f(x)\,dx=0.}
+  \]</div>
+</div>
+
+<section class="sec" id="cauchy">
+  <div class="eyebrow">MA1014 Mathematics · Riemann Integration</div>
+  <h2 class="sec-title">Cauchy Criterion &amp; Integrability Theorems</h2>
+  <p class="sec-intro">A practical test for integrability: produce one partition where upper and lower sums are within $\varepsilon$ of each other.</p>
+
+  <div class="thm">
+    <div class="box-label">Theorem 0.2.1 — Cauchy Criterion</div>
+    <div class="box-body">$f$ is Riemann integrable $\iff$ for every $\varepsilon\gt 0$ there exists a partition $P$ such that $U(f,P)-L(f,P)\le\varepsilon$.</div>
+  </div>
+  <button class="proof-btn">Show Proof</button>
+  <div class="proof-box">
+    <strong>($\Leftarrow$)</strong> If such $P$ exists: $U(f)-L(f)\le U(f,P)-L(f,P)\lt\varepsilon$. Since $\varepsilon$ is arbitrary, $U(f)=L(f)$.<br><br>
+    <strong>($\Rightarrow$)</strong> If $f$ is integrable, given $\varepsilon\gt 0$ choose $P_1,P_2$ with $L(f,P_1)\gt L(f)-\varepsilon/2$ and $U(f,P_2)\lt U(f)+\varepsilon/2$. Let $P=P_1\cup P_2$. Then $U(f,P)-L(f,P)\le U(f,P_2)-L(f,P_1)\lt\varepsilon$.
+  </div>
+
+  <div class="thm">
+    <div class="box-label">Theorem 0.2.2 — Monotone → Integrable</div>
+    <div class="box-body">Every monotone function $f$ on $[a,b]$ is Riemann integrable.</div>
+  </div>
+  <button class="proof-btn">Show Proof Idea</button>
+  <div class="proof-box">For increasing $f$, choose equal sub-intervals of width $\delta=\varepsilon/[f(b)-f(a)]$. Then $M_k-m_k=f(x_k)-f(x_{k-1})$ (telescoping). So $U-L=\sum[f(x_k)-f(x_{k-1})]\cdot\delta=[f(b)-f(a)]\cdot\delta=\varepsilon$.</div>
+
+  <div class="thm">
+    <div class="box-label">Theorem 0.2.3 — Continuous → Integrable</div>
+    <div class="box-body">If $f$ is continuous on $[a,b]$, then $f$ is Riemann integrable.</div>
+  </div>
+  <button class="proof-btn">Show Proof Idea</button>
+  <div class="proof-box">Continuous on compact $[a,b]$ $\Rightarrow$ uniformly continuous. Given $\varepsilon\gt 0$, choose $\delta$ so $|x-y|\lt\delta\Rightarrow|f(x)-f(y)|\lt\varepsilon/[2(b-a)]$. Partition with $\Delta x_k\lt\delta$. Then $M_k-m_k\lt\varepsilon/[2(b-a)]$, giving $U-L\lt\varepsilon$.</div>
+
+  <div class="thm">
+    <div class="box-label">Theorem 0.2.4 — Near-Endpoint Integrability</div>
+    <div class="box-body">If $f$ is bounded on $[a,b]$ and integrable on $[c,b]$ for every $c\in(a,b)$, then $f$ is integrable on $[a,b]$.</div>
+  </div>
+
+  <div class="thm">
+    <div class="box-label">Theorem 0.2.6 — Splitting Integrability</div>
+    <div class="box-body">If $f$ is integrable on $[a,b]$ and $[b,c]$, then it is integrable on $[a,c]$.</div>
+  </div>
+
+  <div class="intuition"><div class="box-label">Key Note</div>A function with <strong>finitely many discontinuities</strong> is Riemann integrable. Even infinitely many discontinuities are OK if their set of limit points is finite.</div>
+</section>
+
+<!-- ── 5. PROPERTIES ── -->
+<section class="sec" id="properties">
+
+<div class="keypoints-added" id="upper-lower-negative-function">
+  <div class="box-lbl">Upper/lower sums for \(-f\)</div>
+  <p>For every partition \(P\),</p>
+  <div class="formula">\[
+  U(-f,P)=-L(f,P),
+  \qquad
+  L(-f,P)=-U(f,P).
+  \]</div>
+  <p>Reason: on each subinterval, \(\sup(-f)=-\inf(f)\) and \(\inf(-f)=-\sup(f)\).</p>
+</div>
+
+  <div class="eyebrow">MA1014 Mathematics · Riemann Integration</div>
+  <h2 class="sec-title">Properties of the Integral</h2>
+  <p class="sec-intro">The Riemann integral behaves as expected: it respects addition, scaling, ordering, and can be split across sub-intervals.</p>
+
+  <div class="prop">
+    <div class="box-label">Theorem 0.3.1 — Properties</div>
+    <div class="box-body">For integrable $f,g$ on $[a,b]$:
+    <ol style="padding-left:1.2em;margin-top:.5rem;line-height:2">
+      <li><strong>Linearity:</strong> $\int_a^b(f+g)=\int_a^bf+\int_a^bg$</li>
+      <li><strong>Scalar:</strong> $\int_a^b kf=k\int_a^bf$</li>
+      <li><strong>Bounds:</strong> if $m\le f\le M$ then $m(b-a)\le\int_a^bf\le M(b-a)$</li>
+      <li><strong>Monotonicity:</strong> $f\le g\;\Rightarrow\;\int_a^bf\le\int_a^bg$</li>
+      <li><strong>Triangle inequality:</strong> $\left|\int_a^bf\right|\le\int_a^b|f|$</li>
+    </ol></div>
+  </div>
+
+  <div class="prop">
+    <div class="box-label">Theorem 0.3.2</div>
+    <div class="box-body">If $f,g$ are Riemann integrable, then $fg$ is also Riemann integrable.</div>
+  </div>
+  <button class="proof-btn">Show Proof Idea</button>
+  <div class="proof-box">First show $f^2$ is integrable: $U(f^2,P)-L(f^2,P)=\sum(M_j^2-m_j^2)|I_j|=\sum(M_j+m_j)(M_j-m_j)|I_j|\le 2k\sum(M_j-m_j)|I_j|\lt\varepsilon$. Then use $fg=[(f+g)^2-f^2-g^2]/2$.</div>
+
+  <div class="prop">
+    <div class="box-label">Theorem 0.3.3</div>
+    <div class="box-body">If $f,g$ are Riemann integrable, then $\max(f,g)$ and $\min(f,g)$ are Riemann integrable.</div>
+  </div>
+  <button class="proof-btn">Show Proof Idea</button>
+  <div class="proof-box">$\max(f,g)=\frac{|f-g|+f+g}{2}$ and $\min(f,g)=\frac{-|f-g|+f+g}{2}$. Since $f,g$ integrable, $|f-g|$ is integrable (shown similarly to $|f|$ above), so these are integrable.</div>
+
+  <div class="prop">
+    <div class="box-label">Theorem 0.3.4 — Splitting</div>
+    <div class="box-body">$f$ is integrable on $[a,b]$ $\iff$ it is integrable on $[a,c]$ and $[c,b]$ for any $c\in(a,b)$. In that case: $\int_a^b f=\int_a^c f+\int_c^b f$.</div>
+  </div>
+  <button class="proof-btn">Show Proof Sketch</button>
+  <div class="proof-box"><strong>($\Rightarrow$)</strong> Insert $c$ into partition $P$ to get $P'$. Splitting $P'$ at $c$ gives partitions of $[a,c]$ and $[c,b]$ each satisfying $U-L\lt\varepsilon$.<br><br>
+  <strong>($\Leftarrow$)</strong> Take partitions $P_1,P_2$ of $[a,c]$ and $[c,b]$ with $U-L\lt\varepsilon/2$ each. Their union is a partition of $[a,b]$ with $U-L\lt\varepsilon$. The additive formula follows by squeezing inequalities.</div>
+</section>
+
+<!-- ── 6. MVT FOR INTEGRALS ── -->
+<section class="sec" id="mvt">
+  <div class="eyebrow">MA1014 Mathematics · Riemann Integration</div>
+  <h2 class="sec-title">Mean Value Theorem for Integrals</h2>
+  <p class="sec-intro">A continuous function must achieve its own average value at least once. The IVT delivers the point; the name "MVT" reflects that the average (mean) value is what's being hit.</p>
+
+  <div class="thm">
+    <div class="box-label">Theorem 0.4.1 — MVT for Integrals</div>
+    <div class="box-body">If $f$ is continuous on $[a,b]$, then there exists $x\in(a,b)$ such that:
+    $$f(x)=\frac{1}{b-a}\int_a^b f$$</div>
+  </div>
+  <div class="intuition"><div class="box-label">Intuition</div>The quantity $\frac{1}{b-a}\int_a^b f$ is the average value of $f$. Continuity + compactness (EVT) gives actual min $m$ and max $M$. The average is between them, so by IVT the function must hit it.</div>
+  <button class="proof-btn">Show Proof</button>
+  <div class="proof-box">Let $m,M$ be min and max of $f$ on $[a,b]$ (exist by EVT). If $m=M$, $f$ is constant and the result is trivial. Otherwise $m\lt M$ and $m\lt\frac{1}{b-a}\int_a^b f\lt M$. By IVT, $f$ takes every value between $m$ and $M$, including the average.</div>
+
+  <div class="widget">
+    <div class="widget-title">Interactive — MVT for Integrals</div>
+    <div class="pills"><span class="pill" id="mvt-avg">Average value: —</span><span class="pill" id="mvt-pt">Point: —</span></div>
+    <canvas id="cvMVT" width="700" height="240"></canvas>
+    <p class="cvote">Horizontal line = average value of $f$. Orange dot = point where $f$ hits its average.</p>
+  </div>
+
+  <div class="thm">
+    <div class="box-label">Theorem 0.4.2 — Generalised MVT</div>
+    <div class="box-body">If $f,g:[a,b]\to\mathbb{R}$ are continuous and $g(t)\ge 0$, then there exists $x\in[a,b]$ such that:
+    $$\int_a^b f(t)g(t)\,dt = f(x)\int_a^b g(t)\,dt$$</div>
+  </div>
+  <div class="intuition"><div class="box-label">Intuition</div>$g$ acts as a weight function. The ratio $\frac{\int fg}{\int g}$ is a weighted average of $f$, which $f$ must attain by IVT. Setting $g=1$ recovers the standard MVT.</div>
+  <button class="proof-btn">Show Proof</button>
+  <div class="proof-box">Let $m,M$ be extremes of $f$. Since $g\ge 0$: $m\int g\le\int fg\le M\int g$, giving $m\le\frac{\int fg}{\int g}\le M$. By IVT, $f$ takes this value at some $x\in[a,b]$.</div>
+</section>
+
+<!-- ── 7. SEQUENCES OF FUNCTIONS ── -->
+<section class="sec" id="sequences">
+  <div class="eyebrow">MA1014 Mathematics · Riemann Integration</div>
+  <h2 class="sec-title">Sequences of Functions</h2>
+  <p class="sec-intro">When can we swap a limit and an integral? Pointwise convergence is not enough — the spike counterexample shows area can survive as the function vanishes. We need extra conditions.</p>
+
+  <div class="intuition"><div class="box-label">The Core Question</div>When is $\lim_{n\to\infty}\int_a^b f_n(x)\,dx = \int_a^b \lim_{n\to\infty}f_n(x)\,dx$?</div>
+
+  <h3>The Spike Pathology</h3>
+  <p>Define $f_n=n\cdot\mathbf{1}_{[0,1/n]}$. Then $f_n\to 0$ pointwise on $(0,1]$, yet $\int f_n=1$ for all $n$. Area is preserved as the spike gets taller and thinner — it escapes to the boundary.</p>
+
+  <div class="thm">
+    <div class="box-label">Theorem 0.4.3 — Uniform Convergence</div>
+    <div class="box-body">If $(f_n)$ is a sequence of Riemann integrable functions on $[a,b]$ and $f_n\to f$ <strong>uniformly</strong>, then $f$ is integrable and:
+    $$\lim_{n\to\infty}\int_a^b f_n(x)\,dx=\int_a^b f(x)\,dx$$</div>
+  </div>
+  <div class="intuition"><div class="box-label">Why It Works</div>Uniform convergence forces the entire function inside an $\varepsilon$-band of $f$ simultaneously. The spike can never do this — near $x=0$ it always escapes. The band bounds the area difference: $\left|\int f_n-\int f\right|\le\int|f_n-f|\le\varepsilon(b-a)$.</div>
+  <button class="proof-btn">Show Proof</button>
+  <div class="proof-box">Since $f_n\to f$ uniformly, $\exists N: |f_n(x)-f(x)|\lt\varepsilon/[2(b-a)]$ for all $x$ when $n\ge N$. This bounds $U(f-f_N,P)-L(f-f_N,P)\lt\varepsilon$, so $f-f_N$ is integrable, hence $f=(f-f_N)+f_N$ is integrable. For $n\ge N$: $\left|\int f_n-\int f\right|=\left|\int(f_n-f)\right|\le\int|f_n-f|\le\varepsilon/2$.</div>
+
+  <div class="thm">
+    <div class="box-label">Theorem 0.4.4 — Dominated Convergence</div>
+    <div class="box-body">If $f_n\to f$ <strong>pointwise</strong> on $[a,b]$ where $f$ is integrable, and $|f_n(x)|\le M$ for all $n,x$, then:
+    $$\lim_{n\to\infty}\int_a^b f_n = \int_a^b f$$</div>
+  </div>
+  <div class="intuition"><div class="box-label">Intuition</div>The bound $M$ acts as a ceiling and floor. Functions can't escape to infinity, so no area leaks out — even without uniform convergence.</div>
+
+  <div class="thm">
+    <div class="box-label">Theorem 0.4.5 — Monotone Convergence</div>
+    <div class="box-body">If $f_1\le f_2\le\cdots$ are integrable on $[a,b]$ and $f_n\to f$ pointwise where $f$ is integrable, then:
+    $$\lim_{n\to\infty}\int_a^b f_n=\int_a^b f$$</div>
+  </div>
+  <div class="intuition"><div class="box-label">Intuition</div>Monotone stacking means functions can only grow — area monotonically approaches the limit. MCT follows from DCT since the monotone bound gives $|f_n|\le\max(|f_1|,|f|)\le M$.</div>
+</section>
+
+<!-- ── 8. FUNDAMENTAL THEOREM ── -->
+
+<div class="keypoints-added gold" id="pointwise-integration-warning">
+  <div class="box-lbl">Pointwise convergence warning</div>
+  <p>For Riemann integration, pointwise convergence plus a uniform bound does not by itself guarantee</p>
+  <div class="formula">\[
+  \lim_{n\to\infty}\int_a^b f_n=\int_a^b \lim_{n\to\infty}f_n.
+  \]</div>
+  <p>The limit function may fail to be Riemann integrable. Uniform convergence is the safe condition used in this course.</p>
+</div>
+
+<section class="sec" id="ftc">
+  <div class="eyebrow">MA1014 Mathematics · Riemann Integration</div>
+  <h2 class="sec-title">Fundamental Theorem of Calculus</h2>
+  <p class="sec-intro">The two parts say that differentiation and integration are inverse operations. FTC&nbsp;I turns an integral into a difference; FTC&nbsp;II turns an area accumulator into the original function.</p>
+
+  <div class="thm">
+    <div class="box-label">Theorem 0.5.1 — FTC I</div>
+    <div class="box-body">If $g$ is continuous on $[a,b]$, differentiable on $(a,b)$, and $g'$ is integrable, then:
+    $$\int_a^b g'(x)\,dx = g(b)-g(a)$$</div>
+  </div>
+  <div class="intuition"><div class="box-label">Intuition</div>The MVT on each sub-interval gives $g(x_k)-g(x_{k-1})=(x_k-x_{k-1})g'(c_k)$. Summing telescopes to $g(b)-g(a)$, which is squeezed between $L(g',P)$ and $U(g',P)$.</div>
+  <button class="proof-btn">Show Proof</button>
+  <div class="proof-box">For any $\varepsilon\gt 0$, take partition $P$ with $U(g',P)-L(g',P)\lt\varepsilon$. Apply MVT to each $[x_{k-1},x_k]$: $g(x_k)-g(x_{k-1})=(x_k-x_{k-1})g'(c_k)$. Summing: $g(b)-g(a)=\sum(x_k-x_{k-1})g'(c_k)$, which lies between $L(g',P)$ and $U(g',P)$, hence within $\varepsilon$ of $\int_a^b g'$. Since $\varepsilon$ is arbitrary, equality holds.</div>
+
+  <div class="thm">
+    <div class="box-label">Theorem 0.5.2 — Integration by Parts</div>
+    <div class="box-body">If $u,v$ are continuous on $[a,b]$, differentiable on $(a,b)$, and $u',v'$ integrable:
+    $$\int_a^b u(x)v'(x)\,dx + \int_a^b u'(x)v(x)\,dx = u(b)v(b)-u(a)v(a)$$</div>
+  </div>
+  <button class="proof-btn">Show Proof</button>
+  <div class="proof-box">Let $g=uv$. Then $g'=uv'+u'v$ is integrable. Apply FTC&nbsp;I to $g$: $\int_a^b(uv'+u'v)=g(b)-g(a)=u(b)v(b)-u(a)v(a)$. Split the integral by linearity.</div>
+
+  <div class="thm">
+    <div class="box-label">Theorem 0.5.3 — FTC II</div>
+    <div class="box-body">Let $f$ be integrable on $[a,b]$ and define $F(x)=\int_a^x f(t)\,dt$. Then $F$ is continuous on $[a,b]$. If $f$ is continuous at $x_0\in(a,b)$, then $F$ is differentiable at $x_0$ and:
+    $$F'(x_0)=f(x_0)$$</div>
+  </div>
+  <div class="intuition"><div class="box-label">Intuition</div>$F(x+h)-F(x)$ is a thin sliver of area $\approx f(x)\cdot h$. Dividing by $h$ gives $f(x)$. The rate at which area accumulates equals the height of the function.</div>
+  <button class="proof-btn">Show Proof</button>
+  <div class="proof-box"><strong>Continuity:</strong> $|F(y)-F(x)|=|\int_x^y f|\le M|y-x|$ where $|f|\le M$. So $|F(y)-F(x)|\lt\varepsilon$ when $|y-x|\lt\varepsilon/M$.<br><br>
+  <strong>Differentiability:</strong> $\frac{F(x)-F(x_0)}{x-x_0}-f(x_0)=\frac{1}{x-x_0}\int_{x_0}^x[f(t)-f(x_0)]\,dt$. Given $\varepsilon\gt 0$, continuity of $f$ at $x_0$ gives $\delta$ with $|t-x_0|\lt\delta\Rightarrow|f(t)-f(x_0)|\lt\varepsilon$. For $|x-x_0|\lt\delta$: the difference quotient minus $f(x_0)$ has absolute value $\lt\varepsilon$.</div>
+
+  <div class="widget">
+    <div class="widget-title">Interactive — FTC II: Accumulation Function</div>
+    <div class="ctrl"><label>Upper limit $x$</label><input type="range" id="ftc-x" min="0" max="100" value="30"><span id="ftc-xv">—</span></div>
+    <div class="pills"><span class="pill" id="ftc-F">F(x) = —</span><span class="pill" id="ftc-f">f(x) = F′(x) = —</span></div>
+    <canvas id="cvFTC" width="700" height="240"></canvas>
+    <p class="cvote">Blue fill = $F(x)=\int_0^x f(t)\,dt$. The rate at which the area grows at $x$ equals $f(x)$ (height of the orange dot).</p>
+  </div>
+
+  <div class="thm">
+    <div class="box-label">Theorem 0.5.4 — Chain Rule Form</div>
+    <div class="box-body">If $f$ is continuous on an interval containing the range of differentiable $a(x),b(x)$:
+    $$\frac{d}{dx}\int_{a(x)}^{b(x)}f(t)\,dt = f(b(x))\cdot b'(x)-f(a(x))\cdot a'(x)$$</div>
+  </div>
+  <button class="proof-btn">Show Proof</button>
+  <div class="proof-box">Let $F(u)=\int_{t_0}^u f$. Then $\frac{d}{dx}[F(b(x))-F(a(x))]=F'(b(x))b'(x)-F'(a(x))a'(x)=f(b(x))b'(x)-f(a(x))a'(x)$ by FTC II and chain rule.</div>
+
+  <div class="thm">
+    <div class="box-label">Theorem 0.5.5 — Change of Variable</div>
+    <div class="box-body">If $u$ is differentiable on $J$ with $u'\in C$, $f$ is continuous on $I$ with $u(J)\subseteq I$:
+    $$\int_a^b f(u(x))\,u'(x)\,dx = \int_{u(a)}^{u(b)} f(u)\,du$$</div>
+  </div>
+</section>
+
+<!-- ── 9. IMPROPER INTEGRALS ── -->
+<section class="sec" id="improper">
+  <div class="eyebrow">MA1014 Mathematics · Riemann Integration</div>
+  <h2 class="sec-title">Improper Integrals</h2>
+  <p class="sec-intro">When $f$ is unbounded or the interval is infinite, we extend the Riemann integral by taking limits. The integral converges if the limit is finite.</p>
+
+  <div class="defn">
+    <div class="box-label">Definition — Type I (Unbounded Function)</div>
+    <div class="box-body">If $f:(a,b]\to\mathbb{R}$ is integrable on $[c,b]$ for every $c\in(a,b)$:
+    $$\int_a^b f = \lim_{\varepsilon\to 0^+}\int_{a+\varepsilon}^b f$$</div>
+  </div>
+
+  <div class="defn">
+    <div class="box-label">Definition — Type II (Infinite Interval)</div>
+    <div class="box-body">If $f:[a,\infty)\to\mathbb{R}$ is integrable on $[a,r]$ for every $r\gt a$:
+    $$\int_a^\infty f = \lim_{r\to\infty}\int_a^r f$$</div>
+  </div>
+
+  <div class="widget">
+    <div class="widget-title">Interactive — The $p$-integral</div>
+    <div class="tab-row">
+      <button class="tab-btn on" id="pt1" onclick="setPtype('inf')">$\int_1^\infty x^{-p}\,dx$</button>
+      <button class="tab-btn" id="pt2" onclick="setPtype('zero')">$\int_0^1 x^{-p}\,dx$</button>
+    </div>
+    <div class="ctrl"><label>$p$ =</label><input type="range" id="p-val" min="1" max="30" value="15"><span id="p-v">1.5</span></div>
+    <div class="pills"><span class="pill" id="p-status">—</span><span class="pill" id="p-ans">—</span></div>
+    <canvas id="cvP" width="700" height="230"></canvas>
+    <p class="cvote">$p=1$ is the knife-edge. Above: converges. Below: diverges. The cutoff flips between the two types.</p>
+  </div>
+
+  <table>
+    <tr><th>Integral</th><th>Condition</th><th>Value</th></tr>
+    <tr><td>$\int_1^\infty x^{-p}\,dx$</td><td>Converges if $p\gt 1$</td><td>$\dfrac{1}{p-1}$</td></tr>
+    <tr><td>$\int_1^\infty x^{-p}\,dx$</td><td>Diverges if $p\le 1$</td><td>$\infty$</td></tr>
+    <tr><td>$\int_0^1 x^{-p}\,dx$</td><td>Converges if $p\lt 1$</td><td>$\dfrac{1}{1-p}$</td></tr>
+    <tr><td>$\int_0^1 x^{-p}\,dx$</td><td>Diverges if $p\ge 1$</td><td>$\infty$</td></tr>
+  </table>
+
+  <h3>Convergence Tests</h3>
+
+  <div class="thm">
+    <div class="box-label">Theorem 0.6.1 — Absolute Convergence</div>
+    <div class="box-body">If $\int_a^\infty|f|\,dx\lt\infty$ (absolutely convergent), then $\int_a^\infty f\,dx$ converges.</div>
+  </div>
+  <div class="intuition"><div class="box-label">Intuition</div>Absolute convergence means the function decays fast regardless of sign. Conditional convergence relies on cancellation between positive/negative parts — like $\int_1^\infty\frac{\sin x}{x}\,dx$.</div>
+  <button class="proof-btn">Show Proof</button>
+  <div class="proof-box">Write $f^+=\frac{f+|f|}{2}\ge 0$ and $f^-=\frac{|f|-f}{2}\ge 0$. Then $f=f^+-f^-$ and $f^+,f^-\le|f|$. Since $\int|f|\lt\infty$, both $\int f^+$ and $\int f^-$ converge by comparison, so $\int f=\int f^+-\int f^-$ converges.</div>
+
+  <div class="thm">
+    <div class="box-label">Theorem 0.6.2 — Comparison Theorem</div>
+    <div class="box-body">If $0\le g(x)\le f(x)$ for all $x\ge a$, then:
+    <ul style="padding-left:1.2em;margin-top:.4rem;line-height:1.9">
+      <li>$\int_a^\infty f\,dx$ converges $\;\Rightarrow\;$ $\int_a^\infty g\,dx$ converges</li>
+      <li>$\int_a^\infty g\,dx$ diverges $\;\Rightarrow\;$ $\int_a^\infty f\,dx$ diverges</li>
+    </ul></div>
+  </div>
+  <div class="intuition"><div class="box-label">Intuition</div>If the bigger function fits in the bucket, the smaller one certainly does. If the smaller function overflows, the bigger one definitely overflows.</div>
+
+  <div class="thm">
+    <div class="box-label">Theorem 0.6.3 — Limit Comparison</div>
+    <div class="box-body">If $f,g\gt 0$ and $\lim_{x\to\infty}\frac{f(x)}{g(x)}=k$, then:
+    <ul style="padding-left:1.2em;margin-top:.4rem;line-height:1.9">
+      <li>$0\lt k\lt\infty$: $\int f$ converges $\iff$ $\int g$ converges</li>
+      <li>$k=0$: $\int g$ converges $\Rightarrow$ $\int f$ converges</li>
+      <li>$k=\infty$: $\int f$ converges $\Rightarrow$ $\int g$ converges</li>
+    </ul></div>
+  </div>
+  <div class="intuition"><div class="box-label">Intuition</div>If $f/g\to k$ (finite, nonzero), $f$ and $g$ have the same growth rate at infinity — they share the same convergence fate.</div>
+</section>
+
+<!-- ── 10. BETA & GAMMA ── -->
+<section class="sec" id="betagamma">
+  <div class="eyebrow">MA1014 Mathematics · Riemann Integration</div>
+  <h2 class="sec-title">Beta &amp; Gamma Functions</h2>
+  <p class="sec-intro">Two special functions built from improper integrals. Gamma extends the factorial to all positive reals. Beta measures the "shape" of a distribution on $[0,1]$ and connects back to Gamma through a beautiful identity.</p>
+
+  <h3>The Gamma Function</h3>
+  <div class="defn">
+    <div class="box-label">Definition — Gamma Function</div>
+    <div class="box-body">$$\Gamma(n)=\int_0^\infty e^{-x}x^{n-1}\,dx, \quad n\gt 0$$</div>
+  </div>
+
+  <div class="prop">
+    <div class="box-label">Properties of Gamma</div>
+    <div class="box-body">
+      <ol style="padding-left:1.2em;line-height:2">
+        <li>$\Gamma(1)=1$</li>
+        <li><strong>Recurrence:</strong> $\Gamma(n+1)=n\Gamma(n)$</li>
+        <li><strong>Factorial:</strong> $\Gamma(n+1)=n!$ for positive integers $n$</li>
+        <li>$\Gamma\!\left(\tfrac{1}{2}\right)=\sqrt{\pi}$</li>
+        <li><strong>Extension:</strong> define $\Gamma(n)=\Gamma(n+1)/n$ for $-1\lt n\lt 0$, and so on for all $n\notin\{0,-1,-2,\dots\}$</li>
+      </ol>
+    </div>
+  </div>
+  <button class="proof-btn">Show Γ(n+1) = nΓ(n) Proof</button>
+  <div class="proof-box">Integrate by parts: $\Gamma(n+1)=\int_0^\infty x^n e^{-x}dx=[-x^ne^{-x}]_0^\infty+n\int_0^\infty x^{n-1}e^{-x}dx=n\Gamma(n)$, since $x^ne^{-x}\to 0$ as $x\to\infty$.</div>
+
+  <div class="thm">
+    <div class="box-label">Theorem 0.7.1 — Convergence of Γ</div>
+    <div class="box-body">For every $n\gt 0$, the improper integral $\Gamma(n)=\int_0^\infty e^{-x}x^{n-1}\,dx$ converges.</div>
+  </div>
+  <button class="proof-btn">Show Proof Sketch</button>
+  <div class="proof-box">Split at $x=N$. For $x\ge N$: by L'Hôpital, $x^{n-1}/e^{x/2}\to 0$, so $e^{-x}x^{n-1}\le e^{-x/2}$, and $\int_N^\infty e^{-x/2}dx\lt\infty$. For $0\lt n\lt 1$ near $0$: $e^{-x}x^{n-1}\le x^{n-1}$, and $\int_0^N x^{n-1}dx=N^n/n\lt\infty$ (since $n\gt 0$). For $n\ge 1$: no singularity at $0$.</div>
+
+  <h3>Gamma Transformations</h3>
+  <div class="tgrid">
+    <div class="tcard">
+      <div class="tcard-lbl">Form I — $x^n=t$</div>
+      <div class="formula-sm">$\Gamma(n)=\dfrac{1}{n}\displaystyle\int_0^\infty e^{-t^{1/n}}\,dt$</div>
+      <p style="font-size:.8rem;color:var(--ts);margin:.4rem 0 0">Setting $n=\frac{1}{2}$: $\;\Gamma\!\left(\tfrac{1}{2}\right)=2\int_0^\infty e^{-x^2}dx=\sqrt{\pi}$</p>
+    </div>
+    <div class="tcard">
+      <div class="tcard-lbl">Form II — $x=kt$</div>
+      <div class="formula-sm">$\displaystyle\int_0^\infty e^{-kx}x^{n-1}\,dx=\dfrac{\Gamma(n)}{k^n}$</div>
+      <p style="font-size:.8rem;color:var(--ts);margin:.4rem 0 0">Extremely useful for evaluating integrals of the form $e^{-kx}x^{n-1}$</p>
+    </div>
+    <div class="tcard">
+      <div class="tcard-lbl">Form III — $e^{-x}=t$ (log form)</div>
+      <div class="formula-sm">$\Gamma(n)=\displaystyle\int_0^1\!\left(\log\tfrac{1}{t}\right)^{n-1}dt$</div>
+      <p style="font-size:.8rem;color:var(--ts);margin:.4rem 0 0">Substitution $e^{-x}=t$, so $x=\log(1/t)$, $dx=-dt/t$</p>
+    </div>
+    <div class="tcard">
+      <div class="tcard-lbl">Form IV — $x=t^2$</div>
+      <div class="formula-sm">$\Gamma(n)=2\displaystyle\int_0^\infty e^{-x^2}x^{2n-1}\,dx$</div>
+      <p style="font-size:.8rem;color:var(--ts);margin:.4rem 0 0">Connects Gamma to Gaussian integrals</p>
+    </div>
+  </div>
+
+  <div class="kdiv"></div>
+
+  <h3>The Beta Function</h3>
+  <div class="defn">
+    <div class="box-label">Definition — Beta Function</div>
+    <div class="box-body">$$B(m,n)=\int_0^1 x^{m-1}(1-x)^{n-1}\,dx, \quad m,n\gt 0$$</div>
+  </div>
+
+  <div class="prop">
+    <div class="box-label">Symmetry</div>
+    <div class="box-body">$B(m,n)=B(n,m)$. Proved by substitution $x\mapsto 1-x$.</div>
+  </div>
+
+  <div class="prop">
+    <div class="box-label">Fundamental Relation</div>
+    <div class="box-body">$$B(m,n)=\frac{\Gamma(m)\,\Gamma(n)}{\Gamma(m+n)}$$</div>
+  </div>
+
+  <div class="widget">
+    <div class="widget-title">Interactive — Gamma &amp; Beta</div>
+    <div class="tab-row">
+      <button class="tab-btn on" id="gb1" onclick="setGB('gamma')">Γ(x) — Continuous Factorial</button>
+      <button class="tab-btn" id="gb2" onclick="setGB('beta')">B(m,n) — Bump Shapes</button>
+    </div>
+    <div id="gamma-ctrls">
+      <div class="ctrl"><label>$x$ =</label><input type="range" id="g-x" min="5" max="49" value="15"><span id="g-xv">1.5</span></div>
+    </div>
+    <div id="beta-ctrls" style="display:none">
+      <div class="ctrl"><label>$m$ =</label><input type="range" id="b-m" min="1" max="8" value="2"><span id="b-mv">2</span></div>
+      <div class="ctrl"><label>$n$ =</label><input type="range" id="b-n" min="1" max="8" value="3"><span id="b-nv">3</span></div>
+    </div>
+    <div class="pills" id="gb-pills"></div>
+    <canvas id="cvGB" width="700" height="250"></canvas>
+    <p class="cvote" id="gb-note"></p>
+  </div>
+
+  <h3>Beta Transformations</h3>
+  <div class="tgrid">
+    <div class="tcard">
+      <div class="tcard-lbl">Form I — $x=\frac{1}{1+t}$</div>
+      <div class="formula-sm">$B(m,n)=\displaystyle\int_0^\infty\frac{x^{n-1}}{(1+x)^{m+n}}dx=\int_0^\infty\frac{x^{m-1}}{(1+x)^{m+n}}dx$</div>
+    </div>
+    <div class="tcard">
+      <div class="tcard-lbl">Form II — Split at 1, then $x=1/t$</div>
+      <div class="formula-sm">$B(m,n)=\displaystyle\int_0^1\frac{x^{m-1}+x^{n-1}}{(1+x)^{m+n}}dx$</div>
+    </div>
+    <div class="tcard">
+      <div class="tcard-lbl">Form III — $x=at/b$ in Form I</div>
+      <div class="formula-sm">$\displaystyle\int_0^\infty\frac{x^{m-1}}{(ax+b)^{m+n}}dx=\frac{B(m,n)}{a^m b^n}$</div>
+    </div>
+    <div class="tcard">
+      <div class="tcard-lbl">Form IV — $x=\tan^2\theta$</div>
+      <div class="formula-sm">$\displaystyle\int_0^{\pi/2}\!\sin^{2m-1}\theta\cos^{2n-1}\theta\,d\theta=\frac{B(m,n)}{2}$</div>
+      <p style="font-size:.8rem;color:var(--ts);margin:.4rem 0 0">Key for trig integrals over $[0,\pi/2]$</p>
+    </div>
+    <div class="tcard">
+      <div class="tcard-lbl">Form V — shifted denominator</div>
+      <div class="formula-sm">$\displaystyle\int_0^1\frac{x^{m-1}(1-x)^{n-1}}{(x+a)^{m+n}}dx=\frac{B(m,n)}{a^n(1+a)^m}$</div>
+    </div>
+    <div class="tcard">
+      <div class="tcard-lbl">Form VI — interval $[b,a]$</div>
+      <div class="formula-sm">$\displaystyle\int_b^a(x-b)^{m-1}(a-x)^{n-1}dx=(a-b)^{m+n-1}B(m,n)$</div>
+      <p style="font-size:.8rem;color:var(--ts);margin:.4rem 0 0">Beta on any interval via $x=b+(a-b)t$</p>
+    </div>
+  </div>
+  <div class="tcard" style="margin-top:.9rem">
+    <div class="tcard-lbl">Form VII — two sub-forms</div>
+    <div class="formula-sm">$\displaystyle\int_0^1\frac{x^{m-1}(1-x)^{n-1}}{(a+(b-a)x)^{m+n}}dx=\frac{B(m,n)}{a^n b^m}$</div>
+    <div class="formula-sm" style="margin-top:.4rem">$\displaystyle\int_0^1\frac{x^{m-1}(1-x)^{n-1}}{(b+cx)^{m+n}}dx=\frac{B(m,n)}{(b+c)^m b^n}$</div>
+  </div>
+
+<div class="keypoints-added cool" id="beta-gamma-extra-examples">
+  <div class="box-lbl">Beta/Gamma extra examples</div>
+  <p>Euler's reflection formula is</p>
+  <div class="formula">\[
+  \Gamma(x)\Gamma(1-x)=\frac{\pi}{\sin(\pi x)}.
+  \]</div>
+  <p>Therefore</p>
+  <div class="formula">\[
+  B\!\left(\frac13,\frac23\right)
+  =
+  \frac{\Gamma(1/3)\Gamma(2/3)}{\Gamma(1)}
+  =
+  \frac{\pi}{\sin(\pi/3)}
+  =
+  \boxed{\frac{2\pi}{\sqrt3}}.
+  \]</div>
+  <p>Also remember: \(\Gamma(1)=1\), \(\Gamma(2)=1\), and \(\Gamma(3)=2\).</p>
+</div>
+
+<div class="keypoints-added" id="improper-beta-substitution-example">
+  <div class="box-lbl">Improper integral as Beta integral</div>
+  <p>For \(n>0\), use \(t=x^n\):</p>
+  <div class="formula">\[
+  \int_0^1\frac{dx}{\sqrt{1-x^n}}
+  =
+  \frac1n\int_0^1 t^{1/n-1}(1-t)^{-1/2}\,dt
+  =
+  \frac{\sqrt{\pi}}{n}\frac{\Gamma(1/n)}{\Gamma(1/2+1/n)}.
+  \]</div>
+</div>
+
+</section>
+
+<!-- ── 11. EXAM CHECKLIST ── -->
+<section class="sec" id="exam">
+  <div class="eyebrow">MA1014 Mathematics · Riemann Integration</div>
+  <h2 class="sec-title">Exam Checklist</h2>
+  <ul class="checklist">
+    <li><div><strong>Partitions:</strong> state definitions of partition, upper/lower sums, refinement</div></li>
+    <li><div><strong>Lemmas 0.2.1–0.2.4:</strong> prove $L\le U$ for any partition, and $L(f,P_1)\le U(f,P_2)$ via common refinement</div></li>
+    <li><div><strong>Cauchy Criterion (Thm 0.2.1):</strong> prove both directions; use it to show monotone and continuous functions are integrable</div></li>
+    <li><div><strong>Properties (Thm 0.3.1):</strong> prove linearity and the triangle inequality; state all five</div></li>
+    <li><div><strong>Splitting (Thm 0.3.4):</strong> prove $\int_a^b=\int_a^c+\int_c^b$</div></li>
+    <li><div><strong>MVT for Integrals (Thm 0.4.1):</strong> state and prove; note the chain EVT $\to$ average sandwiched $\to$ IVT</div></li>
+    <li><div><strong>Generalised MVT (Thm 0.4.2):</strong> state with weight function $g\ge 0$</div></li>
+    <li><div><strong>Uniform convergence swap (Thm 0.4.3):</strong> prove the limit-integral swap; know the spike counterexample for pointwise</div></li>
+    <li><div><strong>DCT and MCT (Thm 0.4.4–0.4.5):</strong> state both; understand why the spike fails DCT</div></li>
+    <li><div><strong>FTC I (Thm 0.5.1):</strong> prove via MVT telescoping</div></li>
+    <li><div><strong>Integration by Parts (Thm 0.5.2):</strong> derive from FTC I applied to $uv$</div></li>
+    <li><div><strong>FTC II (Thm 0.5.3):</strong> prove differentiability of $F(x)=\int_a^x f$</div></li>
+    <li><div><strong>Chain rule form (Thm 0.5.4):</strong> apply to problems with variable limits</div></li>
+    <li><div><strong>Improper integrals:</strong> both types; $p$-integral boundary ($p=1$ cutoff flips between types)</div></li>
+    <li><div><strong>Comparison &amp; Limit Comparison (Thm 0.6.2–0.6.3):</strong> apply to determine convergence</div></li>
+    <li><div><strong>Absolute convergence (Thm 0.6.1):</strong> absolute $\Rightarrow$ convergent; know conditional convergence example</div></li>
+    <li><div><strong>Gamma:</strong> definition, $\Gamma(1)=1$, recurrence $\Gamma(n+1)=n\Gamma(n)$, $\Gamma(1/2)=\sqrt\pi$, all 4 transformations</div></li>
+    <li><div><strong>Beta:</strong> definition, symmetry, all 7 transformations, relation $B(m,n)=\Gamma(m)\Gamma(n)/\Gamma(m+n)$</div></li>
+  </ul>
+</section>
+
+</main><!-- /main -->
+</div><!-- /layout -->
+
+<!-- ═══════════ SCRIPTS ═══════════ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<script>
+/* ── Proof toggles ── */
+document.querySelectorAll('.proof-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    btn.classList.toggle('open');
+    const box=btn.nextElementSibling;
+    box.classList.toggle('show');
+    btn.textContent=btn.classList.contains('open')?'Hide Proof':
+      (btn.textContent.includes('Idea')?'Show Proof Idea':'Show Proof');
+    if(btn.classList.contains('open')) btn.textContent=
+      btn.textContent.replace('Show','Hide');
+  });
+});
+
+/* ── Navigation active state ── */
+const navLinks=document.querySelectorAll('.nav-list a');
+const sections=document.querySelectorAll('.sec');
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      navLinks.forEach(l=>l.classList.remove('active'));
+      const a=document.querySelector(`.nav-list a[href="#${e.target.id}"]`);
+      if(a) a.classList.add('active');
+    }
+  });
+},{threshold:.25,rootMargin:'0px 0px -40% 0px'});
+sections.forEach(s=>obs.observe(s));
+
+/* ── Colour helpers ── */
+const C={
+  accent:'#5b4fcf',accentS:'rgba(91,79,207,.15)',
+  blue:'#3a6fd8',blueS:'rgba(58,111,216,.12)',
+  gold:'#c49200',
+  red:'#c0392b',redS:'rgba(192,57,43,.12)',
+  green:'#2da865',greenS:'rgba(45,168,101,.12)',
+  text:'#1a1730',ts:'#8a84a8',border:'#e2ddf2',
+  bg:'#fff'
+};
+
+function mkCtx(id){
+  const cv=document.getElementById(id);
+  const W=700,H=parseInt(cv.getAttribute('height'))||240;
+  cv.width=W; cv.height=H;
+  return {ctx:cv.getContext('2d'),W,H};
+}
+
+function axes(ctx,W,H,Pd,toX,toY,yTicks,xTicks,maxY){
+  ctx.strokeStyle=C.border; ctx.lineWidth=.5;
+  yTicks.forEach(v=>{
+    ctx.beginPath();ctx.moveTo(Pd.l,toY(v));ctx.lineTo(Pd.l+W-Pd.l-Pd.r,toY(v));ctx.stroke();
+    ctx.fillStyle=C.ts;ctx.font='10px Inter,sans-serif';ctx.textAlign='right';
+    ctx.fillText(v.toFixed(1),Pd.l-5,toY(v)+4);
+  });
+  xTicks.forEach(([v,lbl])=>{
+    ctx.beginPath();ctx.moveTo(toX(v),Pd.t);ctx.lineTo(toX(v),H-Pd.b);ctx.stroke();
+    ctx.fillStyle=C.ts;ctx.font='10px Inter,sans-serif';ctx.textAlign='center';
+    ctx.fillText(lbl,toX(v),H-Pd.b+16);
+  });
+  ctx.strokeStyle='#bbb';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(Pd.l,Pd.t);ctx.lineTo(Pd.l,H-Pd.b);
+  ctx.lineTo(W-Pd.r,H-Pd.b);ctx.stroke();
+}
+
+/* ═══ Canvas 1: Riemann Sums ═══ */
+function drawRS(){
+  const n=parseInt(document.getElementById('rs-n').value);
+  document.getElementById('rs-nv').textContent=n;
+  const {ctx,W,H}=mkCtx('cvRS');
+  const Pd={t:20,b:30,l:45,r:15};
+  const pw=W-Pd.l-Pd.r,ph=H-Pd.t-Pd.b;
+  const a=0,b=2;
+  const f=x=>Math.sin(Math.PI*x/2)+1.2;
+  const toX=v=>Pd.l+(v-a)/(b-a)*pw;
+  const toY=v=>Pd.t+ph-v/2.6*ph;
+
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
+  axes(ctx,W,H,Pd,toX,toY,[0,.5,1,1.5,2,2.5],[[0,'0'],[0.5,'.5'],[1,'1'],[1.5,'1.5'],[2,'2']]);
+
+  const dx=(b-a)/n;
+  let U=0,L=0;
+  for(let k=0;k<n;k++){
+    const x0=a+k*dx,x1=x0+dx;
+    let Mk=f(x0),mk=f(x0);
+    for(let s=0;s<=20;s++){const xv=x0+s/20*dx;const fv=f(xv);if(fv>Mk)Mk=fv;if(fv<mk)mk=fv;}
+    U+=Mk*dx; L+=mk*dx;
+    ctx.fillStyle=C.accentS;
+    ctx.fillRect(toX(x0),toY(Mk),toX(x1)-toX(x0)-1,toY(0)-toY(Mk));
+    ctx.fillStyle=C.blueS;
+    ctx.fillRect(toX(x0),toY(mk),toX(x1)-toX(x0)-1,toY(0)-toY(mk));
+    ctx.strokeStyle=C.accent;ctx.lineWidth=.8;
+    ctx.strokeRect(toX(x0),toY(Mk),toX(x1)-toX(x0)-1,toY(0)-toY(Mk));
+    ctx.strokeStyle=C.blue;
+    ctx.strokeRect(toX(x0),toY(mk),toX(x1)-toX(x0)-1,toY(0)-toY(mk));
+  }
+  // True curve
+  ctx.strokeStyle=C.text;ctx.lineWidth=2;
+  ctx.beginPath();
+  for(let i=0;i<=200;i++){const x=a+(b-a)*i/200;i?ctx.lineTo(toX(x),toY(f(x))):ctx.moveTo(toX(x),toY(f(x)));}
+  ctx.stroke();
+
+  document.getElementById('rs-U').textContent=`U(f,P) = ${U.toFixed(4)}`;
+  document.getElementById('rs-L').textContent=`L(f,P) = ${L.toFixed(4)}`;
+  document.getElementById('rs-gap').textContent=`Gap = ${(U-L).toFixed(4)}`;
+}
+document.getElementById('rs-n').addEventListener('input',drawRS);
+drawRS();
+
+/* ═══ Canvas 2: MVT ═══ */
+function drawMVT(){
+  const {ctx,W,H}=mkCtx('cvMVT');
+  const Pd={t:20,b:30,l:45,r:15};
+  const pw=W-Pd.l-Pd.r,ph=H-Pd.t-Pd.b;
+  const a=0,b=3;
+  const f=x=>-0.5*x*x+1.5*x+0.8;
+  const toX=v=>Pd.l+(v-a)/(b-a)*pw;
+  const toY=v=>Pd.t+ph-(v/3)*ph;
+
+  ctx.clearRect(0,0,W,H);ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
+  axes(ctx,W,H,Pd,toX,toY,[0,.5,1,1.5,2,2.5],[[0,'0'],[1,'1'],[2,'2'],[3,'3']]);
+
+  // Numerical integral
+  let area=0;const N=1000;
+  for(let i=0;i<N;i++){const x=a+(b-a)*(i+.5)/N;area+=f(x)*(b-a)/N;}
+  const avg=area/(b-a);
+
+  // Shade area
+  ctx.fillStyle=C.accentS;
+  ctx.beginPath();ctx.moveTo(toX(a),toY(0));
+  for(let i=0;i<=200;i++){const x=a+(b-a)*i/200;ctx.lineTo(toX(x),toY(f(x)));}
+  ctx.lineTo(toX(b),toY(0));ctx.closePath();ctx.fill();
+
+  // Curve
+  ctx.strokeStyle=C.accent;ctx.lineWidth=2.5;
+  ctx.beginPath();
+  for(let i=0;i<=200;i++){const x=a+(b-a)*i/200;i?ctx.lineTo(toX(x),toY(f(x))):ctx.moveTo(toX(x),toY(f(x)));}
+  ctx.stroke();
+
+  // Average value line
+  ctx.strokeStyle=C.gold;ctx.lineWidth=2;ctx.setLineDash([5,4]);
+  ctx.beginPath();ctx.moveTo(toX(a),toY(avg));ctx.lineTo(toX(b),toY(avg));ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle=C.gold;ctx.font='11px Inter,sans-serif';ctx.textAlign='left';
+  ctx.fillText(`avg = ${avg.toFixed(3)}`,toX(b)+4,toY(avg)+4);
+
+  // Find intersection point (numerical)
+  let ptX=null;
+  for(let i=0;i<=1000;i++){
+    const x=a+(b-a)*i/1000,xn=a+(b-a)*(i+1)/1000;
+    if((f(x)-avg)*(f(xn)-avg)<=0){ptX=(x+xn)/2;break;}
+  }
+  if(ptX!==null){
+    ctx.fillStyle=C.gold;
+    ctx.beginPath();ctx.arc(toX(ptX),toY(f(ptX)),6,0,2*Math.PI);ctx.fill();
+    ctx.fillStyle=C.text;ctx.font='bold 10px Inter,sans-serif';ctx.textAlign='left';
+    ctx.fillText(`f(${ptX.toFixed(2)}) = avg`,toX(ptX)+9,toY(f(ptX))-6);
+  }
+
+  document.getElementById('mvt-avg').textContent=`Avg = ${avg.toFixed(4)}`;
+  document.getElementById('mvt-pt').textContent=ptX?`x = ${ptX.toFixed(3)}`:'—';
+}
+drawMVT();
+
+/* ═══ Canvas 3: FTC Accumulation ═══ */
+function drawFTC(){
+  const xPct=parseInt(document.getElementById('ftc-x').value)/100;
+  const {ctx,W,H}=mkCtx('cvFTC');
+  const Pd={t:20,b:30,l:45,r:15};
+  const pw=W-Pd.l-Pd.r,ph=H-Pd.t-Pd.b;
+  const a=0,bEnd=2*Math.PI;
+  const f=x=>Math.sin(x)+1.2;
+  const xCur=a+(bEnd-a)*xPct;
+  const toX=v=>Pd.l+(v-a)/(bEnd-a)*pw;
+  const toY=v=>Pd.t+ph-(v/3.5)*ph;
+
+  ctx.clearRect(0,0,W,H);ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
+  axes(ctx,W,H,Pd,toX,toY,[0,.5,1,1.5,2,2.5,3],[[0,'0'],[Math.PI/2,'π/2'],[Math.PI,'π'],[3*Math.PI/2,'3π/2'],[2*Math.PI,'2π']]);
+
+  // Accumulated area fill
+  ctx.fillStyle=C.accentS;
+  ctx.beginPath();ctx.moveTo(toX(a),toY(0));
+  for(let i=0;i<=400;i++){const x=a+(xCur-a)*i/400;ctx.lineTo(toX(x),toY(Math.max(0,f(x))));}
+  ctx.lineTo(toX(xCur),toY(0));ctx.closePath();ctx.fill();
+
+  // Below-axis area
+  ctx.fillStyle='rgba(192,57,43,.12)';
+  ctx.beginPath();ctx.moveTo(toX(a),toY(0));
+  for(let i=0;i<=400;i++){const x=a+(xCur-a)*i/400;ctx.lineTo(toX(x),toY(Math.min(0,f(x))));}
+  ctx.lineTo(toX(xCur),toY(0));ctx.closePath();ctx.fill();
+
+  // Full curve (faded after xCur)
+  ctx.strokeStyle='#ddd';ctx.lineWidth=1.5;
+  ctx.beginPath();
+  for(let i=0;i<=400;i++){const x=a+(bEnd-a)*i/400;i?ctx.lineTo(toX(x),toY(f(x))):ctx.moveTo(toX(x),toY(f(x)));}
+  ctx.stroke();
+
+  // Active curve up to xCur
+  ctx.strokeStyle=C.accent;ctx.lineWidth=2.5;
+  ctx.beginPath();
+  for(let i=0;i<=400;i++){const x=a+(xCur-a)*i/400;i?ctx.lineTo(toX(x),toY(f(x))):ctx.moveTo(toX(x),toY(f(x)));}
+  ctx.stroke();
+
+  // Current x dot
+  const fy=f(xCur);
+  ctx.fillStyle=C.gold;
+  ctx.beginPath();ctx.arc(toX(xCur),toY(fy),6,0,2*Math.PI);ctx.fill();
+
+  // Vertical line at xCur
+  ctx.strokeStyle=C.gold;ctx.lineWidth=1;ctx.setLineDash([3,3]);
+  ctx.beginPath();ctx.moveTo(toX(xCur),toY(0));ctx.lineTo(toX(xCur),toY(fy));ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Numerical F(x)
+  let Fx=0;const NS=1000;
+  for(let i=0;i<NS;i++){Fx+=f(a+(xCur-a)*(i+.5)/NS)*(xCur-a)/NS;}
+  document.getElementById('ftc-xv').textContent=xCur.toFixed(2);
+  document.getElementById('ftc-F').textContent=`F(x) = ${Fx.toFixed(4)}`;
+  document.getElementById('ftc-f').textContent=`f(x) = F′(x) = ${fy.toFixed(4)}`;
+}
+document.getElementById('ftc-x').addEventListener('input',drawFTC);
+drawFTC();
+
+/* ═══ Canvas 4: p-integral ═══ */
+let pType='inf';
+function setPtype(t){
+  pType=t;
+  document.getElementById('pt1').classList.toggle('on',t==='inf');
+  document.getElementById('pt2').classList.toggle('on',t==='zero');
+  drawP();
+}
+function drawP(){
+  const p=parseInt(document.getElementById('p-val').value)/10;
+  document.getElementById('p-v').textContent=p.toFixed(1);
+  const {ctx,W,H}=mkCtx('cvP');
+  const Pd={t:20,b:30,l:45,r:15};
+  const pw=W-Pd.l-Pd.r,ph=H-Pd.t-Pd.b;
+
+  ctx.clearRect(0,0,W,H);ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
+
+  const f=x=>Math.pow(x,-p);
+  const maxY=6;
+
+  if(pType==='inf'){
+    const xMax=5;
+    const toX=v=>Pd.l+(v-1)/(xMax-1)*pw;
+    const toY=v=>Pd.t+ph-Math.min(v,maxY)/maxY*ph;
+    axes(ctx,W,H,Pd,toX,toY,[0,1,2,3,4,5],[[1,'1'],[2,'2'],[3,'3'],[4,'4'],[5,'5']]);
+
+    ctx.fillStyle=p>1?C.accentS:C.redS;
+    ctx.beginPath();ctx.moveTo(toX(1),toY(0));
+    for(let i=1;i<=400;i++){const x=1+(xMax-1)*i/400;ctx.lineTo(toX(x),toY(f(x)));}
+    ctx.lineTo(toX(xMax),toY(0));ctx.closePath();ctx.fill();
+
+    ctx.strokeStyle=p>1?C.accent:C.red;ctx.lineWidth=2.5;
+    ctx.beginPath();
+    for(let i=0;i<=400;i++){const x=1+(xMax-1)*i/400;i?ctx.lineTo(toX(x),toY(f(x))):ctx.moveTo(toX(x),toY(f(x)));}
+    ctx.stroke();
+
+    const cv=p>1,val=p>1?1/(p-1):null;
+    document.getElementById('p-status').textContent=cv?'Converges ✓':'Diverges ✗';
+    document.getElementById('p-status').className=cv?'pill pill-g':'pill pill-r';
+    document.getElementById('p-ans').textContent=cv?`= 1/(p−1) = ${val.toFixed(3)}`:'→ ∞';
+
+  } else {
+    const eps=.05,xMax=1;
+    const toX=v=>Pd.l+(v-eps)/(xMax-eps)*pw;
+    const toY=v=>Pd.t+ph-Math.min(v,maxY)/maxY*ph;
+    axes(ctx,W,H,Pd,toX,toY,[0,1,2,3,4,5],[[0.2,'0.2'],[0.4,'0.4'],[0.6,'0.6'],[0.8,'0.8'],[1,'1']]);
+
+    ctx.fillStyle=p<1?C.accentS:C.redS;
+    ctx.beginPath();ctx.moveTo(toX(eps),toY(0));
+    for(let i=1;i<=400;i++){const x=eps+(xMax-eps)*i/400;const y=f(x);if(y<=maxY)ctx.lineTo(toX(x),toY(y));}
+    ctx.lineTo(toX(xMax),toY(0));ctx.closePath();ctx.fill();
+
+    ctx.strokeStyle=p<1?C.accent:C.red;ctx.lineWidth=2.5;
+    let pen=false;
+    ctx.beginPath();
+    for(let i=0;i<=400;i++){const x=eps+(xMax-eps)*i/400;const y=f(x);if(y<=maxY){if(!pen){ctx.moveTo(toX(x),toY(y));pen=true;}else ctx.lineTo(toX(x),toY(y));}else pen=false;}
+    ctx.stroke();
+
+    const cv=p<1,val=p<1?1/(1-p):null;
+    document.getElementById('p-status').textContent=cv?'Converges ✓':'Diverges ✗';
+    document.getElementById('p-status').className=cv?'pill pill-g':'pill pill-r';
+    document.getElementById('p-ans').textContent=cv?`= 1/(1−p) = ${val.toFixed(3)}`:'→ ∞';
+  }
+}
+document.getElementById('p-val').addEventListener('input',drawP);
+drawP();
+
+/* ═══ Canvas 5: Gamma & Beta ═══ */
+function gamma(z){
+  if(z<.5)return Math.PI/(Math.sin(Math.PI*z)*gamma(1-z));
+  z-=1;
+  const p=[.99999999999980993,676.5203681218851,-1259.1392167224028,771.32342877765313,-176.61502916214059,12.507343278686905,-.13857109526572012,9.9843695780195716e-6,1.5056327351493116e-7];
+  let x=p[0];for(let i=1;i<9;i++)x+=p[i]/(z+i);
+  const t=z+7.5;return Math.sqrt(2*Math.PI)*Math.pow(t,z+.5)*Math.exp(-t)*x;
+}
+function betaFn(m,n){return gamma(m)*gamma(n)/gamma(m+n);}
+
+let gbMode='gamma';
+function setGB(m){
+  gbMode=m;
+  document.getElementById('gb1').classList.toggle('on',m==='gamma');
+  document.getElementById('gb2').classList.toggle('on',m==='beta');
+  document.getElementById('gamma-ctrls').style.display=m==='gamma'?'':'none';
+  document.getElementById('beta-ctrls').style.display=m==='beta'?'':'none';
+  drawGB();
+}
+
+function drawGB(){
+  const {ctx,W,H}=mkCtx('cvGB');
+  const Pd={t:28,b:36,l:52,r:20};
+  const pw=W-Pd.l-Pd.r,ph=H-Pd.t-Pd.b;
+  ctx.clearRect(0,0,W,H);ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
+
+  if(gbMode==='gamma'){
+    const xv=parseInt(document.getElementById('g-x').value)/10;
+    document.getElementById('g-xv').textContent=xv.toFixed(1);
+    const xMin=.5,xMax=5.5,maxY=28;
+    const toX=v=>Pd.l+(v-xMin)/(xMax-xMin)*pw;
+    const toY=v=>Pd.t+ph-Math.min(v,maxY)/maxY*ph;
+
+    // grid
+    [0,5,10,15,20,25].forEach(v=>{
+      ctx.strokeStyle=C.border;ctx.lineWidth=.5;
+      ctx.beginPath();ctx.moveTo(Pd.l,toY(v));ctx.lineTo(Pd.l+pw,toY(v));ctx.stroke();
+      ctx.fillStyle=C.ts;ctx.font='10px Inter,sans-serif';ctx.textAlign='right';ctx.fillText(v,Pd.l-5,toY(v)+4);
+    });
+    for(let i=1;i<=5;i++){
+      ctx.strokeStyle=C.border;ctx.lineWidth=.5;
+      ctx.beginPath();ctx.moveTo(toX(i),Pd.t);ctx.lineTo(toX(i),Pd.t+ph);ctx.stroke();
+      ctx.fillStyle=C.ts;ctx.font='10px Inter,sans-serif';ctx.textAlign='center';ctx.fillText(i,toX(i),Pd.t+ph+18);
+    }
+    ctx.strokeStyle='#bbb';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(Pd.l,Pd.t);ctx.lineTo(Pd.l,Pd.t+ph);ctx.lineTo(Pd.l+pw,Pd.t+ph);ctx.stroke();
+
+    // fill under curve
+    ctx.fillStyle=C.accentS;
+    ctx.beginPath();let st=false;
+    for(let i=0;i<=600;i++){const x=xMin+(xMax-xMin)*i/600;const y=gamma(x);if(y>0&&y<=maxY){if(!st){ctx.moveTo(toX(x),toY(0));st=true;}ctx.lineTo(toX(x),toY(y));}}
+    ctx.lineTo(toX(xMax),toY(0));ctx.closePath();ctx.fill();
+
+    // curve
+    ctx.strokeStyle=C.accent;ctx.lineWidth=2.5;
+    ctx.beginPath();let pen=false;
+    for(let i=0;i<=600;i++){const x=xMin+(xMax-xMin)*i/600;const y=gamma(x);if(y>0&&y<=maxY){if(!pen){ctx.moveTo(toX(x),toY(y));pen=true;}else ctx.lineTo(toX(x),toY(y));}else pen=false;}
+    ctx.stroke();
+
+    // factorial dots
+    [[1,1,'0!=1'],[2,1,'1!=1'],[3,2,'2!=2'],[4,6,'3!=6'],[5,24,'4!=24']].forEach(([xi,yi,lbl])=>{
+      ctx.fillStyle='#D85A30';ctx.beginPath();ctx.arc(toX(xi),toY(yi),5,0,2*Math.PI);ctx.fill();
+      ctx.fillStyle='#D85A30';ctx.font='10px Inter,sans-serif';ctx.textAlign=xi<=2?'left':'right';
+      ctx.fillText(`Γ(${xi})=${lbl}`,toX(xi)+(xi<=2?8:-8),toY(yi)-8);
+    });
+    // √π dot
+    ctx.fillStyle=C.green;ctx.beginPath();ctx.arc(toX(.5),toY(gamma(.5)),5,0,2*Math.PI);ctx.fill();
+    ctx.fillStyle=C.green;ctx.font='10px Inter,sans-serif';ctx.textAlign='left';ctx.fillText('Γ(½)=√π',toX(.5)+8,toY(gamma(.5))-5);
+
+    // current x
+    if(xv>=xMin&&xv<=xMax){const gy=gamma(xv);if(gy<=maxY){
+      ctx.strokeStyle=C.gold;ctx.lineWidth=1.5;ctx.setLineDash([4,3]);
+      ctx.beginPath();ctx.moveTo(toX(xv),toY(0));ctx.lineTo(toX(xv),toY(gy));ctx.stroke();ctx.setLineDash([]);
+      ctx.fillStyle=C.gold;ctx.beginPath();ctx.arc(toX(xv),toY(gy),5,0,2*Math.PI);ctx.fill();
+      ctx.fillStyle=C.gold;ctx.font='bold 11px Inter,sans-serif';ctx.textAlign=xv>3.5?'right':'left';
+      ctx.fillText(`Γ(${xv.toFixed(1)})=${gy.toFixed(3)}`,toX(xv)+(xv>3.5?-8:8),toY(gy)-10);
+      // recursive arrow to x+1
+      const x1=xv+1,gy1=gamma(x1);
+      if(x1<=xMax&&gy1<=maxY){
+        ctx.strokeStyle=C.gold;ctx.lineWidth=1.2;ctx.setLineDash([3,3]);
+        ctx.beginPath();ctx.moveTo(toX(xv),toY(gy));ctx.lineTo(toX(x1),toY(gy1));ctx.stroke();ctx.setLineDash([]);
+        ctx.fillStyle=C.gold;ctx.beginPath();ctx.arc(toX(x1),toY(gy1),4,0,2*Math.PI);ctx.fill();
+        ctx.font='10px Inter,sans-serif';ctx.textAlign='center';
+        ctx.fillText(`×${xv.toFixed(1)}`,toX((xv+x1)/2)+10,toY((gy+gy1)/2)-7);
+      }
+    }}
+
+    const gx=gamma(xv),gx1=gamma(xv+1);
+    document.getElementById('gb-pills').innerHTML=
+      `<span class="pill">Γ(${xv.toFixed(1)}) = ${gx.toFixed(4)}</span>`+
+      `<span class="pill">Γ(${(xv+1).toFixed(1)}) = ${gx1.toFixed(4)}</span>`+
+      `<span class="pill">${xv.toFixed(1)}·Γ(${xv.toFixed(1)}) = ${(xv*gx).toFixed(4)} ✓</span>`;
+    document.getElementById('gb-note').textContent=`Recurrence verified: Γ(${(xv+1).toFixed(1)}) = ${xv.toFixed(1)}·Γ(${xv.toFixed(1)}). Orange dots show where Γ(n) = (n−1)!`;
+
+  } else {
+    const m=parseInt(document.getElementById('b-m').value);
+    const n=parseInt(document.getElementById('b-n').value);
+    document.getElementById('b-mv').textContent=m;document.getElementById('b-nv').textContent=n;
+    const fn=x=>Math.pow(x,m-1)*Math.pow(1-x,n-1);
+    const eps=.001;let maxFn=0;
+    for(let i=1;i<500;i++){const x=i/500;const v=fn(x);if(isFinite(v)&&v>maxFn)maxFn=v;}
+    maxFn=Math.max(maxFn,.1);
+    const maxY=maxFn*1.3;
+    const toX=v=>Pd.l+v*pw;
+    const toY=v=>Pd.t+ph-Math.min(v,maxY)/maxY*ph;
+
+    // grid
+    [0,maxFn*.25,maxFn*.5,maxFn*.75,maxFn].forEach(v=>{
+      ctx.strokeStyle=C.border;ctx.lineWidth=.5;
+      ctx.beginPath();ctx.moveTo(Pd.l,toY(v));ctx.lineTo(Pd.l+pw,toY(v));ctx.stroke();
+      ctx.fillStyle=C.ts;ctx.font='10px Inter,sans-serif';ctx.textAlign='right';ctx.fillText(v.toFixed(2),Pd.l-5,toY(v)+4);
+    });
+    [0,.25,.5,.75,1].forEach(v=>{
+      ctx.strokeStyle=C.border;ctx.lineWidth=.5;
+      ctx.beginPath();ctx.moveTo(toX(v),Pd.t);ctx.lineTo(toX(v),Pd.t+ph);ctx.stroke();
+      ctx.fillStyle=C.ts;ctx.font='10px Inter,sans-serif';ctx.textAlign='center';ctx.fillText(v.toFixed(2),toX(v),Pd.t+ph+18);
+    });
+    ctx.strokeStyle='#bbb';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(Pd.l,Pd.t);ctx.lineTo(Pd.l,Pd.t+ph);ctx.lineTo(Pd.l+pw,Pd.t+ph);ctx.stroke();
+
+    // fill
+    ctx.fillStyle=C.accentS;
+    ctx.beginPath();ctx.moveTo(toX(eps),toY(0));
+    for(let i=1;i<500;i++){const x=eps+(1-2*eps)*i/500;const y=fn(x);if(isFinite(y))ctx.lineTo(toX(x),toY(y));}
+    ctx.lineTo(toX(1-eps),toY(0));ctx.closePath();ctx.fill();
+
+    // curve
+    ctx.strokeStyle=C.accent;ctx.lineWidth=2.5;
+    ctx.beginPath();let pen=false;
+    for(let i=0;i<=500;i++){const x=eps+(1-2*eps)*i/500;const y=fn(x);if(isFinite(y)&&y<=maxY*1.1){if(!pen){ctx.moveTo(toX(x),toY(y));pen=true;}else ctx.lineTo(toX(x),toY(y));}else pen=false;}
+    ctx.stroke();
+
+    // peak marker
+    if(m>1&&n>1){const px=(m-1)/(m+n-2);const py=fn(px);if(isFinite(py)&&py<=maxY){
+      ctx.strokeStyle=C.gold;ctx.lineWidth=1;ctx.setLineDash([3,3]);
+      ctx.beginPath();ctx.moveTo(toX(px),toY(0));ctx.lineTo(toX(px),toY(py));ctx.stroke();ctx.setLineDash([]);
+      ctx.fillStyle=C.gold;ctx.beginPath();ctx.arc(toX(px),toY(py),4,0,2*Math.PI);ctx.fill();
+      ctx.font='10px Inter,sans-serif';ctx.textAlign='center';ctx.fillStyle=C.gold;
+      ctx.fillText(`peak x=${px.toFixed(2)}`,toX(px),toY(py)-9);
+    }}
+
+    const bval=betaFn(m,n);
+    document.getElementById('gb-pills').innerHTML=
+      `<span class="pill">B(${m},${n}) = ${bval.toFixed(5)}</span>`+
+      `<span class="pill">Γ(${m})·Γ(${n})/Γ(${m+n}) = ${bval.toFixed(5)}</span>`+
+      `<span class="pill">B(${n},${m}) = ${betaFn(n,m).toFixed(5)} ✓</span>`;
+    const sym=m===n?`Symmetric hump (m=n=${m})`:m>n?`Skewed right (m>${n})`:`Skewed left (m<${n})`;
+    document.getElementById('gb-note').textContent=`${sym}. Symmetry: B(m,n)=B(n,m) confirmed. Formula: Γ(m)Γ(n)/Γ(m+n).`;
+  }
+}
+document.getElementById('g-x').addEventListener('input',drawGB);
+document.getElementById('b-m').addEventListener('input',drawGB);
+document.getElementById('b-n').addEventListener('input',drawGB);
+drawGB();
+
+/* ── KaTeX render (must be last) ── */
+document.addEventListener('DOMContentLoaded',()=>{});
+renderMathInElement(document.body,{
+  delimiters:[
+    {left:'$$',right:'$$',display:true},
+    {left:'\\[',right:'\\]',display:true},
+    {left:'$',right:'$',display:false},
+    {left:'\\(',right:'\\)',display:false}
+  ],
+  throwOnError:false
+});
+</script>
+</body>
+</html>

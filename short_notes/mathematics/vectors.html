@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vectors, Lines & Planes — MA1014</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f5f3fc;--sidebar:#fff;--card:#fff;
+  --accent:#5b4fcf;--accent-s:#ede9ff;--accent-m:#9b8fef;
+  --blue:#3a6fd8;--blue-s:#e8effe;
+  --gold:#c49200;--gold-s:#fffbec;
+  --text:#1a1730;--tm:#4a4570;--ts:#8a84a8;
+  --border:#e2ddf2;--form:#f0eeff;--proof:#fafafe;
+  --green:#2da865;--green-s:#f2fff8;
+  --red:#c0392b;--red-s:#fff0f0;
+  --sw:230px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.7}
+
+/* ── Layout ── */
+.layout{display:flex;min-height:100vh}
+.sidebar{width:var(--sw);background:var(--sidebar);border-right:1px solid var(--border);position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:100;padding:1.75rem 0 2rem}
+.sb-brand{font-family:'Playfair Display',serif;font-size:.95rem;font-weight:700;color:var(--text);padding:0 1.4rem 1.25rem;border-bottom:1px solid var(--border);margin-bottom:.85rem;letter-spacing:-.01em}
+.sb-sub{font-size:.67rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--ts);display:block;margin-top:.2rem}
+.nav-list{list-style:none}
+.nav-list a{display:block;padding:.42rem 1.4rem;color:var(--tm);text-decoration:none;font-size:.82rem;font-weight:400;transition:all .15s;border-left:2px solid transparent}
+.nav-list a:hover{color:var(--accent);background:var(--accent-s)}
+.nav-list a.active{color:var(--accent);border-left-color:var(--accent);background:var(--accent-s);font-weight:500}
+.main{margin-left:var(--sw);flex:1;padding:3rem 3.5rem 6rem;max-width:calc(var(--sw) + 820px)}
+
+/* ── Section shell ── */
+.sec{margin-bottom:5.5rem}
+.eyebrow{font-size:.67rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:.7rem}
+.sec-title{font-family:'Playfair Display',serif;font-size:2.1rem;font-weight:700;line-height:1.2;margin-bottom:1.1rem}
+.sec-intro{color:var(--tm);font-size:.93rem;margin-bottom:2rem;max-width:660px;line-height:1.8}
+h3{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:600;color:var(--text);margin:2rem 0 .65rem}
+p{color:var(--tm);margin-bottom:.9rem;line-height:1.75}
+
+/* ── Boxes ── */
+.thm,.defn,.prop{border-radius:0 8px 8px 0;padding:1.1rem 1.4rem;margin:1.1rem 0;border:1px solid}
+.thm{background:var(--accent-s);border-color:var(--border);border-left:3px solid var(--accent)}
+.defn{background:var(--blue-s);border-color:#d5e1f8;border-left:3px solid var(--blue)}
+.prop{background:#f2fff8;border-color:#c8f0da;border-left:3px solid var(--green)}
+.warn{background:var(--red-s);border-color:#f2c7c7;border-left:3px solid var(--red);border-radius:0 8px 8px 0;padding:1.1rem 1.4rem;margin:1.1rem 0}
+.box-label{font-size:.67rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.45rem}
+.thm .box-label{color:var(--accent)}
+.defn .box-label{color:var(--blue)}
+.prop .box-label{color:var(--green)}
+.warn .box-label{color:var(--red)}
+.box-body{color:var(--text);font-size:.91rem;line-height:1.7}
+
+.intuition{background:var(--gold-s);border:1px solid #f0e0a0;border-left:3px solid var(--gold);border-radius:0 8px 8px 0;padding:.9rem 1.2rem;margin:.9rem 0;font-size:.86rem;color:#4a3800}
+.intuition .box-label{color:var(--gold)}
+
+.formula{background:var(--form);border:1px solid var(--border);border-radius:8px;padding:1.1rem 1.25rem;text-align:center;margin:1.1rem 0;overflow-x:auto}
+.formula-sm{background:var(--form);border:1px solid var(--border);border-radius:6px;padding:.7rem 1rem;margin:.7rem 0;overflow-x:auto}
+
+/* ── Proof toggle ── */
+.proof-btn{cursor:pointer;background:none;border:none;color:var(--accent);font-size:.8rem;font-weight:500;font-family:'Inter',sans-serif;padding:.35rem 0;display:flex;align-items:center;gap:.4rem;margin:.6rem 0}
+.proof-btn::before{content:'▶';font-size:.6rem;transition:transform .2s}
+.proof-btn.open::before{transform:rotate(90deg)}
+.proof-box{background:var(--proof);border:1px solid var(--border);border-radius:8px;padding:1.1rem 1.4rem;margin-bottom:1.1rem;font-size:.86rem;color:var(--tm);display:none}
+.proof-box.show{display:block}
+
+/* ── Widget ── */
+.widget-toggle{cursor:pointer;width:100%;background:var(--accent-s);border:2px solid var(--accent);border-radius:8px;padding:.75rem 1.2rem;font-size:.85rem;font-weight:600;font-family:'Inter',sans-serif;color:var(--accent);display:flex;align-items:center;gap:.65rem;margin:1.5rem 0 0;text-align:left;transition:background .15s,color .15s,border-radius .1s}
+.widget-toggle:hover{background:var(--accent);color:#fff}
+.widget-toggle.open{background:var(--accent);color:#fff;border-radius:8px 8px 0 0}
+.widget-toggle .wt-lbl{flex:1;letter-spacing:.04em}
+.widget-toggle .wt-arrow{font-size:.8rem;transition:transform .2s;opacity:.8}
+.widget-toggle.open .wt-arrow{transform:rotate(180deg);opacity:1}
+.widget{display:none;background:var(--card);border:2px solid var(--accent);border-top:0;border-radius:0 0 12px 12px;padding:1.4rem;margin:0 0 1.5rem}
+.widget.show{display:block}
+.widget-title{font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ts);margin-bottom:1rem}
+.ctrl{display:flex;align-items:center;gap:10px;margin-bottom:.6rem}
+.ctrl label{font-size:.8rem;color:var(--ts);min-width:75px}
+.ctrl input[type=range]{flex:1;accent-color:var(--accent)}
+.ctrl span{font-size:.8rem;font-weight:500;color:var(--text);min-width:44px}
+.pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:.9rem}
+.pill{background:var(--accent-s);border-radius:20px;padding:.25rem .8rem;font-size:.76rem;color:var(--accent);font-weight:500}
+.pill-g{background:#e8fff3;color:#1a8a4a}
+.pill-b{background:var(--blue-s);color:var(--blue)}
+canvas{border-radius:6px;border:1px solid var(--border);display:block;background:#fff;max-width:100%}
+.cvote{font-size:.75rem;color:var(--ts);margin-top:.45rem;text-align:center}
+.tab-row{display:flex;gap:8px;margin-bottom:1rem}
+.tab-btn{font-size:.78rem;padding:5px 12px;border-radius:20px;border:1px solid var(--border);cursor:pointer;background:var(--card);color:var(--tm);font-family:'Inter',sans-serif}
+.tab-btn.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* ── Transform grid ── */
+.tgrid{display:grid;grid-template-columns:1fr 1fr;gap:.9rem;margin:1rem 0}
+.tcard{background:var(--form);border:1px solid var(--border);border-radius:8px;padding:.9rem 1rem}
+.tcard-lbl{font-size:.67rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ts);margin-bottom:.45rem}
+.tcard .formula-sm{background:#fff;margin:.5rem 0 0}
+
+/* ── Table ── */
+table{width:100%;border-collapse:collapse;font-size:.86rem;margin:1rem 0}
+th{background:var(--accent-s);color:var(--accent);font-weight:600;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;padding:.55rem .9rem;text-align:left}
+td{padding:.55rem .9rem;border-bottom:1px solid var(--border);color:var(--tm);vertical-align:top}
+tr:last-child td{border-bottom:none}
+
+/* ── Overview hero ── */
+.hero{background:linear-gradient(135deg,var(--accent-s) 0%,#fff 65%);border:1px solid var(--border);border-radius:12px;padding:2rem 2.25rem;margin-bottom:2rem}
+.hero-formula{font-family:'Playfair Display',serif;font-size:1.9rem;color:var(--accent);margin:.9rem 0;text-align:center}
+
+/* ── Checklist ── */
+.checklist{list-style:none}
+.checklist li{display:flex;align-items:flex-start;gap:.75rem;padding:.5rem 0;border-bottom:1px solid var(--border);font-size:.88rem;color:var(--tm)}
+.checklist li::before{content:'○';color:var(--accent);font-size:1rem;flex-shrink:0;margin-top:.05rem}
+.checklist li strong{color:var(--text)}
+
+/* ── Keypoints ── */
+.keypoints-added{background:linear-gradient(180deg,#fff 0%,#faf8ff 100%);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:1.05rem 1.25rem;margin:1.15rem 0}
+.keypoints-added.green{background:var(--green-s);border-color:#c8f0da;border-left-color:var(--green)}
+.keypoints-added.gold{background:var(--gold-s);border-color:#f0e0a0;border-left-color:var(--gold)}
+.keypoints-added.cool{background:linear-gradient(180deg,#fbfdff 0%,#f0f9ff 100%);border-color:#c9e5f6;border-left-color:#78b7df}
+.keypoints-added.blue{background:var(--blue-s);border-color:#d5e1f8;border-left-color:var(--blue)}
+.keypoints-added .box-lbl{font-size:.67rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.45rem;color:var(--accent)}
+.keypoints-added.green .box-lbl{color:var(--green)}
+.keypoints-added.gold .box-lbl{color:var(--gold)}
+.keypoints-added.cool .box-lbl{color:#3d759a}
+.keypoints-added.blue .box-lbl{color:var(--blue)}
+
+.kdiv{height:1px;background:var(--border);margin:1.5rem 0}
+ol,ul{padding-left:1.35em;color:var(--tm);margin:.5rem 0}
+li{margin:.25rem 0}
+
+
+/* ── visual/proof refinement patch: keeps existing theme, improves motion + math readability ── */
+@keyframes revealSoft{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes canvasRefresh{0%{filter:saturate(.92);opacity:.88;transform:translateY(2px)}100%{filter:saturate(1);opacity:1;transform:translateY(0)}}
+.proof-box.show,.pf-body.show,.widget.show{animation:revealSoft .22s ease-out both;}
+.proof-box,.pf-body{overflow-x:auto;}
+.proof-box p,.proof-box li,.pf-body p,.pf-step .st-expr{overflow-wrap:anywhere;}
+.pf-step sub,.pf-step sup,.proof-box sub,.proof-box sup,.pf-body sub,.pf-body sup,.box-body sub,.box-body sup,.formula sub,.formula sup,.formula-sm sub,.formula-sm sup{line-height:0;position:relative;vertical-align:baseline;}
+.pf-step sup,.proof-box sup,.pf-body sup,.box-body sup,.formula sup,.formula-sm sup{top:-.42em;font-size:.72em;}
+.pf-step sub,.proof-box sub,.pf-body sub,.box-body sub,.formula sub,.formula-sm sub{bottom:-.18em;font-size:.72em;}
+canvas.viz-refresh{animation:canvasRefresh .18s ease-out both;}
+.widget canvas,.viz canvas{max-width:100%;height:auto;}
+@media (prefers-reduced-motion: reduce){.proof-box.show,.pf-body.show,.widget.show,canvas.viz-refresh{animation:none!important;}}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sb-brand">MA1014 Guide<span class="sb-sub">Vectors, Lines &amp; Planes</span></div>
+  <ul class="nav-list">
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#vectors">Vectors</a></li>
+    <li><a href="#dot">Dot Product</a></li>
+    <li><a href="#cross">Cross Product</a></li>
+    <li><a href="#triple">Triple Products</a></li>
+    <li><a href="#independence">Independence test</a></li>
+    <li><a href="#lines">Lines in 3D</a></li>
+    <li><a href="#skew">Skew lines</a></li>
+    <li><a href="#planes">Planes</a></li>
+    <li><a href="#distances">Distances</a></li>
+    <li><a href="#exam">Exam Checklist</a></li>
+  </ul>
+</nav>
+
+<!-- MAIN -->
+<main class="main">
+
+<!-- 1. OVERVIEW -->
+<section class="sec" id="overview">
+  <div class="eyebrow">MA1014 Mathematics · Algebra</div>
+  <h2 class="sec-title">Vectors, Lines &amp; Planes</h2>
+  <p class="sec-intro">Vectors give direction and magnitude to geometry in two and three dimensions. Three operations — dot product, cross product, and triple product — turn geometric questions (angle, perpendicularity, area, volume) into algebra.</p>
+
+  <div class="hero">
+    <p style="color:var(--tm);font-size:.88rem;margin-bottom:.5rem">The three operations on vectors $\mathbf{a}$ and $\mathbf{b}$:</p>
+    <div class="hero-formula">$\mathbf{a}\cdot\mathbf{b} = |\mathbf{a}||\mathbf{b}|\cos\theta \qquad |\mathbf{a}\times\mathbf{b}| = |\mathbf{a}||\mathbf{b}|\sin\theta$</div>
+    <p style="color:var(--ts);font-size:.8rem;text-align:center;margin:0">Dot → scalar (angle). Cross → vector (perpendicular, area).</p>
+  </div>
+
+  <table>
+    <tr><th>Concept</th><th>Key Idea</th><th>Section</th></tr>
+    <tr><td>Vectors &amp; algebra</td><td>Component form, unit vectors, ratio formula</td><td>§2</td></tr>
+    <tr><td>Dot product</td><td>$\mathbf{a}\cdot\mathbf{b}=0$ iff perpendicular</td><td>§3</td></tr>
+    <tr><td>Cross product</td><td>$|\mathbf{a}\times\mathbf{b}|$ = parallelogram area; direction from RHR</td><td>§4</td></tr>
+    <tr><td>Triple product</td><td>Signed volume; zero iff coplanar</td><td>§5</td></tr>
+    <tr><td>Lines in 3D</td><td>$\mathbf{r}=\mathbf{r}_0+t\mathbf{v}$</td><td>§6</td></tr>
+    <tr><td>Planes</td><td>$(\mathbf{r}-\mathbf{r}_0)\cdot\mathbf{n}=0$</td><td>§7</td></tr>
+    <tr><td>Distances</td><td>Point-to-plane, skew-line distance via projections</td><td>§8</td></tr>
+  </table>
+</section>
+
+<!-- 2. VECTORS -->
+<section class="sec" id="vectors">
+  <div class="eyebrow">MA1014 Mathematics · Algebra</div>
+  <h2 class="sec-title">Vectors</h2>
+  <p class="sec-intro">A vector has both magnitude and direction. In component form it is a list of coordinates; geometrically it is an arrow.</p>
+
+  <div class="defn">
+    <div class="box-label">Definition — Vector</div>
+    <div class="box-body">A vector $\mathbf{a}=\langle a_1,a_2,a_3\rangle = a_1\mathbf{i}+a_2\mathbf{j}+a_3\mathbf{k}$ has magnitude $|\mathbf{a}|=\sqrt{a_1^2+a_2^2+a_3^2}$. Two vectors are equal iff they have the same magnitude and direction.</div>
+  </div>
+
+  <div class="defn">
+    <div class="box-label">Definition — Unit Vector</div>
+    <div class="box-body">A vector of magnitude 1. The unit vector in the direction of $\mathbf{a}$ is $\hat{\mathbf{a}}=\dfrac{\mathbf{a}}{|\mathbf{a}|}$.</div>
+  </div>
+
+  <div class="thm">
+    <div class="box-label">Operations</div>
+    <div class="box-body">
+      $$\mathbf{a}+\mathbf{b}=\langle a_1+b_1,\,a_2+b_2,\,a_3+b_3\rangle \qquad k\mathbf{a}=\langle ka_1,ka_2,ka_3\rangle$$
+      Triangle law: place $\mathbf{b}$ at the tip of $\mathbf{a}$; the shortcut arrow is $\mathbf{a}+\mathbf{b}$.
+    </div>
+  </div>
+
+  <div class="thm">
+    <div class="box-label">Theorem — Ratio Formula</div>
+    <div class="box-body">If $C$ divides $AB$ in the ratio $m:n$ (internally), then $\mathbf{c}=\dfrac{n\,\mathbf{a}+m\,\mathbf{b}}{m+n}$. Midpoint: $m=n=1$, so $\mathbf{c}=\frac{\mathbf{a}+\mathbf{b}}{2}$.</div>
+  </div>
+</section>
+
+<!-- 3. DOT PRODUCT -->
+<section class="sec" id="dot">
+  <div class="eyebrow">MA1014 Mathematics · Algebra</div>
+  <h2 class="sec-title">Dot Product</h2>
+  <p class="sec-intro">The dot product measures how much one vector points along another. Its value is a scalar. It is the engine behind angle calculations and projections.</p>
+
+  <div class="defn">
+    <div class="box-label">Definition — Dot Product</div>
+    <div class="box-body">$$\mathbf{a}\cdot\mathbf{b} = |\mathbf{a}||\mathbf{b}|\cos\theta = a_1b_1+a_2b_2+a_3b_3$$</div>
+  </div>
+
+  <div class="thm">
+    <div class="box-label">Theorem — Orthogonality</div>
+    <div class="box-body">For non-zero vectors: $\mathbf{a}\perp\mathbf{b}\iff\mathbf{a}\cdot\mathbf{b}=0$. This is because $\cos 90^\circ=0$.</div>
+  </div>
+
+  <div class="intuition"><div class="box-label">Intuition</div>
+    The dot product is zero when the vectors are perpendicular — neither "points into" the other. It is maximum when they are parallel and of the same direction ($\cos 0^\circ=1$).
+  </div>
+
+  <table>
+    <tr><th>Sign of $\mathbf{a}\cdot\mathbf{b}$</th><th>Geometric meaning</th></tr>
+    <tr><td>$> 0$</td><td>Angle is acute; vectors point roughly the same way</td></tr>
+    <tr><td>$= 0$</td><td>Vectors are perpendicular</td></tr>
+    <tr><td>$< 0$</td><td>Angle is obtuse; vectors point roughly against each other</td></tr>
+  </table>
+
+  <button class="widget-toggle" data-widget="wDot">
+    <span>📐</span><span class="wt-lbl">Interactive — Dot Product &amp; Angle</span><span class="wt-arrow">▼</span>
+  </button>
+  <div class="widget" id="wDot">
+    <div class="widget-title">Interactive — Dot Product &amp; Angle</div>
+    <div class="ctrl"><label>Angle $\theta$</label><input type="range" id="dot-ang" min="0" max="180" value="50"><span id="dot-angv">50°</span></div>
+    <div class="ctrl"><label>$|\mathbf{a}|$</label><input type="range" id="dot-la" min="5" max="20" value="12"><span id="dot-lav">1.2</span></div>
+    <div class="ctrl"><label>$|\mathbf{b}|$</label><input type="range" id="dot-lb" min="5" max="20" value="9"><span id="dot-lbv">0.9</span></div>
+    <div class="pills">
+      <span class="pill" id="dot-val">a·b = —</span>
+      <span class="pill" id="dot-proj">proj = —</span>
+    </div>
+    <canvas id="cvDot" width="700" height="240"></canvas>
+    <p class="cvote">Purple = $\mathbf{a}$, gold = $\mathbf{b}$, dashed = projection of $\mathbf{b}$ onto $\mathbf{a}$. Drag the angle slider to see how the dot product changes.</p>
+  </div>
+
+  <h3>Projection</h3>
+  <p>The scalar projection of $\mathbf{b}$ onto $\mathbf{a}$ is $\text{comp}_{\mathbf{a}}\mathbf{b}=\dfrac{\mathbf{a}\cdot\mathbf{b}}{|\mathbf{a}|}$. The vector projection is $\text{proj}_{\mathbf{a}}\mathbf{b}=\dfrac{\mathbf{a}\cdot\mathbf{b}}{|\mathbf{a}|^2}\,\mathbf{a}$.</p>
+</section>
+
+<!-- 4. CROSS PRODUCT -->
+<section class="sec" id="cross">
+  <div class="eyebrow">MA1014 Mathematics · Algebra</div>
+  <h2 class="sec-title">Cross Product</h2>
+  <p class="sec-intro">The cross product of two vectors is a new vector perpendicular to both. Its magnitude equals the area of the parallelogram they span. Direction is given by the right-hand rule.</p>
+
+  <div class="defn">
+    <div class="box-label">Definition — Cross Product</div>
+    <div class="box-body">$$\mathbf{a}\times\mathbf{b} = |\mathbf{a}||\mathbf{b}|\sin\theta\;\mathbf{n}$$
+    In component form via the determinant:
+    $$\mathbf{a}\times\mathbf{b}=\begin{vmatrix}\mathbf{i}&\mathbf{j}&\mathbf{k}\\a_1&a_2&a_3\\b_1&b_2&b_3\end{vmatrix}=(a_2b_3-a_3b_2)\,\mathbf{i}-(a_1b_3-a_3b_1)\,\mathbf{j}+(a_1b_2-a_2b_1)\,\mathbf{k}$$</div>
+  </div>
+
+  <div class="thm">
+    <div class="box-label">Key Properties</div>
+    <div class="box-body">
+      <ol style="padding-left:1.2em;line-height:2">
+        <li><strong>Anti-commutativity:</strong> $\mathbf{a}\times\mathbf{b}=-({\mathbf{b}\times\mathbf{a}})$</li>
+        <li><strong>Distributivity:</strong> $\mathbf{a}\times(\mathbf{b}+\mathbf{c})=\mathbf{a}\times\mathbf{b}+\mathbf{a}\times\mathbf{c}$</li>
+        <li><strong>Parallel test:</strong> $\mathbf{a}\times\mathbf{b}=\mathbf{0}$ iff $\mathbf{a}\parallel\mathbf{b}$ (or either is $\mathbf{0}$)</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="prop">
+    <div class="box-label">Area Formulas</div>
+    <div class="box-body">Parallelogram with adjacent sides $\mathbf{a},\mathbf{b}$: $A=|\mathbf{a}\times\mathbf{b}|$.&ensp; Triangle: $A=\frac12|\mathbf{a}\times\mathbf{b}|$.</div>
+  </div>
+
+  <div class="intuition"><div class="box-label">Intuition</div>
+    When $\theta=0$ or $180^\circ$, $\sin\theta=0$: the vectors are parallel and the parallelogram has zero area. When $\theta=90^\circ$, $\sin\theta=1$: maximum area. The magnitude grows as the vectors open wider toward 90° and shrinks back to zero at 180°.
+  </div>
+
+  <button class="widget-toggle" data-widget="wCross">
+    <span>✕</span><span class="wt-lbl">Interactive — Cross Product Area</span><span class="wt-arrow">▼</span>
+  </button>
+  <div class="widget" id="wCross">
+    <div class="widget-title">Interactive — Cross Product Area</div>
+    <div class="ctrl"><label>Angle $\theta$</label><input type="range" id="cx-ang" min="1" max="179" value="60"><span id="cx-angv">60°</span></div>
+    <div class="ctrl"><label>$|\mathbf{a}|$</label><input type="range" id="cx-la" min="4" max="18" value="10"><span id="cx-lav">1.0</span></div>
+    <div class="ctrl"><label>$|\mathbf{b}|$</label><input type="range" id="cx-lb" min="4" max="18" value="8"><span id="cx-lbv">0.8</span></div>
+    <div class="pills">
+      <span class="pill" id="cx-area">Area = —</span>
+      <span class="pill" id="cx-cross">|a×b| = —</span>
+    </div>
+    <canvas id="cvCross" width="700" height="240"></canvas>
+    <p class="cvote">Shaded parallelogram area = $|\mathbf{a}\times\mathbf{b}|$. The cross product magnitude peaks at $\theta=90°$ and falls to zero when vectors are parallel.</p>
+  </div>
+
+  <div class="prop">
+    <div class="box-label">Moment of Force</div>
+    <div class="box-body">If force $\mathbf{F}$ acts at position $\mathbf{r}$, the moment (torque) about the origin is $\mathbf{M}=\mathbf{r}\times\mathbf{F}$.</div>
+  </div>
+</section>
+
+<!-- 5. TRIPLE PRODUCTS -->
+<section class="sec" id="triple">
+  <div class="eyebrow">MA1014 Mathematics · Algebra</div>
+  <h2 class="sec-title">Triple Products</h2>
+  <p class="sec-intro">Combining dot and cross gives two kinds of triple product: the scalar triple product (a number equal to signed volume) and the vector triple product (a vector).</p>
+
+  <div class="defn">
+    <div class="box-label">Definition — Scalar Triple Product</div>
+    <div class="box-body">$$[\mathbf{a},\mathbf{b},\mathbf{c}]=\mathbf{a}\cdot(\mathbf{b}\times\mathbf{c})=\begin{vmatrix}a_1&a_2&a_3\\b_1&b_2&b_3\\c_1&c_2&c_3\end{vmatrix}$$</div>
+  </div>
+
+  <div class="thm">
+    <div class="box-label">Geometric Meaning</div>
+    <div class="box-body">
+      $$\text{Volume of parallelepiped} = |\mathbf{a}\cdot(\mathbf{b}\times\mathbf{c})| \qquad \text{Volume of tetrahedron} = \frac{1}{6}|\mathbf{a}\cdot(\mathbf{b}\times\mathbf{c})|$$
+      Three vectors are <strong>coplanar</strong> $\iff\mathbf{a}\cdot(\mathbf{b}\times\mathbf{c})=0$.
+    </div>
+  </div>
+
+  <div class="intuition"><div class="box-label">Intuition</div>
+    $\mathbf{b}\times\mathbf{c}$ gives a vector normal to the base parallelogram with magnitude equal to its area. Dotting with $\mathbf{a}$ gives the height component — so the product is base area × height = volume.
+  </div>
+
+  <div class="defn">
+    <div class="box-label">Definition — Vector Triple Product</div>
+    <div class="box-body">$$\mathbf{a}\times(\mathbf{b}\times\mathbf{c})=(\mathbf{a}\cdot\mathbf{c})\,\mathbf{b}-(\mathbf{a}\cdot\mathbf{b})\,\mathbf{c}$$
+    $$(\mathbf{a}\times\mathbf{b})\times\mathbf{c}=(\mathbf{a}\cdot\mathbf{c})\,\mathbf{b}-(\mathbf{b}\cdot\mathbf{c})\,\mathbf{a}$$</div>
+  </div>
+
+  <div class="warn">
+    <div class="box-label">Common Mistake</div>
+    <div class="box-body">Cross product is not associative: $\mathbf{a}\times(\mathbf{b}\times\mathbf{c})\ne(\mathbf{a}\times\mathbf{b})\times\mathbf{c}$ in general. Brackets matter.</div>
+  </div>
+</section>
+
+<!-- Independence keypoint -->
+<div class="keypoints-added green" id="independence">
+  <div class="box-lbl">Linear independence test</div>
+  <p>For three vectors in $\mathbb{R}^3$, form the $3\times3$ matrix $A$ with them as rows.</p>
+  <div class="formula">$$\det(A)\neq 0 \Rightarrow \text{linearly independent}\qquad \det(A)=0\Rightarrow\text{linearly dependent}$$</div>
+  <p>Geometrically, $|\det(A)|$ is the volume of the parallelepiped. Zero volume means the vectors collapse into a plane or line — exactly the condition for coplanarity.</p>
+</div>
+
+<!-- 6. LINES -->
+<section class="sec" id="lines">
+  <div class="eyebrow">MA1014 Mathematics · Algebra</div>
+  <h2 class="sec-title">Lines in 3D</h2>
+  <p class="sec-intro">A line in 3D is uniquely determined by one fixed point and one direction vector. The parameter $t$ moves you along the line in either direction.</p>
+
+  <div class="defn">
+    <div class="box-label">Definition — Vector Equation of a Line</div>
+    <div class="box-body">Line through $\mathbf{r}_0$ in direction $\mathbf{v}=\langle a,b,c\rangle$:
+    $$\mathbf{r}=\mathbf{r}_0+t\mathbf{v}, \quad t\in\mathbb{R}$$
+    Parametric: $x=x_0+at,\;y=y_0+bt,\;z=z_0+ct$. &ensp; Symmetric: $\dfrac{x-x_0}{a}=\dfrac{y-y_0}{b}=\dfrac{z-z_0}{c}$.</div>
+  </div>
+
+  <div class="thm">
+    <div class="box-label">Line Through Two Points</div>
+    <div class="box-body">If the line passes through $A(\mathbf{r}_1)$ and $B(\mathbf{r}_2)$:
+    $$\mathbf{r}=(1-t)\mathbf{r}_1+t\mathbf{r}_2$$
+    Direction vector is $\mathbf{r}_2-\mathbf{r}_1$.</div>
+  </div>
+
+  <div class="thm">
+    <div class="box-label">Angle Between Two Lines</div>
+    <div class="box-body">Use only the direction vectors $\mathbf{v}_1,\mathbf{v}_2$: $\cos\phi=\dfrac{\mathbf{v}_1\cdot\mathbf{v}_2}{|\mathbf{v}_1||\mathbf{v}_2|}$. If $\phi$ is obtuse, take $180°-\phi$ for the acute angle between the lines.</div>
+  </div>
+
+  <div class="tgrid">
+    <div class="tcard"><div class="tcard-lbl">Parallel lines</div>Direction vectors are scalar multiples: $\mathbf{v}_0=k\,\mathbf{v}_1$.</div>
+    <div class="tcard"><div class="tcard-lbl">Perpendicular lines</div>Direction vectors have zero dot product: $\mathbf{v}_0\cdot\mathbf{v}_1=0$.</div>
+  </div>
+</section>
+
+<!-- Skew lines keypoint -->
+<div class="keypoints-added cool" id="skew">
+  <div class="box-lbl">Skew lines in 3D</div>
+  <p>Two lines are <strong>skew</strong> when they are not parallel and do not intersect. To classify two lines:</p>
+  <ol>
+    <li>Check direction vectors. If one is a scalar multiple of the other, the lines are parallel (not skew).</li>
+    <li>If not parallel, solve the two parametric equations simultaneously for $t$ and $s$.</li>
+    <li>If a consistent solution exists, they intersect. If not, they are skew.</li>
+  </ol>
+  <p>Note: opposite direction vectors still mean parallel, e.g. $(-3,-4,2)=-(3,4,-2)$.</p>
+</div>
+
+<!-- 7. PLANES -->
+<section class="sec" id="planes">
+  <div class="eyebrow">MA1014 Mathematics · Algebra</div>
+  <h2 class="sec-title">Planes</h2>
+  <p class="sec-intro">A plane is uniquely determined by one point on it plus a normal vector (perpendicular to every vector in the plane). Alternatively, give one point and two directions lying in the plane.</p>
+
+  <div class="defn">
+    <div class="box-label">Definition — Normal Form</div>
+    <div class="box-body">Plane through $\mathbf{r}_0$ with normal $\mathbf{n}=\langle a,b,c\rangle$:
+    $$(\mathbf{r}-\mathbf{r}_0)\cdot\mathbf{n}=0 \quad\Longleftrightarrow\quad ax+by+cz=d$$
+    where $d=ax_0+by_0+cz_0=\mathbf{r}_0\cdot\mathbf{n}$.</div>
+  </div>
+
+  <div class="defn">
+    <div class="box-label">Definition — Parametric Form</div>
+    <div class="box-body">Plane through $\mathbf{r}_0$ containing directions $\mathbf{a}$ and $\mathbf{b}$:
+    $$\mathbf{r}=\mathbf{r}_0+s\,\mathbf{a}+t\,\mathbf{b}$$
+    The normal is $\mathbf{n}=\mathbf{a}\times\mathbf{b}$.</div>
+  </div>
+
+  <div class="thm">
+    <div class="box-label">Plane Through Three Points</div>
+    <div class="box-body">For points $A,B,C$ with position vectors $\mathbf{r}_0,\mathbf{r}_1,\mathbf{r}_2$:
+    $$(\mathbf{r}-\mathbf{r}_1)\cdot\left[(\mathbf{r}_0-\mathbf{r}_1)\times(\mathbf{r}_2-\mathbf{r}_1)\right]=0$$</div>
+  </div>
+
+  <div class="thm">
+    <div class="box-label">Angle Between Two Planes</div>
+    <div class="box-body">Use the normal vectors $\mathbf{n}_1,\mathbf{n}_2$: $\cos\phi=\dfrac{\mathbf{n}_1\cdot\mathbf{n}_2}{|\mathbf{n}_1||\mathbf{n}_2|}$.</div>
+  </div>
+</section>
+
+<!-- 8. DISTANCES -->
+<section class="sec" id="distances">
+  <div class="eyebrow">MA1014 Mathematics · Algebra</div>
+  <h2 class="sec-title">Distances</h2>
+  <p class="sec-intro">All distance formulas reduce to projecting a connecting vector onto a unit normal or unit common-perpendicular. The absolute value removes sign.</p>
+
+  <div class="thm">
+    <div class="box-label">Theorem — Point to Plane</div>
+    <div class="box-body">Distance from point $P(x_1,y_1,z_1)$ to plane $ax+by+cz=d$:
+    $$D=\frac{|ax_1+by_1+cz_1-d|}{\sqrt{a^2+b^2+c^2}}$$</div>
+  </div>
+  <button class="proof-btn">Show Proof Idea</button>
+  <div class="proof-box">The unit normal to the plane is $\hat{\mathbf{n}}=\frac{\mathbf{n}}{|\mathbf{n}|}$. If $Q$ is any point on the plane, the distance from $P$ to the plane equals the length of the projection of $\overrightarrow{QP}$ onto $\hat{\mathbf{n}}$, giving $|\overrightarrow{QP}\cdot\hat{\mathbf{n}}|=\frac{|ax_1+by_1+cz_1-d|}{\sqrt{a^2+b^2+c^2}}$.</div>
+
+  <div class="thm">
+    <div class="box-label">Theorem — Distance Between Skew Lines</div>
+    <div class="box-body">For lines with directions $\mathbf{v}_0,\mathbf{v}_1$ and points $A,B$ on each:
+    $$D=\frac{|\overrightarrow{AB}\cdot(\mathbf{v}_0\times\mathbf{v}_1)|}{|\mathbf{v}_0\times\mathbf{v}_1|}$$
+    The numerator projects the connecting vector onto the common perpendicular.</div>
+  </div>
+
+  <div class="intuition"><div class="box-label">Intuition</div>
+    $\mathbf{n}=\mathbf{v}_0\times\mathbf{v}_1$ is perpendicular to both lines. The shortest connector between the skew lines must lie along this direction. So project any connector $\overrightarrow{AB}$ onto $\hat{\mathbf{n}}$.
+  </div>
+
+  <button class="widget-toggle" data-widget="wDist">
+    <span>📏</span><span class="wt-lbl">Interactive — Point-to-Plane Distance</span><span class="wt-arrow">▼</span>
+  </button>
+  <div class="widget" id="wDist">
+    <div class="widget-title">Interactive — Point-to-Plane Distance</div>
+    <div class="ctrl"><label>$x_1$</label><input type="range" id="d-x" min="-15" max="15" value="4"><span id="d-xv">4</span></div>
+    <div class="ctrl"><label>$y_1$</label><input type="range" id="d-y" min="-15" max="15" value="3"><span id="d-yv">3</span></div>
+    <div class="ctrl"><label>Plane $d$</label><input type="range" id="d-d" min="-10" max="10" value="0"><span id="d-dv">0</span></div>
+    <div class="pills">
+      <span class="pill" id="d-dist">Distance = —</span>
+      <span class="pill">Plane: $x + y = d$</span>
+    </div>
+    <canvas id="cvDist" width="700" height="240"></canvas>
+    <p class="cvote">Point (purple dot) vs. line $x+y=d$ (in 2D). The green segment is the shortest (perpendicular) distance.</p>
+  </div>
+</section>
+
+<!-- 9. EXAM CHECKLIST -->
+<section class="sec" id="exam">
+  <div class="eyebrow">MA1014 Mathematics · Algebra</div>
+  <h2 class="sec-title">Exam Checklist</h2>
+
+  <table>
+    <tr><th>Question asks for…</th><th>Use…</th><th>Why</th></tr>
+    <tr><td>Angle between vectors/lines/planes</td><td>Dot product formula</td><td>Dot product contains $\cos\theta$</td></tr>
+    <tr><td>Perpendicularity</td><td>$\mathbf{a}\cdot\mathbf{b}=0$</td><td>$\cos 90°=0$</td></tr>
+    <tr><td>Parallelism</td><td>Scalar multiple or $|\mathbf{a}\times\mathbf{b}|=0$</td><td>Same/opposite direction</td></tr>
+    <tr><td>Normal to a plane</td><td>$\mathbf{a}\times\mathbf{b}$</td><td>Cross product is $\perp$ to both</td></tr>
+    <tr><td>Area of parallelogram/triangle</td><td>$|\mathbf{a}\times\mathbf{b}|$ or half</td><td>Cross product magnitude = area</td></tr>
+    <tr><td>Volume / coplanarity</td><td>$\mathbf{a}\cdot(\mathbf{b}\times\mathbf{c})$</td><td>Triple product is signed volume</td></tr>
+    <tr><td>Line equation</td><td>$\mathbf{r}=\mathbf{r}_0+t\mathbf{v}$</td><td>Start point plus direction</td></tr>
+    <tr><td>Plane equation</td><td>$(\mathbf{r}-\mathbf{r}_0)\cdot\mathbf{n}=0$</td><td>All vectors in plane $\perp$ normal</td></tr>
+    <tr><td>Point-to-plane distance</td><td>$|ax_1+by_1+cz_1-d|/\sqrt{a^2+b^2+c^2}$</td><td>Projection onto unit normal</td></tr>
+    <tr><td>Skew-line distance</td><td>Scalar triple product / common normal</td><td>Shortest connector $\perp$ both lines</td></tr>
+  </table>
+
+  <ul class="checklist">
+    <li><div><strong>Vectors:</strong> component form, unit vector $\hat{\mathbf{a}}=\mathbf{a}/|\mathbf{a}|$, ratio formula for internal division</div></li>
+    <li><div><strong>Dot product:</strong> geometric definition, component formula, orthogonality condition, angle formula</div></li>
+    <li><div><strong>Cross product:</strong> determinant form, anti-commutativity, area formula, parallel test $|\mathbf{a}\times\mathbf{b}|=0$</div></li>
+    <li><div><strong>Scalar triple product:</strong> $3\times3$ determinant, volume formula, coplanarity test</div></li>
+    <li><div><strong>Vector triple product:</strong> $\mathbf{a}\times(\mathbf{b}\times\mathbf{c})=(\mathbf{a}\cdot\mathbf{c})\mathbf{b}-(\mathbf{a}\cdot\mathbf{b})\mathbf{c}$ — brackets matter</div></li>
+    <li><div><strong>Lines:</strong> vector equation, parametric form, symmetric form, two-point form, angle between lines</div></li>
+    <li><div><strong>Skew lines:</strong> check parallel, then check intersection; if neither, skew</div></li>
+    <li><div><strong>Planes:</strong> normal form, parametric form, three-point form, angle between planes</div></li>
+    <li><div><strong>Distances:</strong> point-to-plane formula (derive by projection); skew-line distance via scalar triple product</div></li>
+  </ul>
+</section>
+
+</main>
+</div>
+
+<!-- SCRIPTS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<script>
+/* ── Proof toggles ── */
+document.querySelectorAll('.proof-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    btn.classList.toggle('open');
+    const box=btn.nextElementSibling;
+    box.classList.toggle('show');
+    btn.textContent=btn.classList.contains('open')?'Hide Proof Idea':'Show Proof Idea';
+    if(btn.classList.contains('open')) btn.classList.add('open');
+  });
+});
+
+/* ── Navigation active state ── */
+const navLinks=document.querySelectorAll('.nav-list a');
+const sections=document.querySelectorAll('.sec');
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      navLinks.forEach(l=>l.classList.remove('active'));
+      const a=document.querySelector(`.nav-list a[href="#${e.target.id}"]`);
+      if(a) a.classList.add('active');
+    }
+  });
+},{threshold:.2,rootMargin:'0px 0px -40% 0px'});
+sections.forEach(s=>obs.observe(s));
+
+/* ── Colour helpers ── */
+const C={
+  accent:'#5b4fcf',accentS:'rgba(91,79,207,.15)',
+  blue:'#3a6fd8',blueS:'rgba(58,111,216,.12)',
+  gold:'#c49200',
+  green:'#2da865',greenS:'rgba(45,168,101,.12)',
+  text:'#1a1730',ts:'#8a84a8',border:'#e2ddf2',bg:'#fff'
+};
+
+function mkCtx(id,h){
+  const cv=document.getElementById(id);
+  const dpr=Math.min(window.devicePixelRatio||1,3);
+  const baseH=h||parseInt(cv.getAttribute('height'))||260;
+  const parent=cv.closest('.widget,.viz-body')||cv.parentElement;
+  const parentW=parent&&parent.clientWidth?parent.clientWidth-4:700;
+  const W=Math.max(320,Math.min(700,Math.floor(parentW)));
+  const H=baseH;
+  cv.width=Math.round(W*dpr);
+  cv.height=Math.round(H*dpr);
+  cv.style.width=W+'px';
+  cv.style.maxWidth='100%';
+  cv.style.height=H+'px';
+  const ctx=cv.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.lineJoin='round';
+  ctx.lineCap='round';
+  return {ctx,W,H};
+}
+
+/* ═══ Canvas 1: Dot Product ═══ */
+function drawDot(){
+  const ang=parseInt(document.getElementById('dot-ang').value)*Math.PI/180;
+  const la=parseInt(document.getElementById('dot-la').value)/10;
+  const lb=parseInt(document.getElementById('dot-lb').value)/10;
+  document.getElementById('dot-angv').textContent=parseInt(document.getElementById('dot-ang').value)+'°';
+  document.getElementById('dot-lav').textContent=la.toFixed(1);
+  document.getElementById('dot-lbv').textContent=lb.toFixed(1);
+
+  const {ctx,W,H}=mkCtx('cvDot');
+  ctx.clearRect(0,0,W,H); ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
+
+  const OX=W/2,OY=H*0.7,SC=75;
+  // Draw axes (light)
+  ctx.strokeStyle=C.border; ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(40,OY);ctx.lineTo(W-20,OY);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(OX,H-20);ctx.lineTo(OX,20);ctx.stroke();
+
+  const ax=la, ay=0; // a along x-axis
+  const bx=lb*Math.cos(ang), by=lb*Math.sin(ang);
+
+  function arrowTo(fx,fy,tx,ty,col,lw){
+    const dx=tx-fx,dy=ty-fy;
+    const len=Math.sqrt(dx*dx+dy*dy);
+    const ux=dx/len,uy=dy/len;
+    ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=lw||2.5;
+    ctx.beginPath(); ctx.moveTo(fx,fy); ctx.lineTo(tx,ty); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(tx,ty);
+    ctx.lineTo(tx-10*ux+5*uy,ty-10*uy-5*ux);
+    ctx.lineTo(tx-10*ux-5*uy,ty-10*uy+5*ux);
+    ctx.closePath(); ctx.fill();
+  }
+
+  // Vector a (purple)
+  arrowTo(OX,OY, OX+ax*SC, OY, C.accent, 3);
+  ctx.fillStyle=C.accent; ctx.font='bold 15px Inter,sans-serif'; ctx.textAlign='center';
+  ctx.fillText('a', OX+ax*SC/2, OY-14);
+
+  // Vector b (gold)
+  arrowTo(OX,OY, OX+bx*SC, OY-by*SC, C.gold, 3);
+  ctx.fillStyle=C.gold; ctx.textAlign='left';
+  ctx.fillText('b', OX+bx*SC/2+8, OY-by*SC/2-8);
+
+  // Projection of b onto a (dashed)
+  const proj=(ax*bx+ay*by)/la; // scalar projection / la = cos ang * lb
+  const px=proj*ax/la, py=0;
+  ctx.strokeStyle=C.blue; ctx.lineWidth=2; ctx.setLineDash([6,5]);
+  ctx.beginPath(); ctx.moveTo(OX+bx*SC,OY-by*SC); ctx.lineTo(OX+px*SC,OY); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.strokeStyle=C.blue; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(OX,OY); ctx.lineTo(OX+px*SC,OY); ctx.stroke();
+  ctx.fillStyle=C.blue; ctx.font='11px Inter,sans-serif'; ctx.textAlign='center';
+  ctx.fillText('proj', OX+px*SC/2, OY+16);
+
+  // Angle arc
+  ctx.strokeStyle='#888'; ctx.lineWidth=1.5; ctx.beginPath();
+  ctx.arc(OX,OY,32,0,-ang,true); ctx.stroke();
+  ctx.fillStyle=C.text; ctx.font='12px Inter,sans-serif'; ctx.textAlign='left';
+  ctx.fillText('θ', OX+36, OY-14);
+
+  const dot=la*lb*Math.cos(ang);
+  document.getElementById('dot-val').textContent=`a·b = ${dot.toFixed(3)}`;
+  document.getElementById('dot-proj').textContent=`proj = ${(lb*Math.cos(ang)).toFixed(3)}`;
+}
+document.getElementById('dot-ang').addEventListener('input',drawDot);
+document.getElementById('dot-la').addEventListener('input',drawDot);
+document.getElementById('dot-lb').addEventListener('input',drawDot);
+drawDot();
+
+/* ═══ Canvas 2: Cross Product Area ═══ */
+function drawCross(){
+  const ang=parseInt(document.getElementById('cx-ang').value)*Math.PI/180;
+  const la=parseInt(document.getElementById('cx-la').value)/10;
+  const lb=parseInt(document.getElementById('cx-lb').value)/10;
+  document.getElementById('cx-angv').textContent=parseInt(document.getElementById('cx-ang').value)+'°';
+  document.getElementById('cx-lav').textContent=la.toFixed(1);
+  document.getElementById('cx-lbv').textContent=lb.toFixed(1);
+
+  const {ctx,W,H}=mkCtx('cvCross');
+  ctx.clearRect(0,0,W,H); ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
+
+  const OX=W*0.25,OY=H*0.75,SC=65;
+  const ax=la, ay=0;
+  const bx=lb*Math.cos(ang), by=lb*Math.sin(ang);
+
+  // Parallelogram fill
+  ctx.fillStyle='rgba(91,79,207,.13)';
+  ctx.beginPath();
+  ctx.moveTo(OX,OY);
+  ctx.lineTo(OX+ax*SC,OY);
+  ctx.lineTo(OX+ax*SC+bx*SC,OY-by*SC);
+  ctx.lineTo(OX+bx*SC,OY-by*SC);
+  ctx.closePath(); ctx.fill();
+  ctx.strokeStyle=C.border; ctx.lineWidth=1; ctx.stroke();
+
+  function arrowTo(fx,fy,tx,ty,col){
+    const dx=tx-fx,dy=ty-fy,len=Math.sqrt(dx*dx+dy*dy);
+    const ux=dx/len,uy=dy/len;
+    ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=2.5;
+    ctx.beginPath(); ctx.moveTo(fx,fy); ctx.lineTo(tx,ty); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(tx,ty);
+    ctx.lineTo(tx-10*ux+5*uy,ty-10*uy-5*ux);
+    ctx.lineTo(tx-10*ux-5*uy,ty-10*uy+5*ux);
+    ctx.closePath(); ctx.fill();
+  }
+
+  arrowTo(OX,OY, OX+ax*SC, OY, C.accent);
+  arrowTo(OX,OY, OX+bx*SC, OY-by*SC, C.gold);
+
+  ctx.fillStyle=C.accent; ctx.font='bold 14px Inter,sans-serif'; ctx.textAlign='center';
+  ctx.fillText('a', OX+ax*SC/2, OY+20);
+  ctx.fillStyle=C.gold; ctx.textAlign='left';
+  ctx.fillText('b', OX+bx*SC*0.4-14, OY-by*SC*0.4-8);
+
+  // Angle arc
+  ctx.strokeStyle='#888'; ctx.lineWidth=1.5; ctx.beginPath();
+  ctx.arc(OX,OY,28,0,-ang,true); ctx.stroke();
+  ctx.fillStyle=C.text; ctx.font='12px Inter,sans-serif'; ctx.textAlign='left';
+  ctx.fillText('θ', OX+30, OY-12);
+
+  const area=la*lb*Math.abs(Math.sin(ang));
+  const maxArea=la*lb;
+
+  // Bar chart showing area vs max
+  const bx0=W*0.7,barW=80,barH=120,byBot=H*0.8;
+  ctx.fillStyle='#f5f5fa'; ctx.strokeStyle=C.border; ctx.lineWidth=1;
+  ctx.fillRect(bx0,byBot-barH,barW,barH); ctx.strokeRect(bx0,byBot-barH,barW,barH);
+  const fillH=Math.min(area/maxArea,1)*barH;
+  ctx.fillStyle=C.accentS||'rgba(91,79,207,.2)';
+  ctx.fillRect(bx0,byBot-fillH,barW,fillH);
+  ctx.strokeStyle=C.accent; ctx.lineWidth=2;
+  ctx.strokeRect(bx0,byBot-fillH,barW,fillH);
+  ctx.fillStyle=C.text; ctx.font='11px Inter,sans-serif'; ctx.textAlign='center';
+  ctx.fillText('Area', bx0+barW/2, byBot+16);
+  ctx.fillText(`${area.toFixed(2)}`, bx0+barW/2, byBot-fillH-7);
+  ctx.fillStyle=C.ts; ctx.font='10px Inter,sans-serif';
+  ctx.fillText(`max: ${maxArea.toFixed(2)}`, bx0+barW/2, byBot-barH-10);
+
+  document.getElementById('cx-area').textContent=`Area = ${area.toFixed(4)}`;
+  document.getElementById('cx-cross').textContent=`|a×b| = ${area.toFixed(4)}`;
+}
+document.getElementById('cx-ang').addEventListener('input',drawCross);
+document.getElementById('cx-la').addEventListener('input',drawCross);
+document.getElementById('cx-lb').addEventListener('input',drawCross);
+drawCross();
+
+/* ═══ Canvas 3: Point to Plane Distance ═══ */
+function drawDist(){
+  const x1=parseInt(document.getElementById('d-x').value);
+  const y1=parseInt(document.getElementById('d-y').value);
+  const d=parseInt(document.getElementById('d-d').value);
+  document.getElementById('d-xv').textContent=x1;
+  document.getElementById('d-yv').textContent=y1;
+  document.getElementById('d-dv').textContent=d;
+
+  const {ctx,W,H}=mkCtx('cvDist');
+  ctx.clearRect(0,0,W,H); ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
+
+  const OX=W/2,OY=H/2,SC=14;
+  // Grid
+  for(let g=-10;g<=10;g++){
+    ctx.strokeStyle=C.border; ctx.lineWidth=.5;
+    ctx.beginPath();ctx.moveTo(OX+g*SC,20);ctx.lineTo(OX+g*SC,H-20);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(40,OY+g*SC);ctx.lineTo(W-20,OY+g*SC);ctx.stroke();
+  }
+  // Axes
+  ctx.strokeStyle='#bbb'; ctx.lineWidth=1.2;
+  ctx.beginPath();ctx.moveTo(40,OY);ctx.lineTo(W-20,OY);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(OX,H-20);ctx.lineTo(OX,20);ctx.stroke();
+
+  // Plane: x + y = d (2D: x + y = d, i.e. y = d - x)
+  ctx.strokeStyle=C.accent; ctx.lineWidth=2.5;
+  const x_left=(20-OX)/SC, y_left=d-x_left;
+  const x_right=(W-20-OX)/SC, y_right=d-x_right;
+  ctx.beginPath();
+  ctx.moveTo(20, OY-y_left*SC);
+  ctx.lineTo(W-20, OY-y_right*SC);
+  ctx.stroke();
+  ctx.fillStyle=C.accent; ctx.font='12px Inter,sans-serif'; ctx.textAlign='left';
+  ctx.fillText('x + y = d', W-120, OY-(d-((W-20-OX)/SC))*SC-10);
+
+  // Foot of perpendicular: from (x1,y1) onto x+y=d
+  // Normal to x+y=d is (1,1)/sqrt(2). Project (x1,y1) onto it.
+  const dist=Math.abs(x1+y1-d)/Math.sqrt(2);
+  const fx=(x1-y1+d)/2, fy=(y1-x1+d)/2; // foot of perp
+
+  // Distance label
+  ctx.setLineDash([5,4]);
+  ctx.strokeStyle=C.green; ctx.lineWidth=2;
+  ctx.beginPath();
+  ctx.moveTo(OX+x1*SC, OY-y1*SC);
+  ctx.lineTo(OX+fx*SC, OY-fy*SC);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Point
+  ctx.fillStyle=C.accent;
+  ctx.beginPath();ctx.arc(OX+x1*SC, OY-y1*SC, 6, 0, 2*Math.PI);ctx.fill();
+  ctx.fillStyle=C.text; ctx.font='bold 11px Inter,sans-serif'; ctx.textAlign='left';
+  ctx.fillText(`(${x1}, ${y1})`, OX+x1*SC+9, OY-y1*SC+5);
+
+  // Foot point
+  ctx.fillStyle=C.green;
+  ctx.beginPath();ctx.arc(OX+fx*SC, OY-fy*SC, 4, 0, 2*Math.PI);ctx.fill();
+
+  // Distance label
+  const mx=(x1+fx)/2, my=(y1+fy)/2;
+  ctx.fillStyle=C.green; ctx.font='bold 11px Inter,sans-serif'; ctx.textAlign='center';
+  ctx.fillText(`D=${dist.toFixed(2)}`, OX+mx*SC+20, OY-my*SC-10);
+
+  document.getElementById('d-dist').textContent=`Distance = ${dist.toFixed(4)}`;
+}
+document.getElementById('d-x').addEventListener('input',drawDist);
+document.getElementById('d-y').addEventListener('input',drawDist);
+document.getElementById('d-d').addEventListener('input',drawDist);
+drawDist();
+
+/* ── Widget toggles ── */
+document.querySelectorAll('.widget-toggle').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const id=btn.dataset.widget;
+    const w=document.getElementById(id);
+    const opening=!w.classList.contains('show');
+    btn.classList.toggle('open',opening);
+    w.classList.toggle('show',opening);
+    btn.querySelector('.wt-lbl').textContent=btn.querySelector('.wt-lbl').textContent; // keep label
+  });
+});
+
+/* ── KaTeX render ── */
+if(window.renderMathInElement){
+  renderMathInElement(document.body,{
+  delimiters:[
+    {left:'$$',right:'$$',display:true},
+    {left:'\\[',right:'\\]',display:true},
+    {left:'$',right:'$',display:false},
+    {left:'\\(',right:'\\)',display:false}
+  ],
+  throwOnError:false
+});
+}
+</script>
+
+<script>
+/* ── final refinement patch: proof formatting + safer visual redraws ── */
+(function(){
+  const hasAncestor = (node, selector) => {
+    let el = node.parentElement;
+    while(el){ if(el.matches && el.matches(selector)) return true; el = el.parentElement; }
+    return false;
+  };
+  const escapeHTML = s => s.replace(/[&<>]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[ch]));
+  function looseMathHTML(text){
+    if(!/[\^_∫Σ∑lim∞εηδζαβγλμρπθ]|[RrSuva-zA-Z]_\{|[a-zA-Z]\^\{/.test(text)) return null;
+    let html = escapeHTML(text);
+    html = html
+      .replace(/\^\{([^{}]+)\}/g, '<sup>$1</sup>')
+      .replace(/_\{([^{}]+)\}/g, '<sub>$1</sub>')
+      .replace(/\^([A-Za-z0-9()+\-−∞πθ]+)(?![A-Za-z0-9])/g, '<sup>$1</sup>')
+      .replace(/_([A-Za-z0-9()+\-−∞πθ]+)(?![A-Za-z0-9])/g, '<sub>$1</sub>');
+    return html === escapeHTML(text) ? null : html;
+  }
+  function enhanceLooseMath(root=document){
+    const selectors = [
+      '.pf-step .st-expr','.pf-body','.proof-box','.formula','.formula-sm',
+      '.box-body','.mb','.kp','.checklist li','.tcard','.defn','.thm','.prop','.warn'
+    ].join(',');
+    root.querySelectorAll(selectors).forEach(el => {
+      if(el.dataset.looseMathDone === '1') return;
+      const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, {
+        acceptNode(node){
+          if(!node.nodeValue || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+          if(hasAncestor(node,'.katex,script,style,textarea,code,pre')) return NodeFilter.FILTER_REJECT;
+          return /\^\{|_\{|\^[A-Za-z0-9(]|_[A-Za-z0-9(]/.test(node.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+        }
+      });
+      const nodes=[];
+      while(walker.nextNode()) nodes.push(walker.currentNode);
+      nodes.forEach(node => {
+        const html = looseMathHTML(node.nodeValue);
+        if(!html) return;
+        const t = document.createElement('template');
+        t.innerHTML = html;
+        node.parentNode.replaceChild(t.content, node);
+      });
+      el.dataset.looseMathDone = '1';
+    });
+  }
+  function pulseCanvas(){
+    document.querySelectorAll('canvas').forEach(c => {
+      c.classList.remove('viz-refresh');
+      void c.offsetWidth;
+      c.classList.add('viz-refresh');
+    });
+  }
+  function redrawVisuals(){
+    const names = ['redrawAllVisuals','drawComp','drawSeq','drawBW','drawIT','drawED','drawEVT','drawTay','drawUnif','drawTbt','drawConcav','drawAR','drawEU','drawRU','drawCR','drawMT','drawEV','drawSF','drawSO','drawDot','drawCross','drawDist'];
+    names.forEach(name => { try{ if(typeof window[name] === 'function') window[name](); }catch(e){} });
+    pulseCanvas();
+  }
+  function bindVisualRedraws(){
+    document.querySelectorAll('.widget-toggle,.pf-btn,.proof-btn').forEach(btn => {
+      if(btn.dataset.refineBound === '1') return;
+      btn.dataset.refineBound = '1';
+      btn.addEventListener('click', () => requestAnimationFrame(() => setTimeout(()=>{ enhanceLooseMath(); redrawVisuals(); }, 40)));
+    });
+    document.querySelectorAll('input[type="range"]').forEach(inp => {
+      if(inp.dataset.refineBound === '1') return;
+      inp.dataset.refineBound = '1';
+      inp.addEventListener('input', () => requestAnimationFrame(pulseCanvas), {passive:true});
+    });
+  }
+  window.addEventListener('resize', () => requestAnimationFrame(redrawVisuals), {passive:true});
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', () => { enhanceLooseMath(); bindVisualRedraws(); setTimeout(redrawVisuals, 60); });
+  } else {
+    enhanceLooseMath(); bindVisualRedraws(); setTimeout(redrawVisuals, 60);
+  }
+})();
+</script>
+
+</body>
+</html>
