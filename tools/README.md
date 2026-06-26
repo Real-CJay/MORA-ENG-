@@ -5,6 +5,7 @@ Stage 1 adds a schema foundation and validator for future question packs. These 
 ## Files
 
 - `tools/validate_questions.py` validates schemaVersion 2 JSON packs and accepts legacy flat questions with migration warnings.
+- `tools/export_legacy_subjects.py` exports existing lazy-loaded `subject_data/*.js` chunks into legacy JSON question packs.
 - `tools/question_schema.md` documents the block-based schema.
 - `tools/registry_check.py` validates the semester/department subject registry in `quiz_data.js`.
 - `tools/registry_schema.md` documents the programme registry shape for semesters, departments, and shared modules.
@@ -45,6 +46,36 @@ python tools/validate_questions.py --images-root . examples/sample_questions.jso
 - `1`: at least one validation error was found, or a file could not be parsed/read.
 
 Warnings do not fail the command. They are intended for migration hints and data-quality cleanup.
+
+## Export Legacy Subject Chunks
+
+Run from the app root:
+
+```powershell
+python tools/export_legacy_subjects.py
+```
+
+The exporter reads `subject_data/*.js`, extracts the `window.MORA_SUBJECT_CHUNKS["<subject>"]` assignment without executing JavaScript, and writes:
+
+```text
+content/question-packs/<subject>/<bucket>.json
+```
+
+Buckets exported for every subject:
+
+- `pastUnit`
+- `pastPaper`
+- `targetHard`
+- `targetNormal`
+
+The exported packs keep each question in the legacy flat shape. The pack wrapper is only there so `tools/validate_questions.py` can validate the files before the Stage 3/4 adapter work.
+
+Validate all exported packs manually:
+
+```powershell
+$packs = Get-ChildItem -Path content/question-packs -Recurse -Filter *.json | ForEach-Object { $_.FullName }
+python tools/validate_questions.py $packs
+```
 
 ## Validate Programme Registry
 

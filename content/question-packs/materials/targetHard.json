@@ -1,0 +1,629 @@
+{
+  "schemaVersion": 2,
+  "subject": "materials",
+  "bucket": "targetHard",
+  "stimuli": {},
+  "images": {},
+  "questions": [
+    {
+      "unit": 3,
+      "id": "materials_th_001",
+      "hard": true,
+      "text": "Consider the True Stress-Strain curve and the Engineering Stress-Strain curve for a highly ductile metallic specimen pulled to fracture. Which of the following statements mathematically and physically describe the relationship between these two graphs?\nI. True stress is always numerically higher than engineering stress in the tension region.\nII. The curves only begin to diverge significantly after the Ultimate Tensile Strength (UTS) is reached.\nIII. True strain is always numerically less than engineering strain in tension.\nIV. Engineering stress drops after the UTS due to macroscopic necking, while true stress continues to rise.",
+      "opts": [
+        "I, III, and IV only",
+        "I, II, and IV only",
+        "IV only",
+        "I, II, III, and IV"
+      ],
+      "ans": 0,
+      "exp": "True stress accounts for the instantaneous shrinking area (A_i), making it mathematically higher than engineering stress (F/A_0). True strain mathematically relates as ε_true = ln(1 + ε_eng), making it smaller. Engineering stress drops after UTS due to the localized decrease in area (necking), while true stress rises until fracture. The curves diverge immediately, not just after UTS, making statement II false.",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_th_002",
+      "hard": true,
+      "text": "A simple cubic (SC) lattice has a theoretical lattice parameter a. What is the exact mathematical diameter (D) of the largest spherical foreign atom that can migrate straight through the face center of the unit cell without displacing the host atoms?",
+      "opts": [
+        "D = a(√2 - 1)",
+        "D = 2a(√3 - 1)",
+        "D = a√2",
+        "D = a(√3 - 1)"
+      ],
+      "ans": 0,
+      "exp": "In a simple cubic face, the atoms touch along the edges (a = 2R). The diagonal across the face is a√2. The space for a migrating atom through this face is limited by the corner atoms. The equation is D + 2R = a√2, and substituting 2R = a, we get D = a√2 - a = a(√2 - 1).",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_th_003",
+      "hard": true,
+      "text": "Iron undergoes an allotropic transformation from BCC to FCC at 910°C. Its atomic radius increases from 0.126 nm to 0.130 nm. Which of the following statements strictly hold true?\nI. The APF increases from 0.68 to 0.74.\nII. The number of equivalent atoms per unit cell doubles.\nIII. The coordination number increases from 8 to 12.\nIV. The theoretical density of the material decreases.",
+      "opts": [
+        "I, II, and III only",
+        "I and IV only",
+        "II, III, and IV only",
+        "I, II, III, and IV"
+      ],
+      "ans": 3,
+      "exp": "APF of BCC is 0.68 and FCC is 0.74 ✓. BCC contains 2 atoms, FCC contains 4 — it doubles ✓. BCC coordination is 8, FCC is 12 ✓. The volume per atom increases from ~0.01233 nm³ in BCC to ~0.01242 nm³ in FCC, so theoretical density decreases ✓. All four statements hold.",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_th_004",
+      "hard": true,
+      "text": "A crystallographic plane intercepts the orthogonal axes at x = 1, y = 3/2, and z = 2. Following standard crystallographic protocols, what are the exact Miller indices for this plane?",
+      "opts": [
+        "(6 4 3)",
+        "(2 3 4)",
+        "(1 2 2)",
+        "(3 4 6)"
+      ],
+      "ans": 0,
+      "exp": "The intercepts are 1, 3/2, 2. Taking reciprocals gives 1/1, 2/3, 1/2. To convert to the smallest whole numbers, multiply by the lowest common multiple, which is 6. This yields 6, 4, 3. Thus, the Miller indices are (6 4 3).",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_th_005",
+      "hard": true,
+      "text": "You are tasked with mapping the specific crystallographic direction [1 2 3]. To accurately represent this entire vector originating from (0,0,0) while keeping the vector strictly confined within the boundaries of a single unit cell, what terminal coordinates must be plotted?",
+      "opts": [
+        "(1/3, 2/3, 1)",
+        "(1, 1/2, 1/3)",
+        "(1/2, 1, 3/2)",
+        "(1, 2, 3)"
+      ],
+      "ans": 0,
+      "exp": "The original second point is (1, 2, 3), which falls far outside a single unit cell. To fit it within one cell, scale the coordinates down proportionally by dividing by the largest integer (3), resulting in (1/3, 2/3, 1).",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_th_006",
+      "hard": true,
+      "text": "Which of the following pairings of Hardness Testing protocols and their specific indenter geometries are strictly accurate?\nI. Brinell: 10mm diameter steel or Tungsten Carbide ball.\nII. Vickers: Diamond square-based pyramid with 136° face angle.\nIII. Rockwell C: 1/16\" diameter steel ball.\nIV. Rockwell E: 1/8\" diameter ball.",
+      "opts": [
+        "I, II, and IV only",
+        "I, II, and III only",
+        "II and IV only",
+        "I, II, III, and IV"
+      ],
+      "ans": 0,
+      "exp": "Brinell uses a 10mm steel/WC ball ✓. Vickers uses a 136° diamond pyramid ✓. Rockwell E uses a 1/8\" ball ✓. Statement III is false because Rockwell C uses a diamond cone, while Rockwell B uses the 1/16\" steel ball.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_th_007",
+      "hard": true,
+      "text": "Regarding the unique Yield Point Phenomenon explicitly observed in certain metallic alloys, which of the following statements represents accurate physical behavior?",
+      "opts": [
+        "It is prominently observed in low-carbon steels, where interstitial carbon atoms necessitate a higher initial stress (upper yield) to unpin dislocations before continued deformation at a lower stress.",
+        "The accepted yield strength for structural design purposes is strictly defined by the maximum peak of the upper yield point.",
+        "This phenomenon requires the strict application of the 0.2% strain offset method to properly identify yielding.",
+        "The drop from the upper yield point directly corresponds to the sudden onset of macroscopic necking in the specimen."
+      ],
+      "ans": 0,
+      "exp": "Steels exhibit upper and lower yield points due to the presence of carbon atoms pinning dislocations. Once unpinned, yielding fluctuates at the lower yield point. For design purposes, the lower yield point is used, not the upper.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_th_008",
+      "hard": true,
+      "text": "A graphical plot of absorbed impact energy versus temperature reveals stark differences between pure copper and low-carbon steel. Which observation is scientifically accurate regarding their Ductile-Brittle Transition Temperature (DBTT)?",
+      "opts": [
+        "Low-carbon steel (BCC) demonstrates a sudden drop in absorbed energy over a narrow temperature range, identifying a distinct DBTT.",
+        "Pure copper (FCC) exhibits a distinct and sharp DBTT slightly below 0°C.",
+        "Both metals exhibit identical DBTT profiles because ductility is primarily a function of metallic bond strength rather than lattice geometry.",
+        "The DBTT for steel strictly occurs only when the applied impact load exceeds the material's Ultimate Tensile Strength."
+      ],
+      "ans": 0,
+      "exp": "BCC metals like steel exhibit a sharp drop in impact toughness and a distinct DBTT as temperature lowers. FCC metals like copper do not exhibit this distinct drop and generally remain ductile at low temperatures.",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_th_009",
+      "hard": true,
+      "text": "For a Face-Centered Cubic (FCC) lattice with a lattice parameter a, what is the exact mathematical Planar Density (defined as equivalent atoms per unit area) of the (1 0 0) crystallographic plane?",
+      "opts": [
+        "2 / a²",
+        "1 / a²",
+        "4 / a²",
+        "√2 / a²"
+      ],
+      "ans": 0,
+      "exp": "The (1 0 0) plane represents the face of the cubic unit cell. The area is a². The plane intersects 4 corner atoms (each 1/4 inside the plane) and 1 center atom (fully inside). The equivalent atoms are 4(1/4) + 1 = 2. Thus, planar density is 2/a².",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_th_010",
+      "hard": true,
+      "text": "During a tensile test, a highly ductile metallic specimen is stretched until its instantaneous length (l) is exactly twice its original gauge length (l₀). Assuming uniform deformation, what are the respective values for engineering strain (ε_eng) and true strain (ε_true)?",
+      "opts": [
+        "ε_eng = 1.0, ε_true = ln(2)",
+        "ε_eng = 2.0, ε_true = 1.0",
+        "ε_eng = 1.0, ε_true = 1.0",
+        "ε_eng = 0.5, ε_true = ln(1.5)"
+      ],
+      "ans": 0,
+      "exp": "Engineering strain ε_eng = (l - l₀) / l₀ = (2l₀ - l₀) / l₀ = 1.0. True strain ε_true = ln(l / l₀) = ln(2l₀ / l₀) = ln(2) ≈ 0.693.",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_th_011",
+      "hard": true,
+      "text": "Defects in crystalline lattices are strictly categorized by their geometric dimensions. Which of the following mappings between defect type and physical dimensionality is/are entirely accurate?\nI. Vacancy = 0-D point defect.\nII. Grain Boundary = 2-D planar defect.\nIII. Screw dislocation = 1-D line defect.\nIV. Substitutional impurity = 1-D line defect.",
+      "opts": [
+        "I, II, and III only",
+        "I, III, and IV only",
+        "II, III, and IV only",
+        "I, II, and IV only"
+      ],
+      "ans": 0,
+      "exp": "Vacancies are 0-D point defects ✓. Grain boundaries are 2-D planar defects ✓. Edge and screw dislocations are 1-D line defects ✓. Statement IV is false because a substitutional impurity atom affects only a single lattice site, making it a 0-D point defect.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_th_012",
+      "hard": true,
+      "text": "When interpreting a metallic Stress-Strain curve, how are the concepts of \"Resilience\" and \"Toughness\" mathematically distinguished?",
+      "opts": [
+        "Toughness evaluates the total area under the entire stress-strain curve up to fracture, whereas resilience specifically evaluates the area strictly under the linear elastic portion.",
+        "Resilience evaluates the area up to the Ultimate Tensile Strength (UTS), whereas toughness evaluates the area beyond the UTS up to fracture.",
+        "Both metrics represent the exact same total energy integral, but toughness applies to Engineering curves and resilience to True stress curves.",
+        "Toughness is determined by the slope of the elastic curve, while resilience is the total area up to fracture."
+      ],
+      "ans": 0,
+      "exp": "Toughness represents total strain energy absorbed up to fracture (total area). Resilience corresponds to the elastic strain energy absorbed, represented exclusively by the linear elastic region's area.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_th_013",
+      "hard": true,
+      "text": "From a rigorous microstructural standpoint, what is the fundamental physical cause of \"Work Hardening\" (or strain hardening) when a metal is plastically deformed?",
+      "opts": [
+        "Plastic deformation multiplies the number of dislocations, causing them to entangle and severely restrict further dislocation movement, thereby increasing yield strength.",
+        "The metal undergoes a localized structural phase transformation from BCC to FCC due to frictional heat generated by stretching.",
+        "The physical atomic bonds between host atoms compress and shorten, creating a permanent increase in Young's modulus.",
+        "Grain boundaries entirely dissolve during deformation, converting the specimen into one massively rigid single crystal."
+      ],
+      "ans": 0,
+      "exp": "Work hardening increases strength and hardness due to plastic deformation. On an atomic level, this happens because dislocations multiply, interact, and entangle, serving as roadblocks to further slip.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_th_014",
+      "hard": true,
+      "text": "A cylindrical metallic rod is axially pulled in tension, yielding a uniform longitudinal elastic strain of ε_z = 0.005. If the material behaves isotropically with a Poisson's ratio ν = 0.33, calculate the resulting transverse (lateral) strain ε_x.",
+      "opts": [
+        "-0.00165",
+        "+0.00165",
+        "-0.01515",
+        "+0.01515"
+      ],
+      "ans": 0,
+      "exp": "Poisson's ratio is defined as ν = -ε_x / ε_z. Substituting the values: 0.33 = -ε_x / 0.005. Therefore, ε_x = -0.33 × 0.005 = -0.00165. The negative sign indicates lateral contraction.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_th_015",
+      "hard": true,
+      "text": "Analyze the engineering stress-strain curve for a highly ductile material. What precise physical transition occurs exactly at the geometric peak of the curve (the Ultimate Tensile Strength point)?",
+      "opts": [
+        "The exhaustion of uniform plastic deformation across the whole gauge length, initiating localized \"necking\".",
+        "The immediate microscopic fracture and catastrophic separation of the specimen.",
+        "The strict transition boundary between completely elastic recovery and irreversible plastic yielding.",
+        "The point where true stress finally becomes mathematically lower than engineering stress."
+      ],
+      "ans": 0,
+      "exp": "All deformation up to the maximum stress point (UTS) is uniform. At this maximum stress, uniform plastic deformation ceases, and a localized neck begins to form. Past this point, deformation concentrates locally, causing the cross-section to rapidly thin.",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_th_016",
+      "hard": true,
+      "text": "A materials engineer is validating the theoretical density equation ρ = (n * A) / (V_c * N_A) for pure Copper, which crystallizes in a Face-Centered Cubic (FCC) lattice. What strict numerical value must be assigned to the variable n in this calculation?",
+      "opts": [
+        "4",
+        "2",
+        "6",
+        "12"
+      ],
+      "ans": 0,
+      "exp": "The variable n represents the total number of equivalent atoms in the unit cell. An FCC unit cell mathematically holds exactly 4 equivalent atoms, derived from 8 corners (1/8 each = 1) and 6 faces (1/2 each = 3). Total = 4.",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_th_017",
+      "hard": true,
+      "text": "Which combination of fundamental crystallographic properties (Coordination Number, Atomic Packing Factor) is theoretically and accurately matched to a Simple Cubic (SC) lattice?",
+      "opts": [
+        "Coordination Number: 6, APF: 0.52",
+        "Coordination Number: 8, APF: 0.68",
+        "Coordination Number: 12, APF: 0.74",
+        "Coordination Number: 6, APF: 0.68"
+      ],
+      "ans": 0,
+      "exp": "In an SC structure, each atom touches 6 neighbors, giving a coordination number of 6. The APF calculation for SC yields π/6 ≈ 0.5236 (or 52.36%). Option A is correct.",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_th_018",
+      "hard": true,
+      "text": "In an FCC crystal lattice with an edge parameter a, the maximum planar density occurs on the {1 1 1} family of close-packed planes. What is the precise mathematical area of the triangular section of the (1 1 1) plane bound strictly within the primary unit cell?",
+      "opts": [
+        "(√3 / 2) a²",
+        "(1 / 2) a²",
+        "a²√2",
+        "(√3 / 4) a²"
+      ],
+      "ans": 0,
+      "exp": "The (1 1 1) plane cuts the corners of the cube to form an equilateral triangle. The sides of this triangle are the face diagonals of the cube, possessing length a√2. The area of an equilateral triangle is (√3/4) × side². Plugging in: (√3/4) × (a√2)² = (√3/4) × 2a² = (√3/2)a².",
+      "type": "mcq"
+    },
+    {
+      "unit": 1,
+      "id": "materials_th_019",
+      "hard": true,
+      "text": "According to the rules governing electron quantum numbers, what are the theoretical maximum permissible values for the primary (principal) quantum number (n) and the subsidiary (azimuthal) quantum number (l)?",
+      "opts": [
+        "Primary maximum: 7; Subsidiary maximum: 6",
+        "Primary maximum: 7; Subsidiary maximum: 7",
+        "Primary maximum: 8; Subsidiary maximum: 7",
+        "Primary maximum: 6; Subsidiary maximum: 5"
+      ],
+      "ans": 0,
+      "exp": "The maximum possible value for the primary quantum number is 7 (corresponding to Period 7 elements). The subsidiary quantum number l ranges from 0 to n-1; for n=7, maximum l = 6.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_th_020",
+      "hard": true,
+      "text": "Upon inspecting the fracture surface of a metallic specimen post-testing, you observe a remarkably smooth and bright surface. Based entirely on this visual evidence, which of the following mechanical assessments is definitively true?",
+      "opts": [
+        "The material experienced a brittle fracture, indicating the strain energy required to trigger this failure was relatively low compared to ductile failure.",
+        "The material experienced a ductile fracture, absorbing immense strain energy before breaking.",
+        "The material reached its maximum Ultimate Tensile Strength but failed before reaching its yield point.",
+        "The material fractured via a pure strain-hardening mechanism, demonstrating excellent malleability."
+      ],
+      "ans": 0,
+      "exp": "The fracture surface of brittle fracture is smooth and bright. Brittle failure requires comparatively low strain energy, whereas ductile fracture involves significant plastic deformation and energy absorption before failure, resulting in a rough, dull surface.",
+      "type": "mcq"
+    },
+    {
+      "unit": 4,
+      "year": 2024,
+      "id": "materials_th_021",
+      "hard": true,
+      "text": "During electrochemical corrosion, a metal $M$ undergoes oxidation via $M \\rightarrow M^{n+} + ne^-$. If an aluminum component ($Al \\rightarrow Al^{3+} + 3e^-$) and an iron component ($Fe \\rightarrow Fe^{2+} + 2e^-$) both lose the exact same number of atoms to corrosion, what is the ratio of total electrons released by the aluminum compared to the iron?",
+      "opts": [
+        "2:3",
+        "3:2",
+        "9:4",
+        "1:1"
+      ],
+      "ans": 1,
+      "exp": "For every atom oxidized, Aluminum releases 3 electrons while Iron releases 2 electrons. Therefore, for an equal number of atoms, the ratio of electrons released is 3:2.",
+      "type": "mcq"
+    },
+    {
+      "unit": 4,
+      "year": 2024,
+      "id": "materials_th_022",
+      "hard": true,
+      "text": "Which of the following accurately contrasts the fundamental degradation mechanisms of metals versus polymers when exposed to their respective active liquid environments?",
+      "opts": [
+        "Metals degrade via photo-degradation from UV light, whereas polymers undergo galvanic corrosion.",
+        "Both metals and polymers degrade primarily through identical electrochemical redox reactions when exposed to aqueous solutions.",
+        "Metals undergo electrochemical dissolution via electron transfer, whereas polymers primarily degrade through physical swelling (chain separation) and dissolution without exchanging electrons.",
+        "Metals swell as solvent molecules force lattice atoms apart, whereas polymers undergo oxidation at anodic sites."
+      ],
+      "ans": 2,
+      "exp": "Metal corrosion is strictly an electrochemical redox process. Polymer degradation in liquids primarily involves physical diffusion of the solute pushing macromolecules apart (swelling), reducing secondary intermolecular forces.",
+      "type": "mcq"
+    },
+    {
+      "unit": 6,
+      "year": 2024,
+      "id": "materials_th_023",
+      "hard": true,
+      "text": "A piezoelectric sensor with thickness $t$ generates a voltage $V$ under a specific applied stress $\\sigma$, governed by the equation $V = \\frac{d}{\\varepsilon} \\sigma t$. If the applied stress on the sensor is tripled and the thickness is reduced to one-third of its original value, what is the new generated voltage?",
+      "opts": [
+        "It decreases to $V/3$.",
+        "It increases to $3V$.",
+        "It increases to $9V$.",
+        "It remains equal to $V$."
+      ],
+      "ans": 3,
+      "exp": "Substituting the new values into the equation: $V_{new} = \\frac{d}{\\varepsilon} (3\\sigma) (\\frac{t}{3})$. The $3$ and $\\frac{1}{3}$ cancel each other out, leaving $V_{new} = \\frac{d}{\\varepsilon} \\sigma t = V$.",
+      "type": "mcq"
+    },
+    {
+      "unit": 6,
+      "year": 2024,
+      "id": "materials_th_024",
+      "hard": true,
+      "text": "In an intrinsically conducting polymer (ICP) like Polyaniline (PANI), electrical conductivity is achieved without the addition of metallic fillers. What specific molecular feature is strictly responsible for this property?",
+      "opts": [
+        "The presence of free metallic ions trapped within the secondary bonds of the polymer chains.",
+        "The continuous overlap of p-orbitals forming a delocalized $\\pi$-electron system along a conjugated backbone.",
+        "The transition of the carbon atoms from $sp^3$ hybridization to a perfect ionic crystal lattice.",
+        "The generation of electron-hole pairs via the photoelectric effect upon exposure to visible light."
+      ],
+      "ans": 1,
+      "exp": "ICPs are characterized by a backbone chain of alternating double and single bonds (conjugation). The overlapping p-orbitals create a continuous path for delocalized $\\pi$-electrons to carry electrical charge.",
+      "type": "mcq"
+    },
+    {
+      "unit": 6,
+      "year": 2024,
+      "id": "materials_th_025",
+      "hard": true,
+      "text": "Calculate the total electrical charge $Q$ that passes through a copper wire if a steady electric current of $2.5\\text{ A}$ flows for exactly $2\\text{ hours}$.",
+      "opts": [
+        "9,000 C",
+        "180 C",
+        "18,000 C",
+        "5.0 C"
+      ],
+      "ans": 2,
+      "exp": "Current is defined as $I = \\frac{Q}{t}$, so $Q = I \\times t$. First, convert time to seconds: $2\\text{ hours} \\times 3600\\text{ s/hour} = 7200\\text{ s}$. Then, $Q = 2.5\\text{ A} \\times 7200\\text{ s} = 18,000\\text{ C}$.",
+      "type": "mcq"
+    },
+    {
+      "unit": 7,
+      "year": 2024,
+      "id": "materials_th_026",
+      "hard": true,
+      "text": "Carbon nanotubes (CNTs) exhibit highly anisotropic thermal properties, with axial thermal conductivity reaching roughly $3000\\text{ W/m}\\cdot\\text{K}$. What is the precise physical transport mechanism responsible for this extreme axial conductivity?",
+      "opts": [
+        "The physical convective flow of carbon atoms sliding past each other along the tube's axis.",
+        "The rapid flow of delocalized free electrons behaving identically to an ideal metallic conductor.",
+        "The emission and re-absorption of thermal photons within the hollow core of the nanotube.",
+        "The propagation of high-frequency lattice vibrations (phonons) through the unbroken network of strong C-C covalent bonds."
+      ],
+      "ans": 3,
+      "exp": "Unlike metals which use free electrons, heat in carbon nanomaterials is primarily carried by lattice vibrations (phonons). The incredibly stiff and strong C-C covalent bonds transmit these phonons extremely rapidly along the tube's axis.",
+      "type": "mcq"
+    },
+    {
+      "unit": 7,
+      "year": 2024,
+      "id": "materials_th_027",
+      "hard": true,
+      "text": "According to the ISO definition of nanomaterials, which of the following scenarios strictly classifies a material as a \"nanostructured material\" rather than a discrete \"nano object\"?",
+      "opts": [
+        "A single unbundled carbon nanotube measuring 5 nm in diameter and 10 micrometers in length.",
+        "A bulk macroscopic metal block that features a highly engineered surface topography with repeating ridges measuring 40 nm in width.",
+        "A perfectly spherical buckminsterfullerene ($C_{60}$) molecule with a diameter of roughly 1 nm.",
+        "A discrete silver nanoparticle with an external diameter of 85 nm used for antibacterial coatings."
+      ],
+      "ans": 1,
+      "exp": "A nanostructured material may have macroscopic external dimensions but possesses internal or surface structures (like the 40 nm ridges) in the nanoscale (1-100 nm). The other options describe individual nano objects.",
+      "type": "mcq"
+    },
+    {
+      "unit": 7,
+      "year": 2024,
+      "id": "materials_th_028",
+      "hard": true,
+      "text": "Engineers aim to maximize energy storage in supercapacitors by optimizing the active porous electrode material. Why do graphene and CNT-based electrodes vastly outperform solid metallic plates of the same mass in this specific application?",
+      "opts": [
+        "Their individual atomic mass is much lower than metal, which inherently increases the voltage output of the cell.",
+        "They possess zero electrical resistance (superconductivity) at room temperature, completely eliminating internal heat loss.",
+        "They provide an astronomically higher surface-area-to-volume ratio, allowing for significantly greater electrostatic ion adsorption at the electrode-electrolyte interface.",
+        "They undergo rapid chemical redox reactions that store energy in primary covalent bonds."
+      ],
+      "ans": 2,
+      "exp": "Supercapacitors store energy via ion accumulation on the surface of electrodes. Nanomaterials like CNTs and graphene offer massive surface areas within a small volume, exponentially increasing the space available for ions.",
+      "type": "mcq"
+    },
+    {
+      "unit": 7,
+      "year": 2024,
+      "id": "materials_th_029",
+      "hard": true,
+      "text": "In mimicking the superhydrophobicity of a lotus leaf, a researcher creates a \"CNT forest\" coated with PTFE. What is the fundamental mechanism that prevents water from wetting this engineered surface?",
+      "opts": [
+        "The PTFE coating generates a localized magnetic field that actively repels the polar water molecules.",
+        "The nanoscale roughness combined with the low surface energy of PTFE traps pockets of air beneath the droplet, drastically reducing the liquid-solid contact area.",
+        "The high thermal conductivity of the CNTs instantly boils the water droplet upon contact, creating a vapor cushion (Leidenfrost effect).",
+        "The CNT forest acts as a nanoscale sponge, absorbing the water so rapidly that the surface appears dry."
+      ],
+      "ans": 1,
+      "exp": "Superhydrophobicity relies on surface geometry (roughness from the CNTs) and chemistry (hydrophobic PTFE). This creates a composite surface where the water droplet rests mostly on trapped air rather than the solid material.",
+      "type": "mcq"
+    },
+    {
+      "unit": 5,
+      "year": 2024,
+      "id": "materials_th_030",
+      "hard": true,
+      "text": "On an Ashby material selection chart plotting Strength against Density ($\\rho$), an engineer notes that different metrics represent \"strength\" depending on the material family. If comparing Silicon Carbide (SiC) to a Polycarbonate (PC), which specific strength metrics are most appropriate respectively?",
+      "opts": [
+        "Tensile Failure Strength for SiC, and Tensile Tear Strength for PC.",
+        "Yield Strength for both SiC and PC to ensure direct comparability.",
+        "Tensile Tear Strength for SiC, and Modulus of Rupture (MOR) for PC.",
+        "Modulus of Rupture (MOR) for SiC, and Yield Strength for PC."
+      ],
+      "ans": 3,
+      "exp": "Because ceramics (like SiC) are brittle and fail before yielding, they are evaluated using bend tests to find the Modulus of Rupture (MOR). Polymers (like PC) undergo plastic deformation, making Yield Strength the appropriate metric.",
+      "type": "mcq"
+    },
+    {
+      "unit": 5,
+      "year": 2024,
+      "id": "materials_th_031",
+      "hard": true,
+      "text": "In the hierarchical taxonomy used by computer-based selection software (like CES EduPack), an engineer locates the specific material \"Alloy 6061\". Which of the following traces its correct classification path from broadest to most specific?",
+      "opts": [
+        "Kingdom: Metals $\\rightarrow$ Class: Al-alloys $\\rightarrow$ Family: 6000 series $\\rightarrow$ Member: 6061",
+        "Family: Metals $\\rightarrow$ Kingdom: Al-alloys $\\rightarrow$ Sub-class: 6061 $\\rightarrow$ Member: Density",
+        "Kingdom: Metals $\\rightarrow$ Family: Al-alloys $\\rightarrow$ Class: 6000 series $\\rightarrow$ Member: 6061",
+        "Kingdom: Al-alloys $\\rightarrow$ Family: 6000 series $\\rightarrow$ Class: Metals $\\rightarrow$ Member: 6061"
+      ],
+      "ans": 2,
+      "exp": "The taxonomy flows from Kingdom (Metals), to Family (Base elements like Al-alloys), to Class (Series classifications like 6000), down to the specific specifiable Member (6061).",
+      "type": "mcq"
+    },
+    {
+      "unit": 5,
+      "year": 2024,
+      "id": "materials_th_032",
+      "hard": true,
+      "text": "An engineer is utilizing a Thermal Conductivity ($\\lambda$) vs. Electrical Resistivity ($\\rho_e$) Ashby chart. They notice a diagonal trendline defined by the equation $\\lambda = C / \\rho_e$. What does this mathematical relationship imply for materials falling strictly along this line?",
+      "opts": [
+        "Their thermal conductivity increases exponentially as electrical resistivity increases.",
+        "The product of their thermal conductivity and electrical resistivity is a highly variable constant dependent on density.",
+        "The material is a perfect insulator for both heat and electricity.",
+        "Their thermal conductivity is inversely proportional to their electrical resistivity."
+      ],
+      "ans": 3,
+      "exp": "The equation $\\lambda = C / \\rho_e$ indicates an inverse proportionality. Materials that conduct electricity well (low $\\rho_e$) also tend to conduct heat well (high $\\lambda$), as both are largely driven by free electrons in metals.",
+      "type": "mcq"
+    },
+    {
+      "unit": 8,
+      "year": 2024,
+      "id": "materials_th_033",
+      "hard": true,
+      "text": "An LED manufacturer wishes to shift the emission spectrum of an Aluminum Gallium Indium Phosphide (AlGaInP) diode from red light to yellow light. Based on semiconductor physics, what must be done to the material's energy bandgap, and why?",
+      "opts": [
+        "The bandgap must be increased via doping, because yellow light consists of higher-energy photons than red light.",
+        "The bandgap must be decreased via doping, because yellow light has a longer wavelength than red light.",
+        "The bandgap must remain constant while the applied voltage is exponentially increased.",
+        "The bandgap must be eliminated completely to allow free electron flow without resistance."
+      ],
+      "ans": 0,
+      "exp": "Yellow light has a shorter wavelength and higher frequency than red light, meaning its photons carry more energy. To emit higher-energy photons, the electron must drop across a wider (increased) energy bandgap.",
+      "type": "mcq"
+    },
+    {
+      "unit": 8,
+      "year": 2024,
+      "id": "materials_th_034",
+      "hard": true,
+      "text": "Which of the following solid-state combinations represents the correct semiconductor material required to engineer an LED that emits in the high-energy blue or ultraviolet spectrum?",
+      "opts": [
+        "Gallium Arsenide Phosphide (GaAsP) or Gallium Phosphide (GaP).",
+        "Gallium Nitride (GaN) or Indium Gallium Nitride (InGaN).",
+        "Aluminum Gallium Indium Phosphide (AlGaInP) only.",
+        "Poly(3,4-ethylenedioxythiophene) (PEDOT) or Polyaniline (PANI)."
+      ],
+      "ans": 1,
+      "exp": "GaN and InGaN have appropriately wide bandgaps required to release the large amount of energy necessary for high-frequency blue and ultraviolet photons.",
+      "type": "mcq"
+    },
+    {
+      "unit": 8,
+      "year": 2024,
+      "id": "materials_th_035",
+      "hard": true,
+      "text": "How does the primary objective in selecting a \"Functional Material\" fundamentally differ from selecting a \"Structural Material\"?",
+      "opts": [
+        "Functional materials are exclusively organic polymers, whereas structural materials are strictly inorganic metals or ceramics.",
+        "Functional materials must possess a completely amorphous atomic structure, whereas structural materials must be highly crystalline.",
+        "Functional materials are selected based on their dynamic response to external stimuli (e.g., converting pressure to voltage), whereas structural materials are chosen primarily for load-bearing and mechanical stability.",
+        "Functional materials are chosen solely for their low density, ignoring all electrical and magnetic attributes."
+      ],
+      "ans": 2,
+      "exp": "Structural materials provide passive mechanical support. Functional materials are \"active\" and are categorized by what they do in response to an environment—such as optical, magnetic, or electronic responses.",
+      "type": "mcq"
+    },
+    {
+      "unit": 6,
+      "year": 2024,
+      "id": "materials_th_036",
+      "hard": true,
+      "text": "A researcher applies a $12\\text{ V}$ potential across a highly conductive PEDOT polymer film, measuring an initial current of $0.25\\text{ A}$. Due to severe thermal degradation, the polymer's internal resistance suddenly triples. Assuming the voltage source remains constant at $12\\text{ V}$, what is the new current flowing through the film?",
+      "opts": [
+        "0.75 A",
+        "0.25 A",
+        "4.0 A",
+        "0.083 A"
+      ],
+      "ans": 3,
+      "exp": "Using Ohm's Law ($V = IR$), the initial resistance is $R = 12\\text{V} / 0.25\\text{A} = 48 \\,\\Omega$. The new resistance is $3 \\times 48 = 144 \\,\\Omega$. The new current is $I = V/R = 12\\text{V} / 144\\,\\Omega \\approx 0.0833\\text{ A}$.",
+      "type": "mcq"
+    },
+    {
+      "unit": 4,
+      "year": 2024,
+      "id": "materials_th_037",
+      "hard": true,
+      "text": "In the Hydrogen Evolution Reaction (HER) described as $2H^+ + 2e^- \\rightarrow H_2$, what specific electrochemical role do the hydrogen ions ($H^+$) play within the context of an active corrosion cell?",
+      "opts": [
+        "They form a protective passivating polymer layer over the metal surface, halting further corrosion.",
+        "They act as the electron acceptors at the cathode, driving the continuous oxidation and dissolution of the metal at the anode.",
+        "They act as the electron donors at the anode, accelerating the reduction of the surrounding metal ions.",
+        "They physically force the metal atoms apart through a mechanism identical to polymer swelling."
+      ],
+      "ans": 1,
+      "exp": "The HER is a reduction half-reaction occurring at the cathode. The $H^+$ ions consume (accept) the electrons that were released by the metal oxidizing at the anode, allowing the corrosion cycle to proceed.",
+      "type": "mcq"
+    },
+    {
+      "unit": 5,
+      "year": 2024,
+      "id": "materials_th_038",
+      "hard": true,
+      "text": "You are tasked with selecting a material for a high-temperature engine component. Using the materials taxonomy hierarchy, you filter your database by Kingdom: Metals, then Family: Ni-alloys. What is the fundamental rationale for categorizing Ni-alloys under this specific Kingdom?",
+      "opts": [
+        "They possess a conjugated backbone of alternating double bonds that include Nickel atoms.",
+        "They are artificially synthesized composites that combine a ceramic matrix with a Nickel dispersion.",
+        "They possess metallic bonding characteristics making them electrically and thermally conductive, and their base alloying element is Nickel.",
+        "Their modulus of rupture (MOR) dictates their strength profile due to extreme brittleness."
+      ],
+      "ans": 2,
+      "exp": "Kingdoms are defined by inherent chemical and physical properties. Metallic bonding defines the Metals Kingdom, and the base element (Nickel) defines the Family.",
+      "type": "mcq"
+    },
+    {
+      "unit": 8,
+      "year": 2024,
+      "id": "materials_th_039",
+      "hard": true,
+      "text": "A biomedical engineer selects Polymethyl methacrylate (PMMA) as a bone cement for a hip replacement surgery. Under which specific classification paradigm is PMMA being evaluated in this context, and why?",
+      "opts": [
+        "Chemical classification, because it acts as an active catalyst to dissolve the surrounding bone.",
+        "Structural classification, because it is purely carrying the mechanical weight of the patient without biological interaction.",
+        "Functional classification, because PMMA is a piezoelectric material that generates electricity during walking.",
+        "Functional classification, because its primary role is serving as a specialized biomedical material designed to interact safely with biological tissue."
+      ],
+      "ans": 3,
+      "exp": "While it bears load, in the context of advanced engineering categorizations, Biomedical Materials are classified under Functional Materials because their vital defining requirement is their specific interaction with biological systems.",
+      "type": "mcq"
+    },
+    {
+      "unit": 7,
+      "year": 2024,
+      "id": "materials_th_040",
+      "hard": true,
+      "text": "Consider a hypothetical supercapacitor electrode made of a single continuous Graphene sheet versus one made of tightly bundled Carbon Nanotubes (CNTs). Both rely on what fundamental nanoscale property to drastically outperform conventional solid capacitors?",
+      "opts": [
+        "The capacity to absorb visible light photons and permanently store them in strong C-C covalent bonds.",
+        "The ability to undergo infinite mechanical stretching (superplasticity) to physically expand and store more energy.",
+        "The absolute elimination of all phonon scattering, resulting in zero electrical and thermal resistance.",
+        "An extremely high specific surface area that maximizes the electrical double layer for immense electrostatic charge accumulation."
+      ],
+      "ans": 3,
+      "exp": "Both graphene and CNTs provide unparalleled surface-area-to-volume ratios (specific surface area). Supercapacitors depend entirely on available surface area to adsorb ions and build an electrical double layer for energy storage.",
+      "type": "mcq"
+    }
+  ]
+}

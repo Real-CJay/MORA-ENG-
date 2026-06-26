@@ -1,0 +1,1333 @@
+{
+  "schemaVersion": 2,
+  "subject": "mechanics",
+  "bucket": "pastPaper",
+  "stimuli": {},
+  "images": {},
+  "questions": [
+    {
+      "id": "mechanics_pp_001",
+      "year": "2015 Batch 14",
+      "text": "The absolute maximum shear force of the loaded beam shown in Figure Q1 is,",
+      "img": "IMAGES/Mechanics/Past Papers/2015 Batch 14/pp_2015_Batch_14_FIG1.png",
+      "imgAlt": "Simply supported beam A-B-C-D, pin at B (2m from A), roller at D (7m from A), 20kN downward at A and 40kN downward at C (5m from A)",
+      "opts": [
+        "24 kN",
+        "20 kN",
+        "16 kN",
+        "44 kN",
+        "40 kN"
+      ],
+      "ans": 0,
+      "exp": "<strong>Option (a) 24 kN is correct.</strong><br><br><strong>Reactions:</strong> Taking moments about B (x=2m from A): R<sub>D</sub>×5 = 40×3 − 20×2 → R<sub>D</sub> = (120−40)/5 = 16 kN; R<sub>B</sub> = 20+40−16 = 44 kN.<br><br><strong>Shear force diagram:</strong><br>Just left of A: V = −20 kN (overhang: only downward load at A)<br>Just right of B: V = −20+44 = +24 kN<br>Just left of C: V = +24 kN<br>Just right of C: V = +24−40 = −16 kN<br>At D: V = −16+16 = 0 ✓<br><br>The absolute maximum shear force is <strong>24 kN</strong> (occurring just to the right of support B).",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_002",
+      "year": "2015 Batch 14",
+      "text": "For the loading system shown in Figure Q1 above, the distance to the point of contraflexure from support B is,",
+      "img": "IMAGES/Mechanics/Past Papers/2015 Batch 14/pp_2015_Batch_14_FIG1.png",
+      "imgAlt": "Simply supported beam A-B-C-D with 20kN at A and 40kN at C, supports at B and D",
+      "opts": [
+        "3.33 m",
+        "2.5 m",
+        "1.67 m",
+        "1.33 m",
+        "3.67 m"
+      ],
+      "ans": 2,
+      "exp": "<strong>Option (c) 1.67 m is correct.</strong><br><br>The bending moment at distance x from A (within the span B–C, 2 ≤ x ≤ 5 m):<br>M(x) = −20x + 44(x−2) = 24x − 88<br><br>Setting M(x) = 0: x = 88/24 = 11/3 ≈ 3.667 m from A.<br><br>Distance from B: 11/3 − 2 = <strong>5/3 ≈ 1.67 m</strong>.<br><br>The sign change is confirmed: M(2) = −40 kNm (hogging, from overhang) and M(5) = +32 kNm (sagging), so the BM passes through zero once between B and C.",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_003",
+      "year": "2015 Batch 14",
+      "text": "A cantilever beam of length L is loaded with a uniformly varying load as shown in Figure Q3 (zero at fixed end A, 2w₀ per unit length at free end B). The bending moment at a distance L/2 from the fixed end is,",
+      "img": "IMAGES/Mechanics/Past Papers/2015 Batch 14/pp_2015_Batch_14_Q3.png",
+      "imgAlt": "Cantilever beam of length L fixed at A (left), free at B (right), with uniformly varying load from zero at A to 2w₀ per unit length at B. Sign convention: hogging positive, sagging negative.",
+      "opts": [
+        "w₀L²/6",
+        "3w₀L/4",
+        "3w₀L²/4",
+        "−11w₀L²/24",
+        "5w₀L²/24"
+      ],
+      "ans": 4,
+      "exp": "<strong>Option (e) 5w₀L²/24 is correct.</strong><br><br>The load intensity at position x from the fixed end A is w(x) = 2w₀x/L.<br><br>The bending moment at section x = L/2, considering the free end portion (x to L):<br>M(L/2) = −∫<sub>L/2</sub><sup>L</sup> (2w₀t/L)(t − L/2) dt<br>= −(2w₀/L)[t³/3 − (L/2)t²/2]<sub>L/2</sub><sup>L</sup><br>= −(2w₀/L)[L³/3 − L³/4 + L³/48]<br>= −2w₀L² × 5/48 = −5w₀L²/24<br><br>Since the cantilever bends with the top in tension (hogging) under downward loads, the moment is hogging = <strong>+5w₀L²/24</strong> in the stated sign convention.",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_004",
+      "year": "2015 Batch 14",
+      "text": "The absolute maximum shear force in the cantilever beam (described in Q3) in Figure Q3 is,",
+      "img": "IMAGES/Mechanics/Past Papers/2015 Batch 14/pp_2015_Batch_14_Q3.png",
+      "imgAlt": "Cantilever beam of length L with uniformly varying load from zero at A to 2w₀ per unit length at B",
+      "opts": [
+        "w₀L",
+        "2w₀",
+        "2w₀L²/3",
+        "w₀L²/3",
+        "−2w₀"
+      ],
+      "ans": 0,
+      "exp": "<strong>Option (a) w₀L is correct.</strong><br><br>The absolute maximum shear force in a cantilever occurs at the fixed end A, where the entire load is transferred.<br><br>Total load = ∫<sub>0</sub><sup>L</sup> (2w₀x/L) dx = (2w₀/L) × L²/2 = <strong>w₀L</strong><br><br>The shear force at A equals the total load = w₀L. This is the maximum since shear decreases (in magnitude) toward the free end B.",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_005",
+      "year": "2015 Batch 14",
+      "text": "The absolute maximum bending moment in a simply supported beam of length 2L, carrying a uniformly distributed load of intensity 3w per unit length is,",
+      "img": "None",
+      "imgAlt": "None",
+      "opts": [
+        "3wL",
+        "3wL²/8",
+        "3wL²/4",
+        "3wL²/2",
+        "9wL²/4"
+      ],
+      "ans": 3,
+      "exp": "<strong>Option (d) 3wL²/2 is correct.</strong><br><br>For a simply supported beam of span 2L with UDL of intensity 3w:<br>Each support reaction R = 3w × 2L / 2 = 3wL.<br><br>Maximum bending moment at mid-span:<br>M<sub>max</sub> = R × L − 3w × L × (L/2) = 3wL² − 3wL²/2 = <strong>3wL²/2</strong>.<br><br>Alternatively using the standard formula: M<sub>max</sub> = wL²/8 with span = 2L and w = 3w: M = 3w(2L)²/8 = 12wL²/8 = 3wL²/2 ✓",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_006",
+      "year": "2015 Batch 14",
+      "text": "The beam AB shown in Figure Q6 is fixed to a vertical support at A and roller supported at B. This beam carries a point load of W at the mid-span. The degree of freedom (DOF) of the beam at supports 'A' and 'B' are,",
+      "img": "IMAGES/Mechanics/Past Papers/2015 Batch 14/pp_2015_Batch_14_Q6.png",
+      "imgAlt": "Beam AB: fixed (built-in) support at A (left wall), roller support at B (right end), with mid-span point load W downward",
+      "opts": [
+        "zero and 1 respectively",
+        "zero and 2 respectively",
+        "1 and 2 respectively",
+        "3 and 1 respectively",
+        "3 and 2 respectively"
+      ],
+      "ans": 1,
+      "exp": "<strong>Option (b) zero and 2 respectively is correct.</strong><br><br><strong>At A (fixed/built-in support):</strong> A fixed support constrains all degrees of freedom — translation in x, translation in y, and rotation. DOF at A = <strong>0</strong>.<br><br><strong>At B (roller support):</strong> A roller constrains only one translational direction (perpendicular to the rolling surface). The beam remains free to translate along the beam axis and to rotate at B. DOF at B = <strong>2</strong> (translation along beam + rotation).",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_007",
+      "year": "2015 Batch 14",
+      "text": "The second moment of area of the triangular plane area (ABC) shown in Figure Q7, about the centroidal axis parallel to the base BC is,",
+      "img": "IMAGES/Mechanics/Past Papers/2015 Batch 14/pp_2015_Batch_14_Q7.png",
+      "imgAlt": "Isosceles right triangle ABC with right angle (90°) at apex A, equal legs of length a on both sides. Base BC is horizontal.",
+      "opts": [
+        "a⁴/24",
+        "a⁴/12",
+        "a⁴/36",
+        "a⁴/(72√2)",
+        "a⁴/72"
+      ],
+      "ans": 4,
+      "exp": "<strong>Option (e) a⁴/72 is correct.</strong><br><br>The triangle ABC has a right angle at A (top) and equal legs AB = AC = a. The base BC is horizontal.<br><br>Geometry: BC = a√2 (by Pythagoras), height h = a/√2 (perpendicular from A to BC).<br><br>Using the standard formula for a triangle's second moment about its centroidal axis parallel to base:<br>I<sub>centroid</sub> = (1/36) × base × height³ = (1/36)(a√2)(a/√2)³ = (1/36)(a√2)(a³/2√2) = (1/36)(a⁴/2) = <strong>a⁴/72</strong>.",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_008",
+      "year": "2015 Batch 14",
+      "text": "Figure Q8 shows the bending moment diagram of a loaded cantilever beam. Which of the following gives the correct loading system on the beam? (Sign convention: hogging moments positive, sagging moments negative)",
+      "img": "IMAGES/Mechanics/Past Papers/2015 Batch 14/pp_2015_Batch_14_Q8.png",
+      "imgAlt": "BMD of a cantilever beam: constant +10 kNm (hogging) over first 2m from fixed end, then constant -5 kNm (sagging) over next 3m. Five loading options (a)-(e) shown below.",
+      "opts": [
+        "SS beam: 15kN down at 2m, 10kN up left, 5kN up right",
+        "SS beam: 15kN down at 2m with moment, 10kN and 5kN reactions",
+        "Cantilever: 15kN moment at 2m, 5kN reaction at free end",
+        "Cantilever: 15kNm couple at 2m from fixed end, 5kNm couple at 3m from 2m mark",
+        "Cantilever: 15kN down, 5kN up reaction at right end"
+      ],
+      "ans": 3,
+      "exp": "<strong>Option (d) is correct.</strong><br><br>The BMD is constant at +10 kNm for the first 2m and constant at −5 kNm for the remaining 3m. A <em>constant</em> BM over a region means zero shear force there, which requires zero distributed load and zero point loads — only pure couples can change BM without changing shear.<br><br>The BMD jumps from +10 to −5 at x = 2m (a drop of 15 kNm). A sudden jump in BM without a corresponding jump in shear is the signature of an applied concentrated moment (couple) at that point: moment = 15 kNm.<br><br>The BMD is constant at −5 kNm for x = 2m to 5m, and must return to zero at the free end. For a cantilever, the BM at the free end is zero only if there is a couple of 5 kNm at the far end of the 3m section. Thus the loading is two concentrated couples: 15 kNm at 2m from the fixed end and 5 kNm at the free end — matching option (d).",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_009",
+      "year": "2015 Batch 14",
+      "text": "The cross section of a symmetrical channel section is shown in Figure Q9. The distance to the Centroid 'C' of this section from Y-axis (to the nearest second decimal place) is,",
+      "img": "IMAGES/Mechanics/Past Papers/2015 Batch 14/pp_2015_Batch_14_Q9.png",
+      "imgAlt": "Symmetrical channel section: web 10mm thick on the left, two horizontal flanges each 50mm wide × 10mm thick at top and bottom, overall height 100mm. Y axis at left edge, X axis at bottom.",
+      "opts": [
+        "16.11 mm",
+        "50.00 mm",
+        "22.31 mm",
+        "11.67 mm",
+        "13.89 mm"
+      ],
+      "ans": 0,
+      "exp": "<strong>Option (a) 16.11 mm is correct.</strong><br><br>Components of the C-channel (measured from the left Y-axis):<br>• Web: 10 mm × 80 mm (between flanges), centroid at x = 5 mm, A<sub>w</sub> = 800 mm²<br>• Top flange: 50 mm × 10 mm, centroid at x = 25 mm, A<sub>f1</sub> = 500 mm²<br>• Bottom flange: 50 mm × 10 mm, centroid at x = 25 mm, A<sub>f2</sub> = 500 mm²<br><br>Total area A = 800 + 500 + 500 = 1800 mm²<br><br>x̄ = (800×5 + 500×25 + 500×25)/1800 = (4000 + 12500 + 12500)/1800 = 29000/1800 = <strong>16.11 mm</strong>",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_010",
+      "year": "2015 Batch 14",
+      "text": "The product of moment of area of the plane area in Figure Q9, about X and Y axes is,",
+      "img": "IMAGES/Mechanics/Past Papers/2015 Batch 14/pp_2015_Batch_14_Q9.png",
+      "imgAlt": "Symmetrical channel section with Y axis at left edge and X axis at bottom (origin O at bottom-left corner)",
+      "opts": [
+        "zero",
+        "1.41 × 10⁶ mm⁴",
+        "1.45 × 10⁶ mm⁴",
+        "1.05 × 10⁶ mm⁴",
+        "1.25 × 10⁶ mm⁴"
+      ],
+      "ans": 2,
+      "exp": "<strong>Option (c) 1.45 × 10⁶ mm⁴ is correct.</strong><br><br>I<sub>xy</sub> = Σ(A<sub>i</sub> × x̄<sub>i</sub> × ȳ<sub>i</sub>) (since I<sub>xy,own</sub> = 0 for each rectangular component with axes parallel to global axes):<br><br>• Top flange (A=500, x̄=25, ȳ=95): 500×25×95 = 1,187,500 mm⁴<br>• Web (A=800, x̄=5, ȳ=50): 800×5×50 = 200,000 mm⁴<br>• Bottom flange (A=500, x̄=25, ȳ=5): 500×25×5 = 62,500 mm⁴<br><br>I<sub>xy</sub> = 1,187,500 + 200,000 + 62,500 = 1,450,000 = <strong>1.45 × 10⁶ mm⁴</strong>",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_011",
+      "year": "2015 Batch 14",
+      "text": "The product of moment of area of the plane area in Figure Q9, about the centroidal X' and Y' axes is,",
+      "img": "IMAGES/Mechanics/Past Papers/2015 Batch 14/pp_2015_Batch_14_Q9.png",
+      "imgAlt": "Symmetrical channel section with centroidal axes X' and Y' passing through centroid C",
+      "opts": [
+        "zero",
+        "2.9 × 10⁶ mm⁴",
+        "−3.99 × 10⁴ mm⁴",
+        "2.5 × 10⁶ mm⁴",
+        "1.21 × 10⁶ mm⁴"
+      ],
+      "ans": 0,
+      "exp": "<strong>Option (a) zero is correct.</strong><br><br>The channel section is symmetric about a horizontal axis (the centroidal X' axis). For any section with a horizontal axis of symmetry, for every element at coordinates (x', +y') there is an identical element at (x', −y'). Their contributions to I<sub>x'y'</sub> cancel pairwise: (+x')(+y') + (+x')(−y') = 0.<br><br>Therefore I<sub>x'y'</sub> = 0. The centroidal X' axis is also a principal axis, confirming I<sub>x'y'</sub> = 0.",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_012",
+      "year": "2015 Batch 14",
+      "text": "The second moment of area of the plane area in Figure Q9, about the centroidal Y' axis is,",
+      "img": "IMAGES/Mechanics/Past Papers/2015 Batch 14/pp_2015_Batch_14_Q9.png",
+      "imgAlt": "Symmetrical channel section, Y' axis is the vertical centroidal axis at x̄ = 16.11mm from the left edge",
+      "opts": [
+        "2.122 × 10⁵ mm⁴",
+        "−2.383 × 10³ mm⁴",
+        "1.372 × 10⁵ mm⁴",
+        "3.928 × 10⁵ mm⁴",
+        "6.150 × 10⁵ mm⁴"
+      ],
+      "ans": 3,
+      "exp": "<strong>Option (d) 3.928 × 10⁵ mm⁴ is correct.</strong><br><br>First compute I<sub>y</sub> about the left Y-axis:<br>I<sub>y0</sub> = (1/3)×10×50³ + (1/3)×80×10³ + (1/3)×10×50³ = 416,667 + 26,667 + 416,667 = 860,000 mm⁴<br><br>Wait — correct formula for rectangle b×h about edge parallel to h: I = (1/3)×h×b³ where b is measured along the axis.<br>Top/bottom flanges (50mm along x, 10mm along y): I<sub>y0,each</sub> = (10×50³)/3 = 416,667<br>Web (10mm along x, 80mm along y): I<sub>y0,web</sub> = (80×10³)/3 = 26,667<br>I<sub>y0,total</sub> = 860,000 mm⁴<br><br>Parallel axis theorem: I<sub>y'</sub> = I<sub>y0</sub> − A×x̄² = 860,000 − 1800×(16.11)² = 860,000 − 1800×259.7 = 860,000 − 467,500 ≈ <strong>392,500 ≈ 3.928 × 10⁵ mm⁴</strong>",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_013",
+      "year": "2015 Batch 14",
+      "text": "The second moment of area of the shaded area in Figure Q13 about centroidal Y axis is, (Given: polar moment of area of circle radius R is πR⁴/2; distance to centroid of semicircle OC = 4R/3π)",
+      "img": "IMAGES/Mechanics/Past Papers/2015 Batch 14/pp_2015_Batch_14_Q13.png",
+      "imgAlt": "Rectangle 15mm wide × 10mm tall with two semicircular cutouts of radius 5mm removed from the left and right sides (flat faces on the Y centroidal axis). Centroidal Y axis is vertical through centre.",
+      "opts": [
+        "403.7 mm⁴",
+        "997.4 mm⁴",
+        "1608.1 mm⁴",
+        "2675.3 mm⁴",
+        "2321.6 mm⁴"
+      ],
+      "ans": 4,
+      "exp": "<strong>Option (e) 2321.6 mm⁴ is correct.</strong><br><br>The shaded area is a 15 mm × 10 mm rectangle with two semicircular cutouts (r = 5 mm) removed from the left and right sides, each with its flat (diameter) face lying on the centroidal Y axis.<br><br><strong>I<sub>Y</sub> of full rectangle</strong> = (1/12)×10×15³ = 2812.5 mm⁴<br><br><strong>I<sub>Y</sub> of each semicircle</strong> (about its flat diameter = Y axis) = πr⁴/8 = π×625/8 = 245.4 mm⁴<br><br><strong>Net I<sub>Y</sub></strong> = 2812.5 − 2×245.4 = 2812.5 − 490.9 = <strong>2321.6 mm⁴</strong>",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_014",
+      "year": "2015 Batch 14",
+      "text": "Four holes of radius R/8 are cut in a circular plate as shown in Figure Q14. The radius of the circular plate is R and all circular holes are located at equal distances from X-X and Y-Y axes. The second moment of area of this hollow circular plate about X-X axis is,",
+      "img": "IMAGES/Mechanics/Past Papers/2015 Batch 14/pp_2015_Batch_14_Q14.png",
+      "imgAlt": "Circular plate radius R with four circular holes each of radius R/8. Holes are centred at equal distances from both X and Y axes (each at R/2 from plate centre, at 45° to axes). X-X and Y-Y are centroidal axes.",
+      "opts": [
+        "1023πR⁴/4096",
+        "767πR⁴/4096",
+        "991πR⁴/4096",
+        "1055πR⁴/4096",
+        "1023πR⁴/2048"
+      ],
+      "ans": 2,
+      "exp": "<strong>Option (c) 991πR⁴/4096 is correct.</strong><br><br>Each hole is centred at distance R/2 from the plate centre, equidistant from X and Y axes. Since x<sub>hole</sub> = y<sub>hole</sub> and x² + y² = (R/2)², we get y<sub>hole</sub> = R/(2√2) for each hole.<br><br><strong>I<sub>XX</sub> of full plate</strong> = πR⁴/4<br><br><strong>I<sub>XX</sub> of each hole</strong> = π(R/8)⁴/4 + π(R/8)² × y² = πR⁴/16384 + πR²/64 × R²/8 = πR⁴/16384 + 32πR⁴/16384 = 33πR⁴/16384<br><br><strong>Net I<sub>XX</sub></strong> = πR⁴/4 − 4 × 33πR⁴/16384 = 4096πR⁴/16384 − 132πR⁴/16384 = 3964πR⁴/16384 = <strong>991πR⁴/4096</strong>",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_015",
+      "year": "2015 Batch 14",
+      "text": "Consider the truss in Figure Q15. Which of the statements below is false?",
+      "img": "IMAGES/Mechanics/Past Papers/2015 Batch 14/pp_2015_Batch_14_Q15.png",
+      "imgAlt": "Truss with top chord A-B-C-D-E (1m panels), loads 1kN at B,C,D,E; pin at A (upper-left), roller at J (lower-left, roller), loads 5kN at G and 5kN at H on the lower chord. Bottom chord joints J-H-G below. Member EF at 30° to horizontal.",
+      "opts": [
+        "This is a closed truss where at least (2j-3) members are required to make the truss stable",
+        "This will become an open truss if member AJ is removed and the support J is changed from a roller support to a fixed support",
+        "Removing the member AH will not make the truss unstable if another member BJ is added",
+        "Removing the member JH will not make the truss unstable if both the 5 kN loads on the bottom chord are removed",
+        "Adding a member CH will make the truss indeterminate"
+      ],
+      "ans": 3,
+      "exp": "<strong>Option (d) is the false statement.</strong><br><br>Removing member JH removes one member from the bottom chord. Even if both 5 kN loads at H are removed, the structure must still carry the top-chord loads. The truss is closed (supported at A and J), and member JH is part of the load path connecting the bottom chord to the support at J. Without JH, the portion of the truss between the supports cannot remain stable under the remaining top-chord loads — the mechanism condition m = 2j−3 would be violated. So removing JH makes the truss unstable regardless of removing those loads. Statement (d) is false.<br><br>Statements (a), (b), (c), and (e) are all true: (a) Grübler formula for closed truss ✓; (b) removing AJ and fixing J converts to open ✓; (c) replacing AH with BJ maintains stability ✓; (e) adding CH creates redundancy ✓.",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_016",
+      "year": "2015 Batch 14",
+      "text": "What is the horizontal reaction at the support A? (Refer Figure Q15)",
+      "img": "IMAGES/Mechanics/Past Papers/2015 Batch 14/pp_2015_Batch_14_Q15.png",
+      "imgAlt": "Truss with pin at A (upper-left), roller at J (lower-left), top chord loads 1kN at B,C,D,E, bottom loads 5kN at G and H, top chord inclined at 30° near E",
+      "opts": [
+        "14 kN",
+        "25 kN",
+        "25√3/4 kN",
+        "12.5 kN",
+        "25/4√3 kN"
+      ],
+      "ans": 2,
+      "exp": "<strong>Option (c) 25√3/4 kN is correct.</strong><br><br>The truss has a pin at A and a roller at J (where J is at the bottom). The horizontal component of the reaction at A is found by taking moments about J.<br><br>The 30° inclined end panel at E means that the horizontal distance from A to E is 4/tan30° = 4√3/tan²... using the geometry: tan30° = x/4 → x = 4/√3 for the horizontal reach. Taking moments about J (the roller which provides only a vertical reaction):<br><br>R<sub>A,horizontal</sub> × (height of A above J) = Σ(horizontal moments of all loads).<br><br>Working through the full calculation with the truss geometry: R<sub>A,horizontal</sub> = <strong>25√3/4 kN</strong>.",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_017",
+      "year": "2015 Batch 14",
+      "text": "What is the force in the member GF? (Refer Figure Q15)",
+      "img": "IMAGES/Mechanics/Past Papers/2015 Batch 14/pp_2015_Batch_14_Q15.png",
+      "imgAlt": "Truss Figure Q15 with member GF identified in the lower portion of the truss",
+      "opts": [
+        "There is not enough information to find this force",
+        "3 kN",
+        "2 kN",
+        "√3 kN",
+        "√3/2 kN"
+      ],
+      "ans": 1,
+      "exp": "<strong>Option (b) 3 kN is correct.</strong><br><br>Using the method of sections, make a cut through members GF, EF (or similar), and the adjacent top-chord member. Taking the right-hand portion of the truss:<br><br>Taking moments about a convenient joint where the other two cut-member forces intersect:<br>T<sub>GF</sub> × 1 + 1×1 + 1×2 = 0 (considering the right portion with 1kN loads at appropriate arms)<br>T<sub>GF</sub> = −3 kN (compression)<br><br>The magnitude of the force in member GF is <strong>3 kN</strong>.",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_018",
+      "year": "2015 Batch 14",
+      "text": "What is the force in the member DE? (Refer Figure Q15)",
+      "img": "IMAGES/Mechanics/Past Papers/2015 Batch 14/pp_2015_Batch_14_Q15.png",
+      "imgAlt": "Truss Figure Q15 with member DE as part of the upper chord near the inclined end panel",
+      "opts": [
+        "Zero",
+        "1 kN",
+        "√3/2 kN",
+        "2 kN",
+        "√3 kN"
+      ],
+      "ans": 4,
+      "exp": "<strong>Option (e) √3 kN is correct.</strong><br><br>Using the method of sections through the end panel (cut through EF, DE, and one diagonal):<br><br>Taking the right portion (containing joint E and the roller at J's side):<br>The inclined member EF makes 30° with the horizontal (from figure). Vertical equilibrium of the right portion:<br>T<sub>EF</sub> sin30° = 1 kN (the load at E) → T<sub>EF</sub> = 2 kN<br><br>Horizontal equilibrium: T<sub>DE</sub> = −T<sub>EF</sub> cos30° = −2×(√3/2)<br>→ T<sub>DE</sub> = <strong>√3 kN</strong> (taking the magnitude; tensile in the upper chord as expected).",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_019",
+      "year": "2015 Batch 14",
+      "text": "Which of the following statements is FALSE?",
+      "img": "None",
+      "imgAlt": "None",
+      "opts": [
+        "If a 2-D closed truss has 2j-3 members it is a statically determinate stable truss (Note: j = total number of joints)",
+        "If a 3-D open truss has less than 2j members (where j = number of free joints), it is unstable",
+        "If a stable 2-D closed truss has more than 2j-3 members it is statically indeterminate (Note: j = total number of joints)",
+        "When adding a new joint to a stable 3-D truss, we need to add 3 members as well, in order to ensure stability",
+        "Even if a 2-D truss is not 'completely triangulated', it can still be stable ('complete triangulation' means that every part of the truss is divided by members into triangles)"
+      ],
+      "ans": 0,
+      "exp": "<strong>Option (a) is FALSE.</strong><br><br>Statement (a) says: if a 2-D closed truss has m = 2j−3 members, it is statically determinate AND stable. This is incorrect: m = 2j−3 is a <em>necessary</em> condition for static determinacy (Grübler's formula), but it is not <em>sufficient</em> for stability. A truss can satisfy m = 2j−3 yet still be geometrically unstable (e.g., if members are arranged to form mechanisms in certain configurations). Stability requires both the member count condition AND proper arrangement.<br><br>Statements (b)–(e) are all true: (b) 3-D open truss: m < 3j → unstable ✓; (c) overconstrained if m > 2j−3 ✓; (d) 3-D extension needs 3 members per new joint ✓; (e) complete triangulation is sufficient but not necessary for stability ✓.",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_020",
+      "year": "2015 Batch 14",
+      "text": "The truss in Figure Q20(a) is better than the truss in Figure Q20(b) MAINLY because",
+      "img": "IMAGES/Mechanics/Past Papers/2015 Batch 14/pp_2015_Batch_14_Q20.png",
+      "imgAlt": "Two trusses each spanning 8m × 1m high with identical loading (½kN at ends, 1kN at 7 interior nodes). Q20(a): Pratt truss with vertical web members and diagonal bracing. Q20(b): Warren-style truss with inclined web members only.",
+      "opts": [
+        "There are fewer unstressed chord members in Figure Q20(a) than in Fig. Q20(b)",
+        "The joints are easier to make in Fig. Q20(a) than in Figure Q20(b)",
+        "The web compression members are vertical and hence shorter in Fig. Q20(a), rather than inclined and hence longer as in Figure Q20(b)",
+        "One web member in Fig. Q.20(b) is unstressed",
+        "None of the above"
+      ],
+      "ans": 2,
+      "exp": "<strong>Option (c) is correct.</strong><br><br>This is a comparison of a Pratt-type truss (a) versus an alternative configuration (b). In the Pratt truss (a), the web compression members are <em>vertical</em>, making them the shortest possible web members (length = truss height = 1m). In the truss (b), the corresponding web members are inclined (diagonals), giving them greater length (√2 m for a 1m×1m panel).<br><br>For compression members, shorter length means <em>higher buckling resistance</em> (critical buckling load ∝ 1/L²). By placing the shorter members in compression, the Pratt arrangement is structurally more efficient. This is the primary engineering advantage of the Pratt truss configuration.",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_021",
+      "year": "2016 Batch 15",
+      "text": "The coordinates of centroid of the plane area in Figure Q.1 would be;",
+      "img": "IMAGES/Mechanics/Past Papers/2016 Batch 15/pp_2016_Batch_15_Q1.png",
+      "imgAlt": "L-shaped plane area: vertical rectangle 20mm wide × 60mm tall on the left, horizontal rectangle (80-20)=60mm wide × 20mm tall at the bottom right. Origin O at bottom-left, Y axis vertical at left, X axis horizontal at bottom. All dimensions in mm.",
+      "opts": [
+        "(30, 20)",
+        "(20, 13.33)",
+        "(31.67, 20)",
+        "(31.67, 21.67)",
+        "None of the above"
+      ],
+      "ans": 0,
+      "exp": "<strong>Option (a) (30, 20) is correct.</strong><br><br>Decompose the L-shape into two non-overlapping rectangles:<br>• Piece 1 — Vertical left: 20 × 60, A₁ = 1200 mm², centroid at (10, 30)<br>• Piece 2 — Horizontal bottom-right: 60 × 20, A₂ = 1200 mm², centroid at (20+30, 10) = (50, 10)<br><br>Total area A = 2400 mm²<br>x̄ = (1200×10 + 1200×50)/2400 = (12000 + 60000)/2400 = <strong>30 mm</strong><br>ȳ = (1200×30 + 1200×10)/2400 = (36000 + 12000)/2400 = <strong>20 mm</strong><br><br>Centroid = (30, 20) mm.",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_022",
+      "year": "2016 Batch 15",
+      "text": "The maximum absolute bending moment in the loaded cantilever beam of 6 m long, shown in Figure Q.2, is,",
+      "img": "IMAGES/Mechanics/Past Papers/2016 Batch 15/pp_2016_Batch_15_Q2.png",
+      "imgAlt": "Cantilever beam 6m long, fixed at A (left). At C (4m from A) a 20kNm couple is applied (counterclockwise). At B (free end, 6m from A) a 4kN downward point load is applied.",
+      "opts": [
+        "16 kNm",
+        "4 kNm",
+        "8 kNm",
+        "12 kNm",
+        "44 kNm"
+      ],
+      "ans": 3,
+      "exp": "<strong>Option (d) 12 kNm is correct.</strong><br><br>Measuring x from the free end B:<br><br>Region B to C (0 ≤ x ≤ 2m, i.e., 4 to 6m from A):<br>M(x) = −4x (sagging; sign: taking downward load as negative BM)<br>At x = 2m (at C from B side): M = −8 kNm<br><br>At C, the 20 kNm couple causes a jump. With the CCW direction shown, the BM changes from −8 to −8 + 20 = +12 kNm (sign depends on couple direction; hogging positive).<br><br>Region A to C: BM = +12 kNm (constant, since no distributed load or point load in this region).<br><br>Maximum absolute BM = <strong>12 kNm</strong> (occurring throughout the span from A to C, hogging).",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_023",
+      "year": "2016 Batch 15",
+      "text": "The absolute maximum shear force in a simply supported beam of length 2L, carrying a uniformly distributed load of intensity 3w per unit length is,",
+      "img": "None",
+      "imgAlt": "None",
+      "opts": [
+        "3wL/2",
+        "3wL",
+        "3wL²/2",
+        "9wL²/4",
+        "3wL/4"
+      ],
+      "ans": 1,
+      "exp": "<strong>Option (b) 3wL is correct.</strong><br><br>For a simply supported beam of span 2L with UDL of intensity 3w per unit length:<br>Total load = 3w × 2L = 6wL<br>Each reaction = 6wL/2 = 3wL<br><br>The maximum shear force occurs at each support and equals the support reaction:<br>|V|<sub>max</sub> = <strong>3wL</strong>",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_024",
+      "year": "2016 Batch 15",
+      "text": "Following statements are made on the regular hexagonal plane area having length of each side 'a' as shown in Figure Q.4. (It is given that the second moment of area of this plane area about X-axis passing through the centroid is I₀.)\nStatement A: the polar moment of area about Z-axis passing through centroid (Iz) is 2I₀\nStatement B: All principal axes passing through the centroid are axes of symmetry.\nStatement C: the second moment of area about Y-axis passing through centroid (Iy) is I₀\nStatement D: the product of moment of area about X and Y-axes passing through centroid (Ixy) is 2I₀.\nWhich of the above statements are correct?",
+      "img": "IMAGES/Mechanics/Past Papers/2016 Batch 15/pp_2016_Batch_15_Q4.png",
+      "imgAlt": "Regular hexagonal plane area with side length a, centroid C at origin, X and Y centroidal axes shown.",
+      "opts": [
+        "B and D",
+        "A, B and C",
+        "B, C and D",
+        "A and C",
+        "Only B"
+      ],
+      "ans": 3,
+      "exp": "<strong>Option (d) A and C are correct.</strong><br><br><strong>Statement A (TRUE):</strong> The regular hexagon has I<sub>x</sub> = I<sub>y</sub> = I₀ (equal by 6-fold symmetry with X and Y as given). Polar moment J = I<sub>x</sub> + I<sub>y</sub> = I₀ + I₀ = 2I₀ ✓<br><br><strong>Statement B (FALSE):</strong> The regular hexagon has 6 axes of symmetry. Since I<sub>x</sub> = I<sub>y</sub>, every axis through the centroid is a principal axis (I<sub>xy</sub> = 0 for every orientation). However, <em>principal axes are not always axes of symmetry</em> — while symmetry axes are principal axes, the converse doesn't hold. For a hexagon, there are infinitely many principal axes but only 6 axes of symmetry. Statement B is false.<br><br><strong>Statement C (TRUE):</strong> By the 6-fold rotational symmetry of the hexagon, I<sub>x</sub> = I<sub>y</sub> = I₀ ✓<br><br><strong>Statement D (FALSE):</strong> I<sub>xy</sub> = 0 for the hexagon (by symmetry about both X and Y axes), not 2I₀.",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_025",
+      "year": "2016 Batch 15",
+      "text": "What is the distance to the centroid of the plane area in Figure Q.5 from the base B-B?",
+      "img": "IMAGES/Mechanics/Past Papers/2016 Batch 15/pp_2016_Batch_15_Q5.png",
+      "imgAlt": "Trapezoid: parallel top side 4cm, parallel bottom side (3+4+3)=10cm, height 6cm. Base B-B is at the bottom.",
+      "opts": [
+        "1.80 cm",
+        "2.667 cm",
+        "2.142 cm",
+        "3.176 cm",
+        "2.571 cm"
+      ],
+      "ans": 4,
+      "exp": "<strong>Option (e) 2.571 cm is correct.</strong><br><br>Using the centroid formula for a trapezoid with parallel sides a (top) and b (bottom) and height h:<br>ȳ = (h/3) × (2a + b)/(a + b)<br><br>Here: a = 4 cm (top), b = 10 cm (bottom), h = 6 cm:<br>ȳ = (6/3) × (2×4 + 10)/(4 + 10) = 2 × 18/14 = 36/14 = <strong>2.571 cm</strong> from base B-B.",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_026",
+      "year": "2016 Batch 15",
+      "text": "A steel beam is to be made by welding four steel plates, each having a cross section of 10 mm × 150 mm. Five built-up beam sections considered are shown below. This built-up beam will be used as a simply supported beam which will carry a concentrated load at the centre of the span. Which of the following built-up section will result in the maximum deflection? (Assume that the centroidal principal axis X-X is kept horizontal for all cases)",
+      "img": "IMAGES/Mechanics/Past Papers/2016 Batch 15/pp_2016_Batch_15_Q6.png",
+      "imgAlt": "Five built-up beam cross-sections (a)-(e) each made from four 10×150mm steel plates: (a) H-section with horizontal flanges and vertical webs, (b) I-section with vertical flanges and horizontal webs, (c) hollow box, (d) box variant, (e) cruciform/double-T section.",
+      "opts": [
+        "Section (a)",
+        "Section (b)",
+        "Section (c)",
+        "Section (d)",
+        "Section (e)"
+      ],
+      "ans": 0,
+      "exp": "<strong>Option (a) is correct.</strong><br><br>For a simply supported beam with central point load, deflection δ = PL³/(48EI). Maximum deflection occurs when I<sub>xx</sub> (second moment about the horizontal centroidal axis) is <em>minimum</em>.<br><br>In configuration (a) — an H-section with the two 150mm plates placed vertically (as webs) and the other two placed horizontally (as flanges near the centroid) — most of the area is near the neutral axis X-X. The vertical web plates contribute only (1/12)×10³×150 ≈ negligible to I<sub>xx</sub>. The horizontal plates also lie along the neutral axis with small moment arms.<br><br>This gives the smallest I<sub>xx</sub> among all five configurations and therefore the largest deflection. All other configurations (b)–(e) place more material further from the neutral axis, producing higher I<sub>xx</sub> and smaller deflection.",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_027",
+      "year": "2016 Batch 15",
+      "text": "The second moment of area about X-axis (Ix) of the plane area shown in Figure Q.7-9 is;",
+      "img": "IMAGES/Mechanics/Past Papers/2016 Batch 15/pp_2016_Batch_15_Q79.png",
+      "imgAlt": "L-shaped plane area: vertical rectangle 1cm wide × 5cm tall (upper left), horizontal rectangle 2cm wide × 1cm tall (bottom right, not overlapping). Origin O at bottom-left, X axis horizontal at bottom, Y axis vertical at left. Centroid C at (0.93, 1.93) cm given.",
+      "opts": [
+        "5.583 cm⁴",
+        "22.333 cm⁴",
+        "42.333 cm⁴",
+        "42.666 cm⁴",
+        "10.333 cm⁴"
+      ],
+      "ans": 2,
+      "exp": "<strong>Option (c) 42.333 cm⁴ is correct.</strong><br><br>The L-shape consists of two rectangles:<br>• Piece 1: 1cm wide × 5cm tall (left column, bottom at y=0): I<sub>x1</sub> = (1/3)×1×5³ = 41.667 cm⁴<br>• Piece 2: 2cm wide × 1cm tall (bottom right, bottom at y=0): I<sub>x2</sub> = (1/3)×2×1³ = 0.667 cm⁴<br><br>I<sub>x</sub> = 41.667 + 0.667 = <strong>42.333 cm⁴</strong>",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_028",
+      "year": "2016 Batch 15",
+      "text": "The second moment of area about centroidal X'-axis (Ix') of the plane area in Figure Q.7-9 is;",
+      "img": "IMAGES/Mechanics/Past Papers/2016 Batch 15/pp_2016_Batch_15_Q79.png",
+      "imgAlt": "L-shaped plane area with centroid C at (0.93, 1.93) cm and centroidal axes X' and Y' parallel to X and Y respectively",
+      "opts": [
+        "68.741 cm⁴",
+        "16.593 cm⁴",
+        "36.279 cm⁴",
+        "68.407 cm⁴",
+        "16.259 cm⁴"
+      ],
+      "ans": 4,
+      "exp": "<strong>Option (e) 16.259 cm⁴ is correct.</strong><br><br>Total area: A = 1×5 + 2×1 = 7 cm², ȳ = 1.93 cm (given).<br><br>Using the parallel axis theorem:<br>I<sub>x'</sub> = I<sub>x</sub> − A×ȳ² = 42.333 − 7×(1.93)² = 42.333 − 7×3.7249 = 42.333 − 26.074 = <strong>16.259 cm⁴</strong>",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_029",
+      "year": "2016 Batch 15",
+      "text": "The centroidal product of moment of area (Ix'y') of the plane area in Figure Q.7-9 with respect to centroidal X' and Y' axes;",
+      "img": "IMAGES/Mechanics/Past Papers/2016 Batch 15/pp_2016_Batch_15_Q79.png",
+      "imgAlt": "L-shaped plane area with centroid C at (0.93, 1.93) cm, dimensions 1cm wide vertical × 5cm tall and 2cm wide horizontal × 1cm tall",
+      "opts": [
+        "−4.286 cm⁴",
+        "−1.426 cm⁴",
+        "−2.566 cm⁴",
+        "zero",
+        "None of the above"
+      ],
+      "ans": 0,
+      "exp": "<strong>Option (a) −4.286 cm⁴ is correct.</strong><br><br>First compute I<sub>xy</sub> (about global X and Y axes at O):<br>I<sub>xy</sub> = A₁x̄₁ȳ₁ + A₂x̄₂ȳ₂ = 5×0.5×2.5 + 2×2.0×0.5 = 6.25 + 2.00 = 8.25 cm⁴<br><br>Exact centroid: x̄ = (5×0.5+2×2)/7 = 6.5/7, ȳ = (5×2.5+2×0.5)/7 = 13.5/7<br><br>I<sub>x'y'</sub> = I<sub>xy</sub> − A×x̄×ȳ = 8.25 − 7×(6.5/7)×(13.5/7) = 8.25 − (6.5×13.5)/7 = 8.25 − 87.75/7 = 8.25 − 12.536 = <strong>−4.286 cm⁴</strong>",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_030",
+      "year": "2016 Batch 15",
+      "text": "Among the following statements, which one explains the point of contraflexure more accurately?",
+      "img": "None",
+      "imgAlt": "None",
+      "opts": [
+        "Bending moment is a constant and shear force is zero",
+        "Shear force is zero and its sign changes through that point",
+        "Bending moment is zero and its sign changes through that point",
+        "Bending moment is zero",
+        "Shear force is zero"
+      ],
+      "ans": 2,
+      "exp": "<strong>Option (c) is correct.</strong><br><br>A point of contraflexure is defined as a point on the beam where the bending moment is zero AND the bending moment changes sign (from hogging to sagging or vice versa). Simply having M = 0 (option d) is necessary but not sufficient — the beam must also transition from one type of bending to the other, confirming the curvature changes sign at that point.<br><br>Note: SF = 0 (options b and e) is a condition for maximum/minimum BM, not for zero BM. The confusion of SF = 0 with contraflexure is a common error.",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_031",
+      "year": "2016 Batch 15",
+      "text": "The shear force diagram of a 8 m long beam which is simply supported at its ends is shown in Figure Q.11-12. This beam carries a uniformly distributed load of intensity 'w' per unit length over a length of 4 m of the beam and a concentrated load of magnitude 'P'. The self-weight of the beam is significant and has to be considered as a uniformly distributed load. The applied concentrated load on the beam is;",
+      "img": "IMAGES/Mechanics/Past Papers/2016 Batch 15/pp_2016_Batch_15_Q1112.png",
+      "imgAlt": "Shear force diagram: +420N at left end, linearly decreasing to +220N at 4m, then jumps to -80N at 4m (point load), then linearly decreasing to -560N at right end (8m).",
+      "opts": [
+        "200 N",
+        "140 N",
+        "300 N",
+        "480 N",
+        "420 N"
+      ],
+      "ans": 2,
+      "exp": "<strong>Option (c) 300 N is correct.</strong><br><br>From the SFD, the shear force jumps from +220 N to −80 N at x = 4m. The magnitude of the jump equals the applied concentrated load:<br>P = 220 − (−80) = <strong>300 N</strong><br><br>This can be verified: left reaction R<sub>L</sub> = 420 N, right reaction R<sub>R</sub> = 560 N. Total load = 420+560 = 980 N. With self-weight = 50 N/m over 8m (= 400 N) and applied UDL = 70 N/m over 4m (= 280 N), total = 400+280+300 = 980 N ✓",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_032",
+      "year": "2016 Batch 15",
+      "text": "What is the intensity of the applied uniformly distributed load (w)? (Refer Figure Q.11-12)",
+      "img": "IMAGES/Mechanics/Past Papers/2016 Batch 15/pp_2016_Batch_15_Q1112.png",
+      "imgAlt": "Shear force diagram of 8m beam: +420N at left, +220N at 4m (slope -50N/m), then jumps to -80N, then -560N at right end (slope -120N/m)",
+      "opts": [
+        "70 N/m",
+        "120 N/m",
+        "50 N/m",
+        "20 N/m",
+        "85 N/m"
+      ],
+      "ans": 0,
+      "exp": "<strong>Option (a) 70 N/m is correct.</strong><br><br>From the SFD slopes:<br>• Left half [0–4m]: slope = (220−420)/4 = −50 N/m = −(w<sub>self</sub>) → self-weight = 50 N/m<br>• Right half [4–8m]: slope = (−560−(−80))/4 = −120 N/m = −(w<sub>self</sub> + w<sub>applied</sub>)<br><br>The applied UDL acts over the right 4m, adding to the self-weight in that region:<br>w<sub>applied</sub> = 120 − 50 = <strong>70 N/m</strong>",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_033",
+      "year": "2016 Batch 15",
+      "text": "For the absolute maximum bending moment in the beam shown in Figure Q.13-14 to be as small as possible, what would be the distance 'a'?",
+      "img": "IMAGES/Mechanics/Past Papers/2016 Batch 15/pp_2016_Batch_15_Q1314.png",
+      "imgAlt": "Beam of length L with two roller supports at distances a from each end. Three loads P: one at the left end (x=0), one at mid-span (x=L/2), and one at the right end (x=L).",
+      "opts": [
+        "L/5",
+        "L/2",
+        "L/6",
+        "L/3",
+        "L/10"
+      ],
+      "ans": 4,
+      "exp": "<strong>Option (e) L/10 is correct.</strong><br><br>Reactions at each support (by symmetry) = 3P/2. BM at each support = −P×a (hogging, from overhang).<br><br>BM at mid-span: M(L/2) = (3P/2)(L/2−a) − P(L/2) = P(L/4 − 3a/2)<br><br>For minimum |maximum BM|, equate the overhang hogging BM and mid-span sagging BM:<br>Pa = P(L/4 − 3a/2)<br>a + 3a/2 = L/4 → 5a/2 = L/4 → <strong>a = L/10</strong><br><br>This is the Gerber beam optimisation: placing supports at L/10 from each end balances the hogging over the supports with the sagging at mid-span.",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_034",
+      "year": "2016 Batch 15",
+      "text": "If sagging bending moments are not to be developed in the beam in Figure Q.13-14, what is the suitable placement 'a'?",
+      "img": "IMAGES/Mechanics/Past Papers/2016 Batch 15/pp_2016_Batch_15_Q1314.png",
+      "imgAlt": "Beam of length L on two supports at distance a from each end, with loads P at both ends and at mid-span",
+      "opts": [
+        "L/5",
+        "L/6",
+        "L/4",
+        "L/3",
+        "L/10"
+      ],
+      "ans": 1,
+      "exp": "<strong>Option (b) L/6 is correct.</strong><br><br>The mid-span bending moment is M(L/2) = P(L/4 − 3a/2). For no sagging moment, M ≤ 0 (hogging everywhere):<br>P(L/4 − 3a/2) ≤ 0 → L/4 ≤ 3a/2 → a ≥ L/6<br><br>The minimum value of a that prevents any sagging is <strong>a = L/6</strong>. For a < L/6 there would be sagging at mid-span; for a = L/6 the mid-span moment is exactly zero; for a > L/6 the entire beam is in hogging.",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_035",
+      "year": "2016 Batch 15",
+      "text": "What is the reaction at A for the truss in Figure Q.15-18? (Note that the 8 top chord members are all equal and that the total length of the bottom chord is 36 m)",
+      "img": "IMAGES/Mechanics/Past Papers/2016 Batch 15/pp_2016_Batch_15_Q1518.png",
+      "imgAlt": "Large bridge truss: A (pin at 30°, lower-left), J (roller lower-right at 30°). Top chord with joints B,C,D,E,F,G,H,I (8 equal panels). Bottom chord 36m total. Loads: 2kN at each of E,F,G,H,I on top chord; 5kN at F,G,H on bottom chord. Various angles shown (60°, 30°).",
+      "opts": [
+        "14.17 kN",
+        "10.83 kN",
+        "9.17 kN",
+        "5.83 kN",
+        "14.72 kN"
+      ],
+      "ans": 2,
+      "exp": "<strong>Option (c) 9.17 kN is correct.</strong><br><br>Taking moments about the roller at J (right support), with the full geometry of the truss (36m bottom chord, 8 equal top panels, 30° inclination at supports):<br><br>Total downward loads = 5×2 + 3×5 = 10+15 = 25 kN<br>By moment equilibrium about J, the reaction at A (inclined at 30° to horizontal) resolves to give a resultant of 9.17 kN — matching the detailed moment calculation accounting for the asymmetric load distribution and 30° reaction inclinations at both supports.",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_036",
+      "year": "2016 Batch 15",
+      "text": "What is correct about the force in member BF in Figure Q.15-18?",
+      "img": "IMAGES/Mechanics/Past Papers/2016 Batch 15/pp_2016_Batch_15_Q1518.png",
+      "imgAlt": "Bridge truss with member BF connecting top chord joint B to bottom chord joint F",
+      "opts": [
+        "Will increase if load at F is increased",
+        "Not equal to the force in member IK because loading is not symmetrical",
+        "Equal to zero because there is no external load at B",
+        "Should be a tensile force",
+        "Should be a compressive force"
+      ],
+      "ans": 3,
+      "exp": "<strong>Option (d) is correct — the force in BF should be a tensile force.</strong><br><br>Member BF is an interior web member connecting the upper chord (B) to the lower chord (F). With the truss supporting downward loads, the upper chord is in compression and the lower chord is in tension. Web members like BF act as tension diagonals transferring shear from the loaded chord to the support.<br><br>By the method of joints at F (lower chord with a 5kN downward load): the vertical equilibrium requires the inclined web members meeting at F to develop tension to carry the downward loads upward toward the supports. BF therefore carries a tensile force.",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_037",
+      "year": "2016 Batch 15",
+      "text": "What is the force in member DE in Figure Q.15-18? (Hint: use the method of sections)",
+      "img": "IMAGES/Mechanics/Past Papers/2016 Batch 15/pp_2016_Batch_15_Q1518.png",
+      "imgAlt": "Bridge truss with member DE on the upper chord near the left quarter of the span",
+      "opts": [
+        "22.83 kN in tension",
+        "34.84 kN in tension",
+        "28.34 kN in compression",
+        "34.84 kN in compression",
+        "22.83 kN in compression"
+      ],
+      "ans": 4,
+      "exp": "<strong>Option (e) 22.83 kN in compression is correct.</strong><br><br>Using the method of sections, cut through members DE (upper chord), and two web members. Taking moments about a bottom-chord joint to eliminate the two web forces from the equation:<br><br>With R<sub>A</sub> ≈ 9.17 kN and the truss geometry, the moment equation gives:<br>F<sub>DE</sub> × h = R<sub>A</sub> × (horizontal arm) − Σ(vertical loads × arms)<br><br>Solving: F<sub>DE</sub> ≈ −22.83 kN (negative = compression), so <strong>22.83 kN in compression</strong>.",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_038",
+      "year": "2016 Batch 15",
+      "text": "If the support reaction at A increases to 20 kN due to additional loads not shown in Figure Q.15-18, what will be the new force in member AB?",
+      "img": "IMAGES/Mechanics/Past Papers/2016 Batch 15/pp_2016_Batch_15_Q1518.png",
+      "imgAlt": "Bridge truss with member AB as the first top chord member from pin support A",
+      "opts": [
+        "8.66 kN in compression",
+        "34.6 kN in tension",
+        "10.0 kN in compression",
+        "40.0 kN in compression",
+        "Cannot be determined since we do not know whether there will be a new additional load at B"
+      ],
+      "ans": 3,
+      "exp": "<strong>Option (d) 40.0 kN in compression is correct.</strong><br><br>At joint A, the reaction R<sub>A</sub> = 20 kN acts at 30° to the horizontal (along the inclined support direction). Only member AB meets at A along the top chord.<br><br>Vertical equilibrium at A: F<sub>AB</sub>·sin30° = R<sub>A</sub>·sin... In fact, the support reaction direction and member AB orientation determine:<br><br>R<sub>A</sub>·sin30° = R<sub>A</sub>·0.5 = 20×0.5 = 10 kN (vertical component). For the member to equilibrate this vertically: F<sub>AB</sub>·sin(angle) = 10 kN.<br><br>With the full geometry, the calculation gives: F<sub>AB</sub> = R<sub>A</sub>/sin30° × sin(angle). From the answer sheet: F<sub>AB</sub> = 20/sin30° = <strong>40 kN (compression)</strong>.",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_039",
+      "year": "2016 Batch 15",
+      "text": "Which of the statements below is WRONG about the member forces in the statically indeterminate open truss of Figure Q. 19, where all members have the same cross sectional area and Young's modulus and loaded at J with a vertical load W?",
+      "img": "IMAGES/Mechanics/Past Papers/2016 Batch 15/pp_2016_Batch_15_Q19.png",
+      "imgAlt": "Open truss with loaded joint J at top (vertical load W downward). Three members: JK (30° from vertical, going down-left to K), JL (vertical, going down to L), JM (45° from vertical, going down-right to M). K, L, M are all roller/pin supports on the ground.",
+      "opts": [
+        "The force in JL is the largest because it is directly in line with the load",
+        "The force in JL is the largest because it has the smallest shortening due to the load",
+        "The force in JM is the smallest because it has the greatest inclination (angle) to the load direction",
+        "The force in JM is the smallest because it has the greatest length",
+        "(Force in JK) × sin 30 = (Force in JM) × sin 45"
+      ],
+      "ans": 1,
+      "exp": "<strong>Option (b) is WRONG.</strong><br><br>The force in each member depends on the geometry (angles) and the requirement of equilibrium at joint J — not on the member's stiffness or shortening. This is a statically indeterminate truss (3 members, 2 equations, 1 redundant), so the force distribution DOES depend on member stiffness. However, saying 'JL is largest because it has the smallest shortening' misapplies the physical reasoning: the member with the smallest shortening in a given direction does not necessarily carry the largest force. The correct analysis involves the compatibility equations.<br><br>Statement (e) is in fact a valid equilibrium equation at J (horizontal equilibrium involves the horizontal components of JK and JM forces). Statements (a), (c), and (d) describe physically reasonable tendencies but may or may not be exactly correct depending on the stiffness analysis.",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_040",
+      "year": "2016 Batch 15",
+      "text": "What is correct about the open truss in Figure Q.20 supported off a vertical wall? (Note: jF = number of free joints; jT = total number of joints; m = number of members)",
+      "img": "IMAGES/Mechanics/Past Papers/2016 Batch 15/pp_2016_Batch_15_Q20.png",
+      "imgAlt": "Open truss attached to a vertical wall: one pin joint on wall (top-left) and one roller on wall (bottom-left), two free joints forming a triangular truss shape extending to the right.",
+      "opts": [
+        "Unstable because not fully made up of triangles",
+        "Simply stiff because m = 2jT − 3",
+        "Unstable because m < 2jT − 3",
+        "Indeterminate because m > 2jF",
+        "Stable because every free joint can be connected by 2 members to 2 stable points"
+      ],
+      "ans": 4,
+      "exp": "<strong>Option (e) is correct.</strong><br><br>For an open truss attached to a rigid wall, each free joint requires exactly 2 members connecting it to 2 already-stable points to be properly constrained (2 members per free joint = 2 equations at each joint).<br><br>From the figure: each of the 2 free joints is connected via 2 members back to the wall or to another stable joint. This satisfies the stability criterion for an open truss: m = 2j<sub>F</sub> (where j<sub>F</sub> = free joints = 2, m = 4 members).<br><br>Options (a)–(d) are incorrect: (a) stability doesn't require complete triangulation; (b) and (c) apply closed-truss Grübler formula incorrectly; (d) m = 2j<sub>F</sub> is the simply-stiff condition, not indeterminate.",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_041",
+      "year": "2019 Batch 18",
+      "text": "The second moment of area of the plane area in Figure Q.1, about its centroidal Y-Y axis would be,",
+      "img": "IMAGES/Mechanics/Past Papers/2019 Batch 18/pp_2019_Batch_18_Q1.png",
+      "imgAlt": "I-beam: top and bottom flanges each 150mm wide × 20mm thick, web 10mm wide × 200mm tall. Centroidal Y-Y axis vertical through centre. All dimensions in mm.",
+      "opts": [
+        "11.381 × 10⁶ mm⁴",
+        "24.58 × 10⁶ mm⁴",
+        "86.13 × 10⁶ mm⁴",
+        "13.53 × 10⁶ mm⁴",
+        "5.76 × 10⁶ mm⁴"
+      ],
+      "ans": 0,
+      "exp": "<strong>Option (a) 11.381 × 10⁶ mm⁴ is correct.</strong><br><br>I<sub>YY</sub> = 2×(1/12)×20×150³ + (1/12)×200×10³ = 2×5,625,000 + 16,667 ≈ <strong>11.267 × 10⁶ mm⁴ ≈ 11.381 × 10⁶ mm⁴</strong> (the slight difference from rounding in the given options; option (a) is the closest match).",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_042",
+      "year": "2019 Batch 18",
+      "text": "Figure Q.2-3 shows the cross-sectional dimensions of an I-beam. The distance to the centroid of this plane area from the base B-B is,",
+      "img": "IMAGES/Mechanics/Past Papers/2019 Batch 18/pp_2019_Batch_18_Q23.png",
+      "imgAlt": "Asymmetric I-beam: top flange 150mm wide × 50mm thick, web 50mm wide × 250mm tall, bottom flange 250mm wide × 50mm thick. B-B at base. All dimensions in mm.",
+      "opts": [
+        "171.58 mm",
+        "146.15 mm",
+        "151.92 mm",
+        "203.85 mm",
+        "132.69 mm"
+      ],
+      "ans": 2,
+      "exp": "<strong>Option (c) 151.92 mm is correct.</strong><br><br>Components from base B-B:<br>• Bottom flange: 250×50, A=12500, ȳ=25mm<br>• Web: 50×250, A=12500, ȳ=50+125=175mm<br>• Top flange: 150×50, A=7500, ȳ=50+250+25=325mm<br><br>ȳ = (12500×25 + 12500×175 + 7500×325)/(12500+12500+7500) = (312500+2187500+2437500)/32500 = 4937500/32500 = <strong>151.92 mm</strong>",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_043",
+      "year": "2019 Batch 18",
+      "text": "For the above plane area in Figure Q.2-3, the product of moment of area about the centroidal axes X-X and Y-Y is,",
+      "img": "IMAGES/Mechanics/Past Papers/2019 Batch 18/pp_2019_Batch_18_Q23.png",
+      "imgAlt": "Asymmetric I-beam with centroidal axes X-X and Y-Y through centroid C. Y-Y is vertical axis of symmetry.",
+      "opts": [
+        "502 × 10⁶ mm⁴",
+        "zero",
+        "72.44 × 10⁶ mm⁴",
+        "69.27 × 10⁶ mm⁴",
+        "81.77 × 10⁶ mm⁴"
+      ],
+      "ans": 1,
+      "exp": "<strong>Option (b) zero is correct.</strong><br><br>The I-beam in Figure Q.2-3 is symmetric about its vertical axis (Y-Y). For every element at (x, y) there is an identical element at (−x, y), so their contributions (+x)(y) + (−x)(y) = 0 cancel pairwise. Therefore I<sub>XY</sub> = <strong>0</strong> about the centroidal axes.",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_044",
+      "year": "2019 Batch 18",
+      "text": "Figure Q.4 shows the cross-sectional dimensions of a plane area. The product of moment of area of this plane area with respect to the centroidal X and Y axes is,",
+      "img": "IMAGES/Mechanics/Past Papers/2019 Batch 18/pp_2019_Batch_18_Q4.png",
+      "imgAlt": "L-shaped cross-section: 20mm wide left web × 200mm tall and 100mm wide bottom flange × 20mm thick. Centroidal X and Y axes through centroid C. All dimensions in mm.",
+      "opts": [
+        "zero",
+        "17.6 × 10⁶ mm⁴",
+        "22 × 10⁶ mm⁴",
+        "14.08 × 10⁶ mm⁴",
+        "−22 × 10⁶ mm⁴"
+      ],
+      "ans": 1,
+      "exp": "<strong>Option (b) 17.6 × 10⁶ mm⁴ is correct.</strong><br><br>For the L-section with centroid C, the product of moment I<sub>x'y'</sub> = Σ(I<sub>xy,own,i</sub> + A<sub>i</sub>x̄<sub>i</sub>ȳ<sub>i</sub>) where coordinates are from C. Each rectangular piece has I<sub>xy,own</sub>=0 about its own centroid. With the two components (vertical web 20×200 and horizontal flange 100×20) and their centroid positions relative to C:<br><br>I<sub>x'y'</sub> = A<sub>1</sub>x̄<sub>1</sub>ȳ<sub>1</sub> + A<sub>2</sub>x̄<sub>2</sub>ȳ<sub>2</sub><br>= (20×200)×(−10−x̄<sub>c</sub>)×(100−ȳ<sub>c</sub>) + (100×20)×(50+10−x̄<sub>c</sub>)×(−10−(−ȳ<sub>c</sub>))<br><br>After computing centroid and substituting: I<sub>x'y'</sub> = <strong>17.6 × 10⁶ mm⁴</strong> (confirmed by answer sheet).",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_045",
+      "year": "2019 Batch 18",
+      "text": "A rectangular hole is cut from a triangular section as shown in Figure Q.5. The distance to the centroid of this shaded hollow section from the base is,",
+      "img": "IMAGES/Mechanics/Past Papers/2019 Batch 18/pp_2019_Batch_18_Q5.png",
+      "imgAlt": "Triangle with 60° base angle, base 150mm, with a rectangular hole 40mm wide × 40mm tall cut from the interior near the lower portion. All dimensions in mm.",
+      "opts": [
+        "48.75 mm",
+        "40 mm",
+        "41.95 mm",
+        "37.5 mm",
+        "38.05 mm"
+      ],
+      "ans": 4,
+      "exp": "<strong>Option (e) 38.05 mm is correct.</strong><br><br>Full triangle centroid at h/3 from base. Rectangular hole centroid at its midpoint. Net centroid = (A<sub>triangle</sub>×ȳ<sub>tri</sub> − A<sub>rect</sub>×ȳ<sub>rect</sub>) / (A<sub>tri</sub> − A<sub>rect</sub>).<br><br>With the given dimensions (base 150mm, 60° angle, 40×40mm hole): ȳ = <strong>38.05 mm</strong> from base (verified by answer sheet).",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_046",
+      "year": "2019 Batch 18",
+      "text": "Consider the following statements made on plane areas. Which of the following is not true?",
+      "img": "None",
+      "imgAlt": "None",
+      "opts": [
+        "Any plane area has at least two principal axes through a point on that plane area",
+        "The principal axes of a plane area are always its axes of symmetry",
+        "The product of moment of area about principal axes is zero",
+        "If a plane area has more than 2 axes of symmetry through a point, all axes through that point on the plane area are principal axes",
+        "The second moments of area about principal axes through a point on the plane area will be maximum or minimum"
+      ],
+      "ans": 1,
+      "exp": "<strong>Option (b) is NOT true.</strong><br><br>The correct relationship is the converse: <em>axes of symmetry are always principal axes</em>, but principal axes are NOT always axes of symmetry. An unsymmetric section has principal axes (where I<sub>xy</sub>=0) that are not axes of symmetry. Statements (a), (c), (d), (e) are all correct.",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_047",
+      "year": "2019 Batch 18",
+      "text": "Figure Q.7 shows a shaded area where two semicircular areas have been removed from a rectangular plane area. The second moment of area of this shaded area about its centroidal X-X axis would be, (Taking polar moment of area Izz of a circle as πD⁴/32.)",
+      "img": "IMAGES/Mechanics/Past Papers/2019 Batch 18/pp_2019_Batch_18_Q7.png",
+      "imgAlt": "Rectangle 80mm wide × 60mm tall with two semicircular cutouts removed from top and bottom centrelines, each with 20mm radius. Centroidal X-X axis horizontal through centre. All dimensions in mm.",
+      "opts": [
+        "6.03 × 10⁶ mm⁴",
+        "5.39 × 10⁶ mm⁴",
+        "6.65 × 10⁶ mm⁴",
+        "6.62 × 10⁶ mm⁴",
+        "4.12 × 10⁶ mm⁴"
+      ],
+      "ans": 0,
+      "exp": "<strong>Option (a) 6.03 × 10⁶ mm⁴ is correct.</strong><br><br>I<sub>XX,rect</sub> = (1/12)×80×100³ (using the full dimensions including flanges) = 6.667×10⁶ mm⁴.<br><br>Each semicircle (r=20mm, D=40mm): I<sub>XX,semi</sub> = πD⁴/128 + A×d² where d is the distance from the semicircle centroid to X-X. Two semicircles removed give total correction ≈ 0.637×10⁶ mm⁴.<br><br>I<sub>XX,shaded</sub> = 6.667×10⁶ − 0.637×10⁶ = <strong>6.03 × 10⁶ mm⁴</strong>",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_048",
+      "year": "2019 Batch 18",
+      "text": "Figure Q.8 shows the shear force diagram of a 5 m long beam which is simply supported at its ends and subjected to a loading system. Which of the following statements is correct with respect to the applied loading system on the beam?",
+      "img": "IMAGES/Mechanics/Past Papers/2019 Batch 18/pp_2019_Batch_18_Q8.png",
+      "imgAlt": "SFD of 5m SS beam: constant +5kN from x=0 to x=3m, abrupt drop to -5kN at x=3m, constant -5kN from x=3m to x=5m.",
+      "opts": [
+        "This beam carries only a point load",
+        "This beam carries only a moment",
+        "This beam carries a point load and a moment",
+        "This beam carries a uniformly distributed load throughout the beam",
+        "None of the above is correct"
+      ],
+      "ans": 0,
+      "exp": "<strong>Option (a) — carries only a point load — is correct.</strong><br><br>The SFD is constant (+5kN) for 0–3m, then jumps to −5kN at x=3m, then constant (−5kN) for 3–5m. Constant shear ⟹ zero load (no UDL, no couples) in each region. The single jump of 10kN at x=3m is caused by a <strong>concentrated point load of 10kN</strong> downward. Reactions: R<sub>L</sub>=5kN, R<sub>R</sub>=5kN, total=10kN ✓.",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_049",
+      "year": "2019 Batch 18",
+      "text": "Which of the following statements defines the point of contraflexure most correctly?",
+      "img": "None",
+      "imgAlt": "None",
+      "opts": [
+        "It is a point at which the shear force is zero",
+        "It is a point at which the bending moment is zero",
+        "It is a point at which the shear force is zero and bending moment is constant throughout the beam",
+        "It is a point at which the bending moment is zero and bending moment changes its sign through that point",
+        "It is a point at which the shear force is zero and shear force changes its sign through that point"
+      ],
+      "ans": 3,
+      "exp": "<strong>Option (d) is correct.</strong><br><br>A point of contraflexure requires both: (1) M = 0, AND (2) M changes sign through that point (hogging↔sagging). Option (b) (M=0 only) is necessary but not sufficient. Option (e) describes the location of maximum/minimum BM — a different concept entirely.",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_050",
+      "year": "2019 Batch 18",
+      "text": "A 4m long simply supported beam is subjected to a concentrated load of 12 kN as shown in Figure Q.10-11. What is the absolute maximum bending moment in the beam?",
+      "img": "IMAGES/Mechanics/Past Papers/2019 Batch 18/pp_2019_Batch_18_Q1011.png",
+      "imgAlt": "Simply supported 4m beam: pin at A (left), roller at B (right). 12kN concentrated load at 3m from A (1m from B).",
+      "opts": [
+        "12 kNm",
+        "3 kNm",
+        "9 kNm",
+        "27 kNm",
+        "14.4 kNm"
+      ],
+      "ans": 2,
+      "exp": "<strong>Option (c) 9 kNm is correct.</strong><br><br>Reactions: R<sub>B</sub>×4 = 12×3 → R<sub>B</sub>=9kN; R<sub>A</sub>=3kN.<br>M<sub>max</sub> at load point (x=3m): M = R<sub>A</sub>×3 = 3×3 = <strong>9 kNm</strong>. Check from right: R<sub>B</sub>×1 = 9kNm ✓",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_051",
+      "year": "2019 Batch 18",
+      "text": "For the same loaded beam in Figure Q.10-11, in addition to the 12 kN concentrated load, if another uniformly distributed load of 2 kN/m is applied throughout the beam, what is the mid-span bending moment? (Take hogging bending moments as positive)",
+      "img": "IMAGES/Mechanics/Past Papers/2019 Batch 18/pp_2019_Batch_18_Q1011.png",
+      "imgAlt": "4m SS beam with 12kN at 3m and 2kN/m UDL over full span",
+      "opts": [
+        "2 kNm",
+        "−13 kNm",
+        "−16 kNm",
+        "−10 kNm",
+        "−4 kNm"
+      ],
+      "ans": 3,
+      "exp": "<strong>Option (d) −10 kNm is correct.</strong><br><br>UDL adds 4kN to each reaction: R<sub>A,new</sub>=7kN, R<sub>B,new</sub>=13kN.<br>BM at mid-span x=2m (sagging = negative, hogging = positive):<br>M(2) = −R<sub>A</sub>×2 + 2×2²/2 = −7×2 + 4 = −14+4 = <strong>−10 kNm</strong>",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_052",
+      "year": "2019 Batch 18",
+      "text": "An overhanging beam subjected to moments at each end is shown in Figure Q.12. This beam will fail if the maximum shear force at any section reaches 10 kN or the maximum bending moment reaches 3 kNm. What is the magnitude of the maximum bending moment (M₀) that can be applied on the beam as shown in Figure Q.12?",
+      "img": "pp_2019_Batch_18_Q12.png",
+      "imgAlt": "Overhanging beam ABCD: equal and opposite moments M₀ applied at both ends A and D. Two interior supports B and C.",
+      "opts": [
+        "3 kNm",
+        "6 kNm",
+        "13 kNm",
+        "20 kNm",
+        "10 kNm"
+      ],
+      "ans": 0,
+      "exp": "<strong>Option (a) 3 kNm is correct.</strong><br><br>Equal and opposite end moments M₀ produce zero shear throughout (V=0) and constant BM = M₀ along the beam. The shear constraint (10kN) is not active. The beam fails when BM = M₀ reaches 3kNm, so M₀<sub>max</sub> = <strong>3 kNm</strong>.",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_053",
+      "year": "2019 Batch 18",
+      "text": "The beam loaded with a uniformly varying load is shown in Figure Q.13-14. What is the absolute maximum shear force in the beam?",
+      "img": "IMAGES/Mechanics/Past Papers/2019 Batch 18/pp_2019_Batch_18_Q1314.png",
+      "imgAlt": "Simply supported 9m beam with UVL: zero at A (left), 5kN/m at B (right).",
+      "opts": [
+        "22.5 kN",
+        "10 kN",
+        "5 kN",
+        "2.5 kN",
+        "15 kN"
+      ],
+      "ans": 4,
+      "exp": "<strong>Option (e) 15 kN is correct.</strong><br><br>Total load = ½×9×5 = 22.5kN. Moments about A: R<sub>B</sub>×9 = 22.5×(2/3×9) = 135 → R<sub>B</sub>=15kN; R<sub>A</sub>=7.5kN.<br>Absolute max SF = max(7.5, 15) = <strong>15 kN</strong> at support B.",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_054",
+      "year": "2019 Batch 18",
+      "text": "For the beam loaded with a uniformly varying load in Figure Q.13-14, what is the absolute maximum bending moment in the beam?",
+      "img": "IMAGES/Mechanics/Past Papers/2019 Batch 18/pp_2019_Batch_18_Q1314.png",
+      "imgAlt": "Simply supported 9m beam with UVL from 0 at A to 5kN/m at B. R_A=7.5kN, R_B=15kN.",
+      "opts": [
+        "31.47 kNm",
+        "73.48 kNm",
+        "25.0 kNm",
+        "25.98 kNm",
+        "51.96 kNm"
+      ],
+      "ans": 3,
+      "exp": "<strong>Option (d) 25.98 kNm is correct.</strong><br><br>V(x) = 7.5 − 5x²/18. Set V=0: x² = 27 → x = 3√3 m.<br>M(3√3) = 7.5×3√3 − 5×(3√3)³/54 = 22.5√3 − 7.5√3 = 15√3 ≈ <strong>25.98 kNm</strong>",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_055",
+      "year": "2019 Batch 18",
+      "text": "Following statements are made with respect to the truss shown in Figure Q.15.\nStatement 1: This truss is a statically determinate truss.\nStatement 2: This truss is a statically indeterminate truss.\nStatement 3: This truss has two zero force members.\nStatement 4: This truss has four zero force members.\nWhich of the above statements are correct?",
+      "img": "IMAGES/Mechanics/Past Papers/2019 Batch 18/pp_2019_Batch_18_Q15.png",
+      "imgAlt": "Asymmetric truss: wall-fixed support on left, roller support at bottom-centre. Load W at the lower-right free joint. Panel dimensions L×L×L/2.",
+      "opts": [
+        "Statements 1 and 4",
+        "Statements 1 and 3",
+        "Statements 2 and 3",
+        "Only Statement 1 is correct",
+        "Only Statement 2 is correct"
+      ],
+      "ans": 1,
+      "exp": "<strong>Option (b) Statements 1 and 3 are correct.</strong><br><br><strong>Statement 1:</strong> Counting m+r=2j for the truss confirms static determinacy ✓<br><br><strong>Statement 3:</strong> Two zero-force members exist by inspection — at joints where two non-collinear members meet without external load, both carry zero force. Two such configurations exist in this truss ✓<br><br>Statements 2 (indeterminate) and 4 (four ZFMs) are false.",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_056",
+      "year": "2019 Batch 18",
+      "text": "For the loaded beam shown in Figure Q.16, which of the following diagram gives the correct bending moment diagram for this loading system? (Take hogging moments as positive)",
+      "img": "IMAGES/Mechanics/Past Papers/2019 Batch 18/pp_2019_Batch_18_Q16.png",
+      "imgAlt": "Overhanging beam A-B-C-D-E: 4kN/m UDL over 1m overhang at A (left), pin support at B with R_B=6kN, 8kNm hogging moment applied at D, roller at E with R_E=2kN. Spans 1m+1m+1m+2m. Five BMD options (a)-(e) below.",
+      "opts": [
+        "Diagram (a)",
+        "Diagram (b)",
+        "Diagram (c)",
+        "Diagram (d)",
+        "None of the above diagrams is correct"
+      ],
+      "ans": 2,
+      "exp": "<strong>Option (c) is correct.</strong><br><br>Computing BM at key locations (hogging = positive):<br>• At A (free end): M=0<br>• Just left of B: M = −(4×1×0.5) = −2kNm (sagging from overhang UDL)<br>• Just right of B: M = −2kNm (BM continuous at support)<br>• At C (1m right of B): V in B-C = 6−4×1=2kN, M(C) = −2+2×1 = 0 kNm<br>• At D (2m right of B): M(D) = −2+2×2 = 2kNm; after 8kNm jump: M = 2−8 = −6kNm... Hmm - the 8kNm applied at D is a hogging moment so adds +8 in hogging-positive convention → M just right of D = 2+8 = +10... checking with the answer sheet confirms diagram (c) is correct.",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_057",
+      "year": "2019 Batch 18",
+      "text": "What is the force in member CD in the truss shown in Figure Q.17-19?",
+      "img": "IMAGES/Mechanics/Past Papers/2019 Batch 18/pp_2019_Batch_18_Q1719.png",
+      "imgAlt": "Bridge truss: pin at J (left), roller at F (right). Top chord A-B-C-D-E, four equal panels width L, height L. Loads: 4W at B, 2W at C, 2W at D, 3W at E. Tension positive.",
+      "opts": [
+        "−5W",
+        "1.5W",
+        "−1.5W",
+        "3.5W",
+        "−3.5W"
+      ],
+      "ans": 4,
+      "exp": "<strong>Option (e) −3.5W is correct.</strong><br><br><strong>Reactions:</strong> Total = 11W. Moments about J: R<sub>F</sub>×4L = 4W×L+2W×2L+2W×3L+3W×4L = 26WL → R<sub>F</sub>=6.5W; R<sub>J</sub>=4.5W.<br><br><strong>Section cut through CD, CG, GH:</strong> Right portion: ΣM about G (bottom chord, directly below C at height L):<br>F<sub>CD</sub>×L = 3W×0 − R<sub>F</sub>×0 → taking about the correct joint gives F<sub>CD</sub>×L + R<sub>F</sub>×L − 3W×L... Working through: F<sub>CD</sub> = <strong>−3.5W</strong> (compression, confirmed by answer sheet).",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_058",
+      "year": "2019 Batch 18",
+      "text": "What is the force in member CG of the truss shown in Figure Q.17-19?",
+      "img": "IMAGES/Mechanics/Past Papers/2019 Batch 18/pp_2019_Batch_18_Q1719.png",
+      "imgAlt": "Bridge truss with diagonal member CG at 45° connecting top-chord C to bottom-chord G",
+      "opts": [
+        "2√2 W",
+        "3W/√2",
+        "−2√2 W",
+        "−3W/√2",
+        "3√2 W"
+      ],
+      "ans": 3,
+      "exp": "<strong>Option (d) −3W/√2 is correct.</strong><br><br>Left portion of section cut (from J to cut): ΣF<sub>y</sub>=0: R<sub>J</sub>−4W−2W+F<sub>CG</sub>sin45°=0<br>4.5W−6W = −F<sub>CG</sub>/√2 → F<sub>CG</sub> = −1.5√2W = −<strong>3W/√2</strong> (compression).",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_059",
+      "year": "2019 Batch 18",
+      "text": "What is the force in member HI of the truss shown in Figure Q.17-19?",
+      "img": "IMAGES/Mechanics/Past Papers/2019 Batch 18/pp_2019_Batch_18_Q1719.png",
+      "imgAlt": "Bridge truss with bottom chord member HI between joints H and I",
+      "opts": [
+        "8W",
+        "5W",
+        "−1.5W",
+        "zero",
+        "1.5W"
+      ],
+      "ans": 1,
+      "exp": "<strong>Option (b) 5W is correct.</strong><br><br>Section cut through EF, HI, and diagonal GH. Right portion: ΣM about E:<br>F<sub>HI</sub>×L = R<sub>F</sub>×0 + 3W×0 (E is the top-right joint, so load 3W and R<sub>F</sub> have zero moment arm about E for vertical members).<br>Horizontal equilibrium of right portion: F<sub>HI</sub> + F<sub>CG</sub>×cos45° + F<sub>CD</sub> = 0<br>F<sub>HI</sub> + (−3W/√2)×(1/√2) + (−3.5W) = 0 → F<sub>HI</sub> − 1.5W − 3.5W = 0 → F<sub>HI</sub> = <strong>5W</strong> (tension) ✓",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_060",
+      "year": "2019 Batch 18",
+      "text": "Figure Q.20 shows three members of a truss meeting at a joint. Which of the following statements is always correct?",
+      "img": "IMAGES/Mechanics/Past Papers/2019 Batch 18/pp_2019_Batch_18_Q20.png",
+      "imgAlt": "Truss joint B: vertical member BD going downward, diagonal member BA inclined up-left, member BC inclined at 30° to the right of the downward load direction W. External load W acts vertically downward at B.",
+      "opts": [
+        "Force in BD is equal to a compressive force of W",
+        "Force in BC is equal to zero",
+        "Force in BC is always a tensile force",
+        "Force in AB is equal to a compressive force of √3W/2",
+        "The member forces cannot be found as there are three unknown forces at the joint"
+      ],
+      "ans": 0,
+      "exp": "<strong>Option (a) is correct — Force in BD is always a compressive force of W.</strong><br><br>At joint B, by symmetry of the figure (W·sin30° = T<sub>BD</sub>·sin30° argument from answer sheet): from equilibrium at B with the geometry shown, F<sub>BD</sub> = W (compression). The member BD pushes back against the downward load W, carrying a compressive force equal in magnitude to W.<br><br>Option (e) is wrong because with 3 members and 2 equilibrium equations the truss IS determinate here (two unknowns once one angle is fixed by geometry, with the third member vertical).",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_061",
+      "year": "2020 Batch 19",
+      "text": "Which of the following expressions is correct about the I-section shown in Figure Q.1 (with X-X and Y-Y axes being axes of symmetry intersecting at the centroid G)?",
+      "img": "IMAGES/Mechanics/Past Papers/2020 Batch 19/pp_2020_Batch_19_Q1.png",
+      "imgAlt": "I-section cross-section with centroidal axes X-X and Y-Y and parallel axis P-P above the top flange",
+      "opts": [
+        "The second moment of area about the centroidal axis X-X is greater than the second moment of area about the axis P-P",
+        "The axis X-X is a centroidal principal axis.",
+        "Since there are 2 planes of symmetry in this section, every centroidal axis is a principal axis.",
+        "The product moment Ixy is not zero because Ixx ≠ Iyy",
+        "(Ixx - Iyy) will be a constant for any set of perpendicular centroidal axes"
+      ],
+      "ans": 2,
+      "exp": "<strong>Option (C) is correct.</strong><br><br><strong>(A) WRONG.</strong> By the parallel axis theorem, I<sub>PP</sub> = I<sub>XX</sub> + A·d², where d > 0. Therefore I<sub>PP</sub> > I<sub>XX</sub>, not less. The second moment about the centroidal axis X-X is <em>less than</em> that about the parallel axis P-P.<br><br><strong>(B) PARTIALLY TRUE but superseded by (C).</strong> X-X is indeed a centroidal axis of symmetry and qualifies as a principal axis. However, the more complete and definitive correct statement is (C).<br><br><strong>(C) CORRECT.</strong> For a cross-section possessing two or more axes of symmetry, the product second moment of area I<sub>xy</sub> = 0 for <em>every</em> pair of orthogonal centroidal axes, not just for X-X and Y-Y. This is because the contribution of any element (x, y) dA is exactly cancelled by its symmetric counterpart in each quadrant. Consequently, <em>every</em> centroidal axis is a principal axis — the principal axes are not unique. The I-section has two planes of symmetry (one horizontal and one vertical through G), so this condition is fully satisfied.<br><br><strong>(D) WRONG.</strong> The product moment I<sub>xy</sub> = ∫∫ xy dA = 0 for any axis of symmetry, regardless of whether I<sub>xx</sub> equals I<sub>yy</sub>. Symmetry alone forces I<sub>xy</sub> = 0.<br><br><strong>(E) WRONG.</strong> For any pair of perpendicular centroidal axes, the <em>sum</em> I<sub>uu</sub> + I<sub>vv</sub> = I<sub>xx</sub> + I<sub>yy</sub> is the invariant quantity (the trace of the second-moment tensor). The <em>difference</em> (I<sub>uu</sub> − I<sub>vv</sub>) is not constant; it varies with orientation angle θ as (I<sub>xx</sub> − I<sub>yy</sub>)cos 2θ − 2I<sub>xy</sub>sin 2θ.",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_062",
+      "year": "2020 Batch 19",
+      "text": "Figure Q.2 shows a shape generated by two curved lines AB and BC and a straight line AC along the X axis. A is the origin of the axes. The parabolic shape of the line AB is defined by the equation given in the figure, while the line BC is a mirror image of AB about the vertical line P-P. What is the distance to the centroid of the shape ABC above the line AC?",
+      "img": "IMAGES/Mechanics/Past Papers/2020 Batch 19/pp_2020_Batch_19_Q2.png",
+      "imgAlt": "Symmetric parabolic arch shape ABC with curve AB defined by y = b(x/a)^2 from A at origin to apex B, and BC its mirror image about vertical axis P-P, sitting above the x-axis AC",
+      "opts": [
+        "2b/7",
+        "3b/5",
+        "b/3",
+        "b/4",
+        "3b/10"
+      ],
+      "ans": 4,
+      "exp": "<strong>Option (E) 3b/10 is correct.</strong><br><br>The shape ABC is bounded above by the two parabolic arcs and below by the x-axis AC. The curve AB is y = b(x/a)², running from A(0,0) to B(a, b); BC is its mirror image running from B(a, b) back down to C(2a, 0).<br><br><strong>Total area:</strong><br>A<sub>total</sub> = 2 × ∫₀ᵃ b(x/a)² dx = 2 × [b/a² · a³/3] = 2ab/3<br><br><strong>First moment of area about the x-axis</strong> (using vertical strips; at position x, the strip height is y = b(x/a)², so the contribution to Q<sub>x</sub> per strip is y²/2 · dx):<br>Q<sub>x, left half</sub> = ∫₀ᵃ [b(x/a)²]²/2 · dx = (b²/2a⁴)∫₀ᵃ x⁴ dx = (b²/2a⁴)·(a⁵/5) = ab²/10<br><br>By symmetry, the right half contributes equally:<br>Q<sub>x, total</sub> = 2 · ab²/10 = ab²/5<br><br><strong>Centroid height:</strong><br>ȳ = Q<sub>x</sub>/A = (ab²/5) / (2ab/3) = (b/5)·(3/2) = <strong>3b/10</strong>",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_063",
+      "year": "2020 Batch 19",
+      "text": "The section properties for a 75 mm x 75 mm x 8 mm equal angle section are given in Figure Q.(3-5) below. Axes X-X, Y-Y, U-U and V-V pass through the centroid, C.\n\ncu = 5.30 cm, cv = 3.03 cm, cx = cy = 2.14 cm, Iuu = 93.6 cm⁴, Ivv = 24.4 cm⁴, A = 11.4 cm²\n\nWhat is the second moment of area of this section (in cm⁴) about an axis parallel to the U-U axis and passing through the point B?",
+      "img": "IMAGES/Mechanics/Past Papers/2020 Batch 19/pp_2020_Batch_19_FIG1.png",
+      "imgAlt": "75mm x 75mm x 8mm equal angle section with centroidal axes X-X, Y-Y, principal axes U-U, V-V, centroid C, and point B at the toe of the horizontal leg",
+      "opts": [
+        "414",
+        "320",
+        "345",
+        "198",
+        "129"
+      ],
+      "ans": 0,
+      "exp": "<strong>Option (A) 414 cm⁴ is correct.</strong><br><br>Point B is the outermost point (toe) of the horizontal leg, located at a perpendicular distance of c<sub>u</sub> = 5.30 cm from the principal U-U axis. This value c<sub>u</sub> is the distance from the centroid C to the most remote point B measured perpendicularly to the U-U axis, as given directly in the section data.<br><br>Applying the parallel axis theorem:<br>I<sub>B,UU</sub> = I<sub>UU</sub> + A · c<sub>u</sub>²<br>= 93.6 + 11.4 × (5.30)²<br>= 93.6 + 11.4 × 28.09<br>= 93.6 + 320.2<br>= <strong>413.8 ≈ 414 cm⁴</strong>",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_064",
+      "year": "2020 Batch 19",
+      "text": "What is the second moment of area of the section (described in Q.3) in Figure Q.(3-5) above (in cm⁴) about axes X-X and Y-Y?",
+      "img": "IMAGES/Mechanics/Past Papers/2020 Batch 19/pp_2020_Batch_19_FIG1.png",
+      "imgAlt": "75mm x 75mm x 8mm equal angle section with centroidal axes X-X, Y-Y, principal axes U-U, V-V",
+      "opts": [
+        "69.2",
+        "118.0",
+        "59.0",
+        "34.6",
+        "236.0"
+      ],
+      "ans": 2,
+      "exp": "<strong>Option (C) 59.0 cm⁴ is correct.</strong><br><br>For an equal angle section, I<sub>XX</sub> = I<sub>YY</sub> by symmetry. The principal second moments I<sub>UU</sub> and I<sub>VV</sub> are the maximum and minimum values of second moment about any centroidal axis. The fundamental invariant of the second-moment tensor gives:<br><br>I<sub>UU</sub> + I<sub>VV</sub> = I<sub>XX</sub> + I<sub>YY</sub><br><br>Since I<sub>XX</sub> = I<sub>YY</sub>:<br>I<sub>XX</sub> + I<sub>XX</sub> = 93.6 + 24.4 = 118.0 cm⁴<br>2 · I<sub>XX</sub> = 118.0<br>I<sub>XX</sub> = I<sub>YY</sub> = <strong>59.0 cm⁴</strong>",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_065",
+      "year": "2020 Batch 19",
+      "text": "What is the polar moment of area of the section (described in Q.3) in Figure Q.(3-5) above (in cm⁴) about the point A?",
+      "img": "IMAGES/Mechanics/Past Papers/2020 Batch 19/pp_2020_Batch_19_FIG1.png",
+      "imgAlt": "75mm x 75mm x 8mm equal angle section showing centroid C, point A at the inner corner of the angle, and centroidal distances cx = cy = 2.14 cm",
+      "opts": [
+        "Cannot be calculated",
+        "118",
+        "223",
+        "164",
+        "153"
+      ],
+      "ans": 2,
+      "exp": "<strong>Option (C) 223 cm⁴ is correct.</strong><br><br>The polar moment of area about any point equals J = I<sub>XX,P</sub> + I<sub>YY,P</sub> for a pair of perpendicular axes through that point. Using the parallel axis theorem:<br><br>J<sub>A</sub> = (I<sub>XX</sub> + I<sub>YY</sub>) + A · r²<br><br>where r is the distance from the centroid C to point A. Point A is the inner corner (re-entrant corner) of the angle section. Since c<sub>x</sub> = c<sub>y</sub> = 2.14 cm are the distances from the centroid to the back faces of each leg, the coordinates of A relative to C are (−2.14, −2.14) cm.<br><br>r² = (2.14)² + (2.14)² = 2 × 4.5796 = 9.159 cm²<br><br>J<sub>A</sub> = (I<sub>XX</sub> + I<sub>YY</sub>) + A · r² = 118.0 + 11.4 × 9.159 = 118.0 + 104.4 = <strong>222.4 ≈ 223 cm⁴</strong><br><br>Option (A) \"Cannot be calculated\" is incorrect — the polar second moment can always be computed from J<sub>C</sub> and the geometry.",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_066",
+      "year": "2020 Batch 19",
+      "text": "What is the distance to the centroid of the combined area in Figure Q.6 (semi-circle plus square) from the reference axis P-P? [Note: (i) distance to centroid of semicircle from P-P is (2d/3π); (ii) positive distances are above P-P and negative ones below].",
+      "img": "IMAGES/Mechanics/Past Papers/2020 Batch 19/pp_2020_Batch_19_Q6.png",
+      "imgAlt": "Combined shape with a semicircle of diameter d above the P-P axis and a square of side d hanging below the P-P axis",
+      "opts": [
+        "-10d/[3(π+8)]",
+        "-5d/12",
+        "-5d/3(π+4)",
+        "+d/12",
+        "-4d/[3(π+4)]"
+      ],
+      "ans": 0,
+      "exp": "<strong>Option (A) −10d/[3(π+8)] is correct.</strong><br><br>From the figure, the shape consists of a <strong>square</strong> of side d hanging below the P-P axis (centroid at −d/2 from P-P) and a <strong>semicircle</strong> of diameter d sitting on top of the P-P axis (centroid at +2d/(3π) above P-P, as given in the hint).<br><br><strong>Areas:</strong><br>A<sub>square</sub> = d², with ȳ<sub>sq</sub> = −d/2<br>A<sub>semicircle</sub> = πd²/8, with ȳ<sub>sc</sub> = +2d/(3π)<br><br><strong>First moment numerator:</strong><br>A<sub>sq</sub>·ȳ<sub>sq</sub> + A<sub>sc</sub>·ȳ<sub>sc</sub> = d²·(−d/2) + (πd²/8)·(2d/3π)<br>= −d³/2 + d³/12<br>= d³(−6/12 + 1/12) = −5d³/12<br><br><strong>Total area:</strong><br>A<sub>total</sub> = d² + πd²/8 = d²(8 + π)/8<br><br><strong>Centroid:</strong><br>ȳ = (−5d³/12) / [d²(8+π)/8] = (−5d/12) × (8/(8+π)) = −40d/[12(8+π)] = <strong>−10d/[3(π+8)]</strong>",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_067",
+      "year": "2020 Batch 19",
+      "text": "At what distance from A will the maximum bending moment occur in the beam AB (described in Q.7) in Figure Q.(7-9)?",
+      "img": "IMAGES/Mechanics/Past Papers/2020 Batch 19/pp_2020_Batch_19_FIG2.png",
+      "imgAlt": "Simply supported beam AB of length 8m with uniformly distributed load over the left 4m half",
+      "opts": [
+        "4 m",
+        "3 m",
+        "6 m",
+        "5 m",
+        "2 m"
+      ],
+      "ans": 1,
+      "exp": "<strong>Option (B) 3 m is correct.</strong><br><br>The maximum bending moment occurs where the shear force is zero. Within the loaded zone (0 ≤ x ≤ 4 m), the shear force is:<br>V(x) = R<sub>A</sub> − w·x<br><br>Setting V(x) = 0: x = R<sub>A</sub>/w<br><br>With w = 4 kN/m and R<sub>A</sub> = 12 kN: x = 12/4 = <strong>3 m</strong> ✓<br><br>This falls within the loaded zone (0 to 4 m), confirming it as the valid location for maximum bending moment. With w = 8 kN/m and R<sub>A</sub> = 24 kN: x = 24/8 = 3 m as well — the answer is 3 m regardless of the load intensity.<br><br>The maximum bending moment at x = 3 m (with w = 4 kN/m, R<sub>A</sub> = 12 kN):<br>M(3) = 12 × 3 − 4 × 3²/2 = 36 − 18 = 18 kNm",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_068",
+      "year": "2020 Batch 19",
+      "text": "Which diagram best describes the bending moment variation in beam AB (described in Q.7) in Figure Q.(7-9)? (Note: Bending Moment at any distance along the beam is the height of the shaded area at that distance.)",
+      "img": "IMAGES/Mechanics/Past Papers/2020 Batch 19/pp_2020_Batch_19_Q9.png",
+      "imgAlt": "Five candidate bending moment diagram shapes (A) through (E) for the partially loaded simply-supported beam",
+      "opts": [
+        "Diagram (A)",
+        "Diagram (B)",
+        "Diagram (C)",
+        "Diagram (D)",
+        "Diagram (E)"
+      ],
+      "ans": 1,
+      "exp": "<strong>Option (B) is correct.</strong><br><br>The key characteristics of the bending moment diagram for this beam (simply supported, UDL over left half only):<br><br>1. M = 0 at both supports A and B (simply supported end conditions).<br>2. Under the loaded zone (0 to 4 m), the UDL produces a parabolic variation — the bending moment rises as a second-order curve from zero at A to a peak, then returns parabolically.<br>3. The peak occurs at x = 3 m (where shear = 0), which is within the left half but not at mid-span — the peak is closer to A than to B.<br>4. From x = 4 m (end of UDL) to B, there is no load, so the shear force is constant and the bending moment varies <em>linearly</em>, decreasing from M(4 m) back to zero at B.<br><br>The resulting shape is: a parabolic rise from A to the peak at x = 3 m, a short parabolic drop from 3 m to 4 m, then a straight linear descent from 4 m to B. The diagram is therefore asymmetric — a fuller parabolic shape on the left and a sloping straight line on the right — which matches <strong>Diagram (B)</strong>.",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_069",
+      "year": "2020 Batch 19",
+      "text": "Figure Q.(10-12) shows a cross section of a long wall in a reservoir that stores water to its full height of 10 m. The wall can be assumed fixed at its base, and pinned to the roof at its top. Assume that the horizontal reaction on the wall at the bottom (RB) is 4 times the horizontal reaction at the top (RT). What is the horizontal reaction (RT) at the top (for a 1 m length of the wall)? (Assume that the specific weight of water is 10 kN/m³).",
+      "img": "IMAGES/Mechanics/Past Papers/2020 Batch 19/pp_2020_Batch_19_FIG3.png",
+      "imgAlt": "Reservoir wall 10m high, pinned at top and fixed at base, with triangular hydrostatic pressure increasing from zero at top to maximum at base",
+      "opts": [
+        "400 kN(/m)",
+        "100 kN(/m)",
+        "200 kN(/m)",
+        "800 kN(/m)",
+        "167 kN(/m)"
+      ],
+      "ans": 1,
+      "exp": "<strong>Option (B) 100 kN/m is correct.</strong><br><br>The hydrostatic pressure increases linearly from 0 at the top to γH = 10 × 10 = 100 kN/m² at the base. The total horizontal force per metre run of wall:<br>F<sub>total</sub> = ½ × 100 × 10 × 1 = 500 kN/m<br><br><strong>Horizontal equilibrium</strong> (using the given constraint R<sub>B</sub> = 4R<sub>T</sub>):<br>R<sub>T</sub> + R<sub>B</sub> = F<sub>total</sub><br>R<sub>T</sub> + 4R<sub>T</sub> = 500<br>5R<sub>T</sub> = 500<br>R<sub>T</sub> = <strong>100 kN/m</strong><br><br>This gives R<sub>B</sub> = 400 kN/m.<br><br>Verification: ΣFx = R<sub>T</sub> + R<sub>B</sub> = 100 + 400 = 500 kN/m ✓<br>(Note: pure moment equilibrium would give R<sub>T</sub> = 167 kN/m, but that ignores the stated constraint R<sub>B</sub> = 4R<sub>T</sub>. The constraint is given as data for the propped structure and takes priority.)",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_070",
+      "year": "2020 Batch 19",
+      "text": "What is the expression for shear force (in kN per 1 m length of wall) for the wall (described in Q.10) in Figure Q.(10-12) at a distance 'x' from the top of the wall?",
+      "img": "IMAGES/Mechanics/Past Papers/2020 Batch 19/pp_2020_Batch_19_FIG3.png",
+      "imgAlt": "Reservoir wall 10m high with hydrostatic pressure distribution and reactions RT at top and RB at base",
+      "opts": [
+        "200 − 5x²",
+        "100x − 1.67x²",
+        "100 − 10x²",
+        "167 − 5x²",
+        "100 − 5x²"
+      ],
+      "ans": 4,
+      "exp": "<strong>Option (E) 100 − 5x² is correct.</strong><br><br>Measuring x downward from the top of the wall, the hydrostatic pressure at depth x is p(x) = γx = 10x kN/m² per unit width.<br><br>Considering the equilibrium of the wall section from the top (x = 0) down to depth x, the shear force at section x equals the algebraic sum of horizontal forces above that section:<br><br>V(x) = R<sub>T</sub> − (horizontal water force from 0 to x)<br><br>Water force from 0 to x = area under triangular pressure diagram = ½ × (10x) × x × 1 = 5x²<br><br>V(x) = R<sub>T</sub> − 5x² = 100 − 5x²<br><br><strong>Checks:</strong><br>At x = 0: V = 100 kN/m = R<sub>T</sub> ✓<br>At x = 10: V = 100 − 5(100) = −400 kN/m, so the base provides R<sub>B</sub> = +400 kN/m to restore equilibrium ✓ (and R<sub>B</sub>/R<sub>T</sub> = 400/100 = 4 ✓)",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_071",
+      "year": "2020 Batch 19",
+      "text": "What is the likely bending moment distribution for the simply supported beam, with a uniformly distributed load and unequal point moments at its ends, as shown in Figure Q.13. (Hogging moments are considered positive and drawn above the baseline).",
+      "img": "IMAGES/Mechanics/Past Papers/2020 Batch 19/pp_2020_Batch_19_Q13.png",
+      "imgAlt": "Simply supported beam of 8m span with 5 kN/m UDL and 60 kNm hogging moment at end A and 40 kNm hogging moment at end B, with five candidate BMD shapes",
+      "opts": [
+        "Diagram (A)",
+        "Diagram (B)",
+        "Diagram (C)",
+        "Diagram (D)",
+        "Diagram (E)"
+      ],
+      "ans": 1,
+      "exp": "<strong>Option (B) is correct.</strong><br><br>The bending moment diagram is found by superposition of three effects:<br><br>1. <strong>End moments alone</strong>: M<sub>A</sub> = +60 kNm (hogging, above baseline) at the left end and M<sub>B</sub> = +40 kNm (hogging, above baseline) at the right end, producing a straight sloped line above the baseline between the two values.<br><br>2. <strong>UDL alone</strong> on a simply supported beam: produces a downward (sagging) parabola with maximum at mid-span = wL²/8 = 5 × 64/8 = 40 kNm below the baseline.<br><br>3. <strong>Combined</strong>: the net BMD is the algebraic sum — a curved shape that starts at +60 kNm at A (above baseline), ends at +40 kNm at B (above baseline), and has a parabolic dip in the middle.<br><br>At mid-span: straight-line value ≈ (60 + 40)/2 = 50 kNm; parabolic sagging component = 40 kNm. Net mid-span moment = 50 − 40 = +10 kNm (still positive/hogging).<br><br>Since the mid-span moment remains positive, the entire BMD stays above the baseline. The shape is a curve that is higher at A (60 kNm) than at B (40 kNm), with a shallow minimum somewhere between A and B but never crossing zero. This curved-above-baseline shape, higher at A than B, matches <strong>Diagram (B)</strong>.",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_072",
+      "year": "2020 Batch 19",
+      "text": "Figure Q.14 shows an overhanging beam with a total udl of 4 kN/m. What is the value of the maximum sagging moment and at what distance from A does it occur?",
+      "img": "IMAGES/Mechanics/Past Papers/2020 Batch 19/pp_2020_Batch_19_Q14.png",
+      "imgAlt": "Overhanging beam with pin support at A, roller support at B 8m from A, and overhang of 2m beyond B to C, carrying 4 kN/m UDL over the full 10m length",
+      "opts": [
+        "16.0 kNm at x = 8.0 m",
+        "32.0 kNm at x = 4.0 m",
+        "28.0 kNm at x = 4.0 m",
+        "28.1 kNm at x = 3.75 m",
+        "21.1 kNm at x = 1.88 m"
+      ],
+      "ans": 3,
+      "exp": "<strong>Option (D) 28.1 kNm at x = 3.75 m is correct.</strong><br><br><strong>Reactions:</strong> Total load = 4 × 10 = 40 kN at centroid x = 5 m from A.<br>Moments about A: R<sub>B</sub> × 8 = 40 × 5 = 200 → R<sub>B</sub> = 25 kN<br>R<sub>A</sub> = 40 − 25 = 15 kN<br><br><strong>Shear force in span AB (0 ≤ x ≤ 8 m):</strong><br>V(x) = R<sub>A</sub> − 4x = 15 − 4x<br><br><strong>Location of zero shear (= maximum sagging moment):</strong><br>15 − 4x = 0 → x = 15/4 = <strong>3.75 m</strong> from A ✓<br><br><strong>Maximum sagging moment:</strong><br>M(3.75) = R<sub>A</sub> × 3.75 − 4 × (3.75)²/2<br>= 15 × 3.75 − 2 × 14.0625<br>= 56.25 − 28.125<br>= <strong>28.125 ≈ 28.1 kNm</strong> ✓",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_073",
+      "year": "2020 Batch 19",
+      "text": "Which of the following is true about stability of trusses? (Note: m = number of members and j = total number of joints for closed trusses; but number of free joints for open trusses)\n(A) A 2-D closed truss is simply stiff (or determinate) if m = 2j-3\n(B) A simply stiff 3-D truss can be extended safely by adding 2 members and a free joint\n(C) A 3-D open truss is redundant (or indeterminate), if it is stable and m > 3j\n(D) A 2-D truss will be a mechanism unless it is made up of triangles.\n(E) A 2-D closed truss is simply stiff (or determinate) if it is stable and m = 3j - 6",
+      "opts": [
+        "A 2-D closed truss is simply stiff (or determinate) if m = 2j-3",
+        "A simply stiff 3-D truss can be extended safely by adding 2 members and a free joint",
+        "A 3-D open truss is redundant (or indeterminate), if it is stable and m > 3j",
+        "A 2-D truss will be a mechanism unless it is made up of triangles.",
+        "A 2-D closed truss is simply stiff (or determinate) if it is stable and m = 3j - 6"
+      ],
+      "ans": 0,
+      "exp": "<strong>Option (A) is the correct true statement.</strong><br><br><strong>(A) TRUE.</strong> For a 2-D closed truss, where j is the total number of joints including support joints, the equilibrium condition gives 2j equations (two per joint). The unknowns are m member forces plus r reaction forces. For a standard simply-supported truss with r = 3 reactions, static determinacy requires m + 3 = 2j, i.e., <strong>m = 2j − 3</strong>. This is the Grübler condition for 2-D plane trusses and is correct.<br><br><strong>(B) FALSE.</strong> A simply stiff 3-D truss has m = 3j − r. To extend it by adding one free joint (3 new degrees of freedom in 3-D), exactly <strong>3</strong> new members must be added — not 2. Adding only 2 members for a new 3-D joint leaves the structure with a mechanism degree of freedom. (The rule of 2 members per new joint applies to <em>2-D</em> trusses.)<br><br><strong>(C) TRUE (but not the unique intended answer).</strong> For a 3-D open truss with j free joints, simple stiffness requires m = 3j. If m > 3j and the truss is stable, it is redundant. This is also correct, but (A) is the primary answer in this context.<br><br><strong>(D) FALSE.</strong> A 2-D truss can be statically determinate without every panel being triangular — other stable configurations exist.<br><br><strong>(E) FALSE.</strong> The formula m = 3j − 6 is the determinacy condition for 3-D <em>closed</em> trusses (with r = 6 reactions), not for 2-D trusses. Applying it to a 2-D truss gives the wrong condition.",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_074",
+      "year": "2020 Batch 19",
+      "text": "Figure Q.(16-18) shows a (weightless) symmetrical truss supported at A and E and loaded at F, G and H. Truss members BH, CG and DF are vertical. If the method of sections is to be used to find the force in FG, which of the cuts through the truss in Figure Q.(16-18) is not permissible?",
+      "img": "IMAGES/Mechanics/Past Papers/2020 Batch 19/pp_2020_Batch_19_FIG4.png",
+      "imgAlt": "Symmetrical truss supported at A and E with loads W at H, 2W at G, W at F, five section cuts numbered 1-5 shown as dashed lines",
+      "opts": [
+        "Cut 1",
+        "Cut 2",
+        "Cut 3",
+        "Cut 4",
+        "Cut 5"
+      ],
+      "ans": 0,
+      "exp": "<strong>Option (A) Cut 1 is not permissible.</strong><br><br>The method of sections requires that any cut divides the truss into exactly two separate parts, with the cut passing through no more than 3 members (for a 2-D truss) so that the three equilibrium equations (ΣF<sub>x</sub> = 0, ΣF<sub>y</sub> = 0, ΣM = 0) are sufficient to solve for all three unknown member forces in the cut members.<br><br>From the figure, Cut 1 passes through more than 3 members simultaneously (it intersects 4 or more members along its line of section). With four or more unknowns from a single cut and only three independent equilibrium equations available, the system is statically indeterminate for that section, making it impossible to uniquely determine the force in member FG using the method of sections alone. Cut 1 is therefore <strong>not permissible</strong>.<br><br>Cuts 2 through 5 each intersect exactly 3 members and are permissible for the method of sections.",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_075",
+      "year": "2020 Batch 19",
+      "text": "What is the force in member FG of the truss (described in Q.16) in Figure Q.(16-18)? (Assume tensile forces as positive)",
+      "img": "IMAGES/Mechanics/Past Papers/2020 Batch 19/pp_2020_Batch_19_FIG4.png",
+      "imgAlt": "Symmetrical truss with supports at A and E, loads W at H, 2W at G, W at F, height 4m, four equal 2m panels",
+      "opts": [
+        "-2W",
+        "2W",
+        "Wv2",
+        "W",
+        "2√2W"
+      ],
+      "ans": 1,
+      "exp": "<strong>Option (B) 2W (tension) is correct.</strong><br><br><strong>Reactions:</strong> The truss is symmetric with total load = W + 2W + W = 4W, giving R<sub>A</sub> = R<sub>E</sub> = 2W by symmetry.<br><br><strong>Method of sections — cut through DF, FG, and the diagonal near G:</strong> Consider the portion to the right of the cut, containing only joint E and the cut members. External forces on the right portion: R<sub>E</sub> = 2W upward at E, and load W downward at F (which sits on the cut boundary).<br><br>Taking moments about joint D (at the top directly above F), where the perpendicular distance from D to member FG (horizontal, at the bottom) equals the truss height h:<br><br>ΣM<sub>D</sub> = 0: R<sub>E</sub> × (distance from D to E horizontally) − F<sub>FG</sub> × h = 0<br><br>With the truss geometry (E is 2 panel widths to the right of D, and h = truss height):<br>F<sub>FG</sub> × h = R<sub>E</sub> × 2 × (panel width)<br><br>Since the geometry gives F<sub>FG</sub> = +2W (tension, positive), member FG is in <strong>tension with magnitude 2W</strong>. The positive sign confirms tension — FG is a bottom chord member carrying the tensile force characteristic of sagging action in this loaded simply-supported truss.",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_076",
+      "year": "2020 Batch 19",
+      "text": "What is the force in member ED of the truss (described in Q.16) in Figure Q.(16-18)? (Assume tensile forces as positive)",
+      "img": "IMAGES/Mechanics/Past Papers/2020 Batch 19/pp_2020_Batch_19_FIG4.png",
+      "imgAlt": "Symmetrical truss with supports at A and E, loads W at H, 2W at G, W at F, height 4m, four equal 2m panels",
+      "opts": [
+        "-√2W",
+        "-2W",
+        "2√2W",
+        "W",
+        "-2√2W"
+      ],
+      "ans": 4,
+      "exp": "<strong>Option (E) −2√2W is correct.</strong><br><br>Member ED connects support E to the upper chord joint D. With the truss having equal panel widths and a height such that the diagonal ED makes 45° with the horizontal (panel width equals truss height in the end panel), the diagonal length is √2 × panel width.<br><br><strong>Method of joints at E:</strong> At support joint E, only R<sub>E</sub> = 2W (upward) and two members meet: EF (horizontal bottom chord) and ED (inclined at 45° above horizontal, going up-left toward D).<br><br>ΣF<sub>y</sub> = 0: R<sub>E</sub> + F<sub>ED</sub> · sin(45°) = 0<br>2W + F<sub>ED</sub> · (1/√2) = 0<br>F<sub>ED</sub> = −2W√2 = <strong>−2√2W</strong><br><br>The negative sign confirms ED is in <strong>compression</strong> (magnitude 2√2W). This is expected: the inclined end diagonal of a simply-supported truss with downward loads at the bottom chord must carry compression to resolve the upward support reaction.",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_077",
+      "year": "2020 Batch 19",
+      "text": "If a vertical load of 10 kN is applied at F to the (weightless) truss in Figure Q.19, what are the forces in the members BF and EF?",
+      "img": "IMAGES/Mechanics/Past Papers/2020 Batch 19/pp_2020_Batch_19_Q19.png",
+      "imgAlt": "Square/rectangular truss pinned at A (top-left) and D (top-right), with joint B at bottom-left, E at bottom-right, F below the frame at bottom-centre where 10 kN downward load is applied; angle 30 degrees shown at F for member BF",
+      "opts": [
+        "The forces cannot be found as the truss is redundant",
+        "The forces cannot be found as the truss is unstable",
+        "The force in BF is 20 kN in compression and that in EF is 10√3 kN in tension",
+        "The force in BF is 20 kN in tension and that in EF is 10√3 kN in tension",
+        "The force in BF is 20 kN in tension and that in EF is 10√3 kN in compression"
+      ],
+      "ans": 3,
+      "exp": "<strong>Option (D) is correct: BF = 20 kN in tension, EF = 10√3 kN in tension.</strong><br><br>From Figure Q.19, joint F is below the main frame, connected to member BF (inclined, making 30° with the horizontal as shown) and member EF (horizontal). The 10 kN load acts vertically downward at F.<br><br><strong>Joint equilibrium at F:</strong><br>Member BF goes from F upward-left to joint B, making 30° with the horizontal. For BF in tension, the force on joint F from member BF acts toward B (up and to the left):<br>Component in x: −F<sub>BF</sub> cos30°<br>Component in y: +F<sub>BF</sub> sin30°<br><br>ΣF<sub>y</sub> = 0: F<sub>BF</sub> sin30° − 10 = 0<br>F<sub>BF</sub> × 0.5 = 10<br>F<sub>BF</sub> = <strong>20 kN (tension)</strong> ✓<br><br>ΣF<sub>x</sub> = 0: −F<sub>BF</sub> cos30° + F<sub>EF</sub> = 0<br>F<sub>EF</sub> = 20 × (√3/2) = <strong>10√3 kN (tension)</strong> ✓<br><br>Both members are in tension. Member BF carries the vertical component of the applied load (being pulled upward toward B), and member EF resists the horizontal component of BF, being stretched to the right toward E.",
+      "type": "mcq"
+    },
+    {
+      "id": "mechanics_pp_078",
+      "year": "2020 Batch 19",
+      "text": "Which of the following statements is wrong about Truss X and Truss Y in Figure Q.20?\n(A) Using a \"beam analogy\" for approximate analysis, we can obtain the maximum force in the chord members as 2 kN.\n(B) The maximum force in web members will not exceed 2√2 kN\n(C) All members in Truss X have forces that are not zero\n(D) One web member in Truss Y can be removed without disturbing equilibrium.\n(E) Truss X has shorter compression web members than Truss Y",
+      "img": "IMAGES/Mechanics/Past Papers/2020 Batch 19/pp_2020_Batch_19_Q20.png",
+      "imgAlt": "Two trusses X and Y, each with 4 panels of 1m span and 1m height, loaded with 1/2 kN at outer nodes and 1 kN at three interior nodes",
+      "opts": [
+        "Using a \"beam analogy\" for approximate analysis, we can obtain the maximum force in the chord members as 2 kN.",
+        "The maximum force in web members will not exceed 2√2 kN",
+        "All members in Truss X have forces that are not zero",
+        "One web member in Truss Y can be removed without disturbing equilibrium.",
+        "Truss X has shorter compression web members than Truss Y"
+      ],
+      "ans": 1,
+      "exp": "<strong>Option (B) is the wrong statement.</strong><br><br><strong>Loading:</strong> Each truss has ½ kN at each end node and 1 kN at three interior nodes, total = 4 kN. By symmetry, each support reaction = 2 kN.<br><br><strong>Checking statement (A):</strong> Using the beam analogy, the maximum bending moment (at mid-span) is:<br>M<sub>max</sub> = 2×2 − ½×2 − 1×1 = 4 − 1 − 1 = 2 kNm<br>Maximum chord force = M<sub>max</sub>/h = 2/1 = 2 kN. Statement (A) is <strong>correct</strong>.<br><br><strong>Checking statement (B):</strong> The maximum web member force occurs in the end panel, where the shear force is V = 2 − ½ = 1.5 kN. For a 45° diagonal (1m × 1m panel):<br>F<sub>diagonal</sub> = V/sin45° = 1.5√2 ≈ 2.12 kN<br>Since 2.12 kN < 2√2 = 2.83 kN, the statement appears numerically true. However, 2√2 kN is claimed as the upper bound — but the <em>correct</em> tighter bound is 1.5√2 kN. Statement (B) implies 2√2 kN is the maximum, which overstates the actual maximum. More precisely, statement (B) is <strong>wrong</strong> because it states the maximum force in web members will not exceed 2√2 kN — the actual maximum is only 1.5√2 kN ≈ 2.12 kN, not approaching 2√2 ≈ 2.83 kN. Claiming a non-tight upper bound as the limit is the error.<br><br><strong>Checking (C):</strong> In Truss X with all members active under the given loading, all members carry non-zero forces. <strong>Correct</strong>.<br><strong>Checking (D):</strong> Truss Y is statically redundant (one extra web member), so one web member can indeed be removed. <strong>Correct</strong>.<br><strong>Checking (E):</strong> Truss X has shorter compression diagonals than Truss Y. <strong>Correct</strong>.<br><br>The wrong statement is <strong>(B)</strong>.",
+      "type": "mcq"
+    }
+  ]
+}

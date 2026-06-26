@@ -1,0 +1,2619 @@
+{
+  "schemaVersion": 2,
+  "subject": "materials",
+  "bucket": "targetNormal",
+  "stimuli": {},
+  "images": {},
+  "questions": [
+    {
+      "unit": 1,
+      "id": "materials_tn_001",
+      "hard": false,
+      "text": "Which of the following is commonly used as a fixation agent in hip joint replacements due to its biocompatibility?",
+      "opts": [
+        "Polymethyl methacrylate (PMMA)",
+        "Silicon carbide",
+        "Polyvinylchloride (PVC)",
+        "Boron nitride"
+      ],
+      "ans": 0,
+      "exp": "PMMA, also known as Perspex, is an accepted biomaterial extensively used as a bone cement or fixation agent in joint replacements.",
+      "type": "mcq"
+    },
+    {
+      "unit": 1,
+      "id": "materials_tn_002",
+      "hard": false,
+      "text": "What is the primary rationale for creating composite materials, such as fiberglass or concrete?",
+      "opts": [
+        "To achieve a combination of properties superior to those of the individual components.",
+        "To force a crystalline material into an amorphous state.",
+        "To decrease the overall melting temperature for easier manufacturing.",
+        "To completely eliminate point and line defects in a metal lattice."
+      ],
+      "ans": 0,
+      "exp": "Composites are engineered by combining two or more materials to tailor specific properties that neither individual material possesses alone.",
+      "type": "mcq"
+    },
+    {
+      "unit": 1,
+      "id": "materials_tn_003",
+      "hard": false,
+      "text": "Which of the following statements best describes a fundamental characteristic of ceramic materials?",
+      "opts": [
+        "They exhibit high strength and stiffness, but are generally brittle.",
+        "They undergo extensive plastic deformation before fracture.",
+        "They are universally excellent conductors of electricity.",
+        "They consist of long macromolecular chains with a carbon backbone."
+      ],
+      "ans": 0,
+      "exp": "Ceramics typically have high melting temperatures, high strength, and high stiffness, but their primary drawback is low toughness and high brittleness.",
+      "type": "mcq"
+    },
+    {
+      "unit": 1,
+      "id": "materials_tn_004",
+      "hard": false,
+      "text": "Nanomaterials are defined primarily by their scale. What is the characteristic size range for a material to be classified as a nanomaterial?",
+      "opts": [
+        "1 to 100 nm",
+        "100 to 1000 nm",
+        "0.1 to 1 nm",
+        "1 to 10 micrometers"
+      ],
+      "ans": 0,
+      "exp": "Nanomaterials are characterized by having at least one dimension in the size range of 1 to 100 nanometers, where size and geometry significantly influence properties.",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_tn_005",
+      "hard": false,
+      "text": "Which characteristic fundamentally distinguishes an amorphous material from a crystalline material?",
+      "opts": [
+        "The lack of long-range atomic order.",
+        "The inability to transmit visible light.",
+        "The presence of covalent bonds instead of metallic bonds.",
+        "A higher overall density than crystalline counterparts."
+      ],
+      "ans": 0,
+      "exp": "Amorphous materials feature a random arrangement of atoms or molecules, lacking the repeating, long-range 3D array characteristic of crystalline lattices.",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_tn_006",
+      "hard": false,
+      "text": "In crystallography, how is a \"space lattice\" accurately defined?",
+      "opts": [
+        "An infinite set of equally spaced points in 3D space.",
+        "The physical lines connecting individual atoms.",
+        "A specific type of planar defect in a metallic structure.",
+        "The actual physical atoms sitting in a rigid formation."
+      ],
+      "ans": 0,
+      "exp": "A space lattice is defined purely geometrically as an infinite set of equally spaced points that describe the atomic arrangement in a crystal.",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_tn_007",
+      "hard": false,
+      "text": "What is the smallest repeating geometric volume that fully represents the symmetry of a crystal structure?",
+      "opts": [
+        "Unit cell",
+        "Bravais point",
+        "Grain boundary",
+        "Slip plane"
+      ],
+      "ans": 0,
+      "exp": "The unit cell is the fundamental building block or smallest repeating parallelepiped that exhibits the full geometry and symmetry of the crystal structure.",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_tn_008",
+      "hard": false,
+      "text": "How many fundamental crystal systems exist in materials science?",
+      "opts": [
+        "7",
+        "14",
+        "4",
+        "6"
+      ],
+      "ans": 0,
+      "exp": "There are exactly 7 crystal systems based on unit cell geometry: Cubic, Hexagonal, Tetragonal, Rhombohedral, Orthorhombic, Monoclinic, and Triclinic.",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_tn_009",
+      "hard": false,
+      "text": "According to Bravais, what is the total number of mathematically possible unique crystal lattices in three-dimensional space?",
+      "opts": [
+        "14",
+        "7",
+        "28",
+        "12"
+      ],
+      "ans": 0,
+      "exp": "Auguste Bravais mathematically proved that there are exactly 14 unique ways to arrange points in a 3D space lattice.",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_tn_010",
+      "hard": false,
+      "text": "How many equivalent atoms belong to a single Simple Cubic (SC) unit cell?",
+      "opts": [
+        "1",
+        "2",
+        "4",
+        "6"
+      ],
+      "ans": 0,
+      "exp": "In an SC unit cell, atoms are only at the 8 corners. Each corner atom is shared by 8 adjacent cells, yielding 8 × (1/8) = 1 atom per cell.",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_tn_011",
+      "hard": false,
+      "text": "Calculate the number of equivalent atoms contained within a single Body-Centered Cubic (BCC) unit cell.",
+      "opts": [
+        "2",
+        "4",
+        "8",
+        "9"
+      ],
+      "ans": 0,
+      "exp": "A BCC cell has 8 corner atoms (each 1/8 inside) and 1 full atom in the center. Total = 8 × (1/8) + 1 = 2.",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_tn_012",
+      "hard": false,
+      "text": "What is the total number of equivalent atoms in a Face-Centered Cubic (FCC) unit cell?",
+      "opts": [
+        "4",
+        "6",
+        "12",
+        "14"
+      ],
+      "ans": 0,
+      "exp": "An FCC cell has 8 corners (8 × 1/8 = 1) and 6 faces (6 × 1/2 = 3). Total equivalent atoms = 1 + 3 = 4.",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_tn_013",
+      "hard": false,
+      "text": "Determine the number of equivalent atoms in a Hexagonal Close-Packed (HCP) unit cell.",
+      "opts": [
+        "6",
+        "2",
+        "4",
+        "12"
+      ],
+      "ans": 0,
+      "exp": "An HCP cell has 12 corners (12 × 1/6 = 2), 2 face centers (2 × 1/2 = 1), and 3 middle atoms (3 × 1 = 3). Total = 6 atoms.",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_tn_014",
+      "hard": false,
+      "text": "What is the coordination number for a given atom in a Simple Cubic (SC) structure?",
+      "opts": [
+        "6",
+        "8",
+        "12",
+        "4"
+      ],
+      "ans": 0,
+      "exp": "In a simple cubic lattice, each atom touches its nearest neighbors along the ±x, ±y, and ±z axes, resulting in exactly 6 nearest neighbors.",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_tn_015",
+      "hard": false,
+      "text": "Identify the coordination number of an atom situated in a Body-Centered Cubic (BCC) structure.",
+      "opts": [
+        "8",
+        "6",
+        "12",
+        "2"
+      ],
+      "ans": 0,
+      "exp": "In a BCC unit cell, the single atom in the very center touches all 8 of the atoms located at the corners of the cube.",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_tn_016",
+      "hard": false,
+      "text": "What is the coordination number for an atom in a Face-Centered Cubic (FCC) lattice?",
+      "opts": [
+        "12",
+        "8",
+        "6",
+        "14"
+      ],
+      "ans": 0,
+      "exp": "FCC is a close-packed structure. Any given atom touches 12 nearest neighbors (4 in its own plane, 4 in the plane above, and 4 in the plane below).",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_tn_017",
+      "hard": false,
+      "text": "How is the Atomic Packing Factor (APF) defined?",
+      "opts": [
+        "The volume of atoms in a unit cell divided by the total volume of the unit cell.",
+        "The mass of atoms in a unit cell divided by the volume of the unit cell.",
+        "The number of atoms in a unit cell divided by the surface area of a lattice plane.",
+        "The coordination number divided by the maximum possible coordination number."
+      ],
+      "ans": 0,
+      "exp": "APF is the dimensionless ratio representing the fraction of solid sphere volume relative to the total spatial volume of the unit cell.",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_tn_018",
+      "hard": false,
+      "text": "What is the Atomic Packing Factor (APF) of a Simple Cubic (SC) structure?",
+      "opts": [
+        "0.52",
+        "0.68",
+        "0.74",
+        "0.34"
+      ],
+      "ans": 0,
+      "exp": "In an SC cell, atoms touch along the edge (a = 2R). The volume of 1 atom is (4/3)πR³ and the cell volume is (2R)³ = 8R³. The ratio is π/6 ≈ 0.52.",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_tn_019",
+      "hard": false,
+      "text": "Select the correct Atomic Packing Factor (APF) for a Body-Centered Cubic (BCC) lattice.",
+      "opts": [
+        "0.68",
+        "0.52",
+        "0.74",
+        "0.48"
+      ],
+      "ans": 0,
+      "exp": "A BCC unit cell contains 2 atoms and has a relationship a = 4R/√3. Calculating the volume ratio yields ≈ 0.68, or 68% packing efficiency.",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_tn_020",
+      "hard": false,
+      "text": "What is the maximum theoretical Atomic Packing Factor (APF) achievable for identical hard spheres, corresponding to the FCC and HCP structures?",
+      "opts": [
+        "0.74",
+        "0.68",
+        "0.86",
+        "1.00"
+      ],
+      "ans": 0,
+      "exp": "FCC and HCP are close-packed structures. Mathematical geometry proves that identical spheres cannot fill more than approximately 74% of 3D space.",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_tn_021",
+      "hard": false,
+      "text": "What is the distance between two nearest neighbors in a BCC structure in terms of the lattice parameter \"a\"?",
+      "opts": [
+        "a√3 / 2",
+        "a√2",
+        "a√2 / 2",
+        "a"
+      ],
+      "ans": 0,
+      "exp": "In BCC, atoms touch along the body diagonal (a√3). The distance between the center atom and a corner atom is half this diagonal, or a√3/2.",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_tn_022",
+      "hard": false,
+      "text": "Which mathematical relationship correctly links the lattice parameter \"a\" to the atomic radius \"R\" for a Face-Centered Cubic (FCC) unit cell?",
+      "opts": [
+        "a = 4R / √2",
+        "a = 4R / √3",
+        "a = 2R",
+        "a = R√2"
+      ],
+      "ans": 0,
+      "exp": "In an FCC unit cell, atoms touch along the diagonal of the face. The face diagonal has length a√2, which equals 4 atomic radii (R + 2R + R).",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_tn_023",
+      "hard": false,
+      "text": "Which equation is used to calculate the theoretical density of a crystalline metal?",
+      "opts": [
+        "ρ = (n × A) / (V_c × N_A)",
+        "ρ = (V_c × N_A) / (n × A)",
+        "ρ = (n × N_A) / (V_c × A)",
+        "ρ = A / V_c"
+      ],
+      "ans": 0,
+      "exp": "Theoretical density is the mass of atoms in a unit cell (n × A / N_A) divided by the volume of the unit cell (V_c).",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_tn_024",
+      "hard": false,
+      "text": "In the Miller index system, how is a family of crystallographic directions denoted?",
+      "opts": [
+        "< u v w >",
+        "[ u v w ]",
+        "( h k l )",
+        "{ h k l }"
+      ],
+      "ans": 0,
+      "exp": "Angle brackets <> are the standard crystallographic notation to denote a family of symmetry-equivalent directions.",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_tn_025",
+      "hard": false,
+      "text": "If a crystallographic plane intercepts the x, y, and z axes at 1, 2/3, and 1/2 respectively, what are the Miller indices of this plane?",
+      "opts": [
+        "(2 3 4)",
+        "(1 2 1)",
+        "(6 9 8)",
+        "(3 2 4)"
+      ],
+      "ans": 0,
+      "exp": "First, take reciprocals: 1/1, 3/2, 2/1. Then, multiply by 2 to clear the fractions: 2×1=2, 2×3/2=3, 2×2=4. Result: (2 3 4).",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_tn_026",
+      "hard": false,
+      "text": "When determining Miller Indices, what index is given to an axis if the crystallographic plane runs perfectly parallel to that axis?",
+      "opts": [
+        "0",
+        "1",
+        "∞",
+        "-1"
+      ],
+      "ans": 0,
+      "exp": "A plane parallel to an axis intercepts it at infinity. The reciprocal of infinity is zero, resulting in a Miller index of 0.",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_tn_027",
+      "hard": false,
+      "text": "Which family of planes represents the close-packed planes within a Face-Centered Cubic (FCC) crystal structure?",
+      "opts": [
+        "{1 1 1}",
+        "{1 0 0}",
+        "{1 1 0}",
+        "{0 0 1}"
+      ],
+      "ans": 0,
+      "exp": "In an FCC lattice, the highest planar density occurs along the {1 1 1} planes, making them the true close-packed planes where atoms touch directly.",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_tn_028",
+      "hard": false,
+      "text": "What is the phenomenon called when a single elemental material can exist in more than one crystal structure depending on temperature or pressure?",
+      "opts": [
+        "Allotropy",
+        "Isotropy",
+        "Amorphous transition",
+        "Strain hardening"
+      ],
+      "ans": 0,
+      "exp": "Allotropy (or polymorphism) is the ability of a specific chemical element or compound to adopt different crystal lattice structures under varying environmental conditions.",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_tn_029",
+      "hard": false,
+      "text": "At 910°C, pure iron undergoes an allotropic transformation. What is the structural change that occurs as it heats past this temperature?",
+      "opts": [
+        "It changes from Body-Centered Cubic (BCC) to Face-Centered Cubic (FCC).",
+        "It changes from Face-Centered Cubic (FCC) to Body-Centered Cubic (BCC).",
+        "It changes from Simple Cubic (SC) to Hexagonal Close-Packed (HCP).",
+        "It melts and transitions from crystalline to amorphous."
+      ],
+      "ans": 0,
+      "exp": "Alpha-iron (BCC) remains stable up to 910°C, at which point thermodynamic forces cause a phase transformation into Gamma-iron (FCC).",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_tn_030",
+      "hard": false,
+      "text": "Which of the following is classified strictly as a zero-dimensional (0-D) \"point defect\" in a crystal lattice?",
+      "opts": [
+        "Vacancy",
+        "Edge dislocation",
+        "Grain boundary",
+        "Screw dislocation"
+      ],
+      "ans": 0,
+      "exp": "A vacancy is a missing atom at a single lattice site, making it a zero-dimensional, localized point defect.",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_tn_031",
+      "hard": false,
+      "text": "How is an edge dislocation conceptually formed within a crystal lattice?",
+      "opts": [
+        "By the insertion or removal of an extra half-plane of atoms.",
+        "By substituting a host atom with a larger foreign atom.",
+        "By the misalignment of two growing crystals as they merge.",
+        "By shifting a plane of atoms entirely past another without breaking bonds."
+      ],
+      "ans": 0,
+      "exp": "An edge dislocation is a 1-D line defect structurally characterized by the termination of an extra half-plane of atoms wedged into the crystal.",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_tn_032",
+      "hard": false,
+      "text": "Which of the following is defined as a two-dimensional \"planar defect\" in crystalline materials?",
+      "opts": [
+        "Grain boundary",
+        "Self-interstitial",
+        "Vacancy",
+        "Dislocation core"
+      ],
+      "ans": 0,
+      "exp": "Grain boundaries are the 2-D surface interfaces where distinct crystals (grains) of differing orientations meet within a solid material.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_tn_033",
+      "hard": false,
+      "text": "What is the key difference between engineering stress and true stress during a tensile test?",
+      "opts": [
+        "True stress accounts for the instantaneous reduction in cross-sectional area, while engineering stress uses the original, constant area.",
+        "Engineering stress accounts for necking, while true stress assumes perfectly uniform deformation.",
+        "True stress is calculated using the elastic modulus, whereas engineering stress is calculated using applied force.",
+        "Engineering stress is always numerically greater than true stress in tension."
+      ],
+      "ans": 0,
+      "exp": "Engineering stress divides force by A₀ (initial area). As a sample stretches and thins, the actual load-bearing area shrinks, making true stress (F/A_instant) higher.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_tn_034",
+      "hard": false,
+      "text": "Which formula correctly represents engineering strain (ε)?",
+      "opts": [
+        "ε = (l - l₀) / l₀",
+        "ε = ln(l / l₀)",
+        "ε = F / A₀",
+        "ε = l₀ / (l - l₀)"
+      ],
+      "ans": 0,
+      "exp": "Engineering strain is universally defined as the change in length divided by the original, undeformed length (l₀).",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_tn_035",
+      "hard": false,
+      "text": "On a standard stress-strain curve, what physical property does the slope of the initial linear portion represent?",
+      "opts": [
+        "Young's Modulus",
+        "Yield Strength",
+        "Ultimate Tensile Strength",
+        "Toughness"
+      ],
+      "ans": 0,
+      "exp": "In the linear elastic region, stress is proportional to strain (σ = Eε). The slope (E) represents Young's modulus, a measure of material stiffness.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_tn_036",
+      "hard": false,
+      "text": "For materials that exhibit non-linear elastic behavior, how is stiffness typically evaluated?",
+      "opts": [
+        "By calculating the tangent modulus or secant modulus at a specific point.",
+        "By determining the total area under the elastic curve.",
+        "By measuring the ultimate tensile strength of the material.",
+        "By applying the standard 0.2% offset rule."
+      ],
+      "ans": 0,
+      "exp": "Since there is no constant linear slope, stiffness must be estimated using the slope of a tangent line at a given stress, or a secant line drawn from the origin.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_tn_037",
+      "hard": false,
+      "text": "Why is the 0.2% offset method standardly used when evaluating tensile tests for many metals?",
+      "opts": [
+        "To determine the yield strength when the transition from elastic to plastic behavior is gradual.",
+        "To identify the exact moment when the material fractures.",
+        "To calculate the true stress occurring at the point of necking.",
+        "To locate the upper and lower yield points exclusively found in low-carbon steels."
+      ],
+      "ans": 0,
+      "exp": "Because the exact point of yielding is difficult to pinpoint visually on a smooth curve, drawing a parallel line offset by 0.002 strain provides a standardized, reliable yield stress metric.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_tn_038",
+      "hard": false,
+      "text": "What specifically happens to a ductile metallic specimen when it reaches its Ultimate Tensile Strength (UTS) during testing?",
+      "opts": [
+        "Uniform deformation ceases, and localized \"necking\" begins.",
+        "The sample transitions instantly from elastic stretching to plastic stretching.",
+        "The sample fractures completely into two separate pieces.",
+        "The material's internal dislocations entirely heal, resetting its strength."
+      ],
+      "ans": 0,
+      "exp": "UTS is the maximum load the sample can withstand. Past this point, deformation concentrates locally, causing the cross-section to rapidly thin, a process called necking.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_tn_039",
+      "hard": false,
+      "text": "Which of the following physical metrics is NOT considered a standard measure of a material's ductility?",
+      "opts": [
+        "The total area under the stress-strain diagram.",
+        "Plastic strain at fracture.",
+        "Percentage elongation.",
+        "Percentage reduction in area."
+      ],
+      "ans": 0,
+      "exp": "The area under the entire stress-strain diagram measures toughness (energy absorption), not ductility (which measures the extent of plastic dimensional change).",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_tn_040",
+      "hard": false,
+      "text": "Which statement accurately describes the unique \"yield point phenomenon\" observed in materials like low-carbon steel?",
+      "opts": [
+        "The curve shows a sharp upper yield point followed by a sudden drop to a fluctuating lower yield point.",
+        "The curve is a perfectly straight line all the way to catastrophic fracture.",
+        "The yield point requires an arbitrary 0.2% offset line to be identified.",
+        "The material fractures instantly upon reaching the upper yield point."
+      ],
+      "ans": 0,
+      "exp": "In steels, interstitial carbon atoms pin dislocations. Breaking this initial pin requires high stress (upper point), after which dislocations move easier at a lower stress (lower point).",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_tn_041",
+      "hard": false,
+      "text": "What is \"malleability\" in the context of materials science?",
+      "opts": [
+        "The ability of a material to undergo extensive plastic deformation under compressive forces.",
+        "The ability of a material to spring back to its original shape after being bent.",
+        "The resistance of a material's surface to localized scratching or indentation.",
+        "The total amount of thermal energy required to melt the metal."
+      ],
+      "ans": 0,
+      "exp": "While ductility implies stretching under tension, malleability specifically describes a material's capacity to be permanently deformed (like rolling or hammering into sheets) under compression.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_tn_042",
+      "hard": false,
+      "text": "When a metal undergoes significant \"work hardening\" (or strain hardening), what is the typical effect on its mechanical properties?",
+      "opts": [
+        "Its yield strength and hardness increase, but its ductility and toughness decrease.",
+        "Its ductility and toughness increase, making it easier to stretch.",
+        "Its Young's modulus significantly increases, making it permanently stiffer.",
+        "Its electrical conductivity increases due to better atomic alignment."
+      ],
+      "ans": 0,
+      "exp": "Plastic deformation multiplies dislocations, causing them to tangle. This makes further deformation harder (higher strength/hardness) but uses up the material's stretch capacity (lower ductility).",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_tn_043",
+      "hard": false,
+      "text": "How is the property of \"toughness\" quantitatively evaluated on a stress-strain diagram?",
+      "opts": [
+        "By calculating the total area under the entire stress-strain curve up to the point of fracture.",
+        "By measuring the vertical height of the Ultimate Tensile Strength peak.",
+        "By finding the slope of the initial linear elastic region.",
+        "By drawing a 0.2% offset line and finding the intersection point."
+      ],
+      "ans": 0,
+      "exp": "Toughness represents the total amount of strain energy absorbed per unit volume before failure, geometrically calculated as the total integrated area under the curve.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_tn_044",
+      "hard": false,
+      "text": "A Charpy or Izod impact test is primarily designed to measure which material property?",
+      "opts": [
+        "The energy absorbed during high-speed, dynamic fracture (Toughness).",
+        "The resistance to localized surface indentation (Hardness).",
+        "The highest static tensile load a sample can endure (UTS).",
+        "The material's response to long-term cyclical stress (Fatigue)."
+      ],
+      "ans": 0,
+      "exp": "Impact tests measure dynamic toughness by calculating the kinetic energy lost by a swinging hammer as it fractures a severely notched material sample.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_tn_045",
+      "hard": false,
+      "text": "Which of the following material structures is most likely to exhibit a distinct Ductile-to-Brittle Transition Temperature (DBTT)?",
+      "opts": [
+        "Body-Centered Cubic (BCC) metals like low-carbon steel.",
+        "Face-Centered Cubic (FCC) metals like pure copper.",
+        "Amorphous polymers.",
+        "Advanced ceramics like Silicon Carbide."
+      ],
+      "ans": 0,
+      "exp": "BCC metals display a sharp drop in impact toughness as temperature decreases, making them highly susceptible to sudden brittle failure in freezing environments.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_tn_046",
+      "hard": false,
+      "text": "In materials science, how is the property of \"Hardness\" fundamentally defined?",
+      "opts": [
+        "The resistance of a material to localized surface plastic deformation or indentation.",
+        "The total energy required to completely shatter the material under impact.",
+        "The point at which uniform plastic stretching transitions into necking.",
+        "The ratio of applied force to instantaneous cross-sectional area."
+      ],
+      "ans": 0,
+      "exp": "Hardness tests (like Brinell, Vickers) measure a material's surface resistance to being dented or scratched by a harder, standardized object.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_tn_047",
+      "hard": false,
+      "text": "Which of the following hardness tests utilizes a specific 10mm diameter sphere made of hardened steel or tungsten carbide to create an indentation?",
+      "opts": [
+        "Brinell Hardness Test",
+        "Vickers Hardness Test",
+        "Rockwell C Hardness Test",
+        "Charpy Impact Test"
+      ],
+      "ans": 0,
+      "exp": "The Brinell test relies on pressing a large, 10mm spherical indenter into the metal and then measuring the surface diameter of the resulting circular dent.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_tn_048",
+      "hard": false,
+      "text": "What is the specific geometry of the indenter used in the Vickers Hardness (HV) test?",
+      "opts": [
+        "A diamond square-based pyramid.",
+        "A 1/16 inch hardened steel ball.",
+        "A 10mm tungsten carbide sphere.",
+        "A diamond cone with a rounded tip."
+      ],
+      "ans": 0,
+      "exp": "The Vickers test utilizes a small diamond shaped into a square-based pyramid with an angle of 136° between opposite faces.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_tn_049",
+      "hard": false,
+      "text": "What is the primary operational advantage of the Rockwell Hardness test compared to the Brinell or Vickers tests?",
+      "opts": [
+        "It requires no optical measurement of the indentation, as the machine reads depth directly.",
+        "It uses a single, universal scale applicable to everything from foam to diamond.",
+        "It leaves absolutely no microscopic mark on the material being tested.",
+        "It accurately measures the internal toughness of a specimen alongside its surface hardness."
+      ],
+      "ans": 0,
+      "exp": "Rockwell machines measure the depth difference between a minor preload and a major load, providing an instant, direct hardness readout on a dial or screen.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_tn_050",
+      "hard": false,
+      "text": "Which material characteristic defines \"Poisson's ratio\" (ν)?",
+      "opts": [
+        "The negative ratio of lateral (transverse) strain to longitudinal (axial) strain.",
+        "The ratio of applied engineering stress to resulting engineering strain.",
+        "The ratio of the instantaneous cross-sectional area to the original area.",
+        "The ratio of plastic deformation energy to elastic deformation energy."
+      ],
+      "ans": 0,
+      "exp": "When you stretch a material lengthwise, it thins out laterally. Poisson's ratio mathematically captures this dimensional relationship.",
+      "type": "mcq"
+    },
+    {
+      "unit": 1,
+      "id": "materials_tn_051",
+      "hard": false,
+      "text": "Which of the following materials is an example of an advanced ceramic rather than a traditional ceramic?",
+      "opts": [
+        "Silicon carbide",
+        "Brick",
+        "Porcelain",
+        "Stoneware"
+      ],
+      "ans": 0,
+      "exp": "Silicon carbide, along with alumina and zirconia, is classified as an advanced ceramic utilized in high-tech applications.",
+      "type": "mcq"
+    },
+    {
+      "unit": 1,
+      "id": "materials_tn_052",
+      "hard": false,
+      "text": "Which type of secondary bond typically forms between inert gas atoms and symmetric molecules?",
+      "opts": [
+        "Ionic bond",
+        "Covalent bond",
+        "Hydrogen bond",
+        "Van der Waal's bond"
+      ],
+      "ans": 3,
+      "exp": "Van der Waal's bonds are weak secondary bonds that form between inert gas atoms and symmetric molecules due to temporary dipole attractions.",
+      "type": "mcq"
+    },
+    {
+      "unit": 1,
+      "id": "materials_tn_053",
+      "hard": false,
+      "text": "According to modern atomic theory, which quantum number relates to the shape of the electron cloud?",
+      "opts": [
+        "Principal quantum number (n)",
+        "Secondary quantum number (l)",
+        "Magnetic quantum number (m)",
+        "Spin quantum number (s)"
+      ],
+      "ans": 1,
+      "exp": "The secondary quantum number (l) represents various sub-levels and defines the shape of the electron cloud (e.g., spherical, dumb-bell).",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_tn_054",
+      "hard": false,
+      "text": "What is the coordination number of a Face-Centered Cubic (FCC) crystal structure?",
+      "opts": [
+        "6",
+        "8",
+        "12",
+        "14"
+      ],
+      "ans": 2,
+      "exp": "In an FCC structure, each atom has 12 nearest neighbors, making it a close-packed structure.",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_tn_055",
+      "hard": false,
+      "text": "What is the Atomic Packing Factor (APF) for a Body-Centered Cubic (BCC) structure?",
+      "opts": [
+        "0.52",
+        "0.68",
+        "0.74",
+        "1.00"
+      ],
+      "ans": 1,
+      "exp": "The Atomic Packing Factor for a BCC unit cell is 0.68, meaning 68% of the volume is occupied by atoms.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_tn_056",
+      "hard": false,
+      "text": "How is engineering stress calculated during a tensile test?",
+      "opts": [
+        "Force divided by the instantaneous area (A_i)",
+        "Change in length divided by the initial length",
+        "Force divided by the initial cross-sectional area (A₀)",
+        "Force multiplied by the original length"
+      ],
+      "ans": 2,
+      "exp": "Engineering stress is defined as the applied load (Force) divided by the original, initial cross-sectional area (A₀) of the specimen.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_tn_057",
+      "hard": false,
+      "text": "Which property represents a material's stiffness and is calculated as the slope of the linear portion of the stress-strain curve?",
+      "opts": [
+        "Yield strength",
+        "Ultimate tensile strength",
+        "Young's modulus",
+        "Poisson's ratio"
+      ],
+      "ans": 2,
+      "exp": "Young's modulus (or elastic modulus) represents stiffness and is the ratio of stress to strain in the linear elastic region.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_tn_058",
+      "hard": false,
+      "text": "During a tensile test, what phenomenon occurs at the maximum point of the engineering stress-strain curve just before the stress starts to decrease?",
+      "opts": [
+        "Necking",
+        "Elastic deformation",
+        "Yielding",
+        "Fracture"
+      ],
+      "ans": 0,
+      "exp": "At the ultimate tensile strength (the maximum stress on the curve), a localized reduction in cross-sectional area begins to form, known as necking.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_tn_059",
+      "hard": false,
+      "text": "In the context of material hardness testing, which indenter type is used in the Vickers hardness test?",
+      "opts": [
+        "10mm diameter steel or tungsten carbide ball",
+        "1/16 inch diameter steel ball",
+        "Pyramid-shaped diamond",
+        "Cone-shaped diamond"
+      ],
+      "ans": 2,
+      "exp": "The Vickers hardness test utilizes a pyramid-shaped indenter made of diamond, and the diagonal lengths of the indentation are measured.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_tn_060",
+      "hard": false,
+      "text": "What happens to BCC metals like steel when they are cooled through their Ductile-Brittle Transition Temperature (DBTT)?",
+      "opts": [
+        "They melt and become a liquid phase.",
+        "They experience a sudden change from ductile behavior to brittle behavior.",
+        "Their ultimate tensile strength drops significantly.",
+        "They become highly malleable and flexible."
+      ],
+      "ans": 1,
+      "exp": "In BCC metals, lowering the temperature causes a sudden shift where the material loses its ductility and becomes brittle over a narrow temperature range.",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_tn_061",
+      "hard": false,
+      "text": "In an accurate geometric model of a Body-Centered Cubic (BCC) unit cell, the central atom must physically touch the corner atoms. Along which geometric line within the cube does this continuous contact occur?",
+      "opts": [
+        "Along the cube edges",
+        "Along the face diagonals",
+        "Along the body diagonal",
+        "Along the midpoints of the faces"
+      ],
+      "ans": 2,
+      "exp": "In a BCC lattice, the atoms at the corners and the atom in the center touch continuously along the diagonal passing straight through the body of the cube.",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_tn_062",
+      "hard": false,
+      "text": "For a Face-Centered Cubic (FCC) crystal, what is the mathematical relationship between the atomic radius (R) and the edge length of the unit cell (a)?",
+      "opts": [
+        "a = 2R",
+        "a = 4R/√3",
+        "a = 2R√2",
+        "a = 3R/√2"
+      ],
+      "ans": 2,
+      "exp": "In an FCC cell, atoms touch along the face diagonal, which is equal to 4R, simplifying to a = 2R√2.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_tn_063",
+      "hard": false,
+      "text": "Why does the true stress-true strain curve continue to rise even after the ultimate tensile strength (UTS) is reached, whereas the engineering stress-strain curve drops?",
+      "opts": [
+        "True stress accounts for the continuously decreasing instantaneous cross-sectional area during necking.",
+        "The material's elastic modulus suddenly increases after the UTS point.",
+        "Engineering stress ignores the effects of strain hardening prior to necking.",
+        "True strain calculations factor in the heat generated during deformation."
+      ],
+      "ans": 0,
+      "exp": "Engineering stress uses the original, constant area, making the stress artificially drop when the load decreases, whereas true stress uses the actual, shrinking area.",
+      "type": "mcq"
+    },
+    {
+      "unit": 1,
+      "id": "materials_tn_064",
+      "hard": false,
+      "text": "According to quantum mechanics, which specific set of quantum numbers designates an electron situated in a 3d orbital?",
+      "opts": [
+        "n=3, l=1",
+        "n=3, l=2",
+        "n=3, l=3",
+        "n=2, l=2"
+      ],
+      "ans": 1,
+      "exp": "The principal quantum number n=3 indicates the third energy level, and l=2 defines the 'd' subshell shape.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_tn_065",
+      "hard": false,
+      "text": "In the Brinell hardness test formula, what exactly does the variable 'd' represent?",
+      "opts": [
+        "The diameter of the spherical indenter.",
+        "The depth of the indentation made in the material.",
+        "The measured diameter of the indentation left on the material's surface.",
+        "The diagonal length of the indentation."
+      ],
+      "ans": 2,
+      "exp": "In the Brinell test, an optical microscope is used to measure 'd', the diameter of the round impression left by the spherical indenter.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_tn_066",
+      "hard": false,
+      "text": "For ductile materials that do not exhibit a distinct yield point on a stress-strain curve, how is the yield strength conventionally determined?",
+      "opts": [
+        "By calculating the exact point where the curve reaches its maximum height.",
+        "By drawing a line parallel to the elastic region, offset by a strain of 0.002 (0.2%).",
+        "By taking the stress value at exactly 5% total elongation.",
+        "By finding the mathematical derivative where the slope first begins to decrease."
+      ],
+      "ans": 1,
+      "exp": "The 0.2% offset method is the standard engineering convention for defining the onset of plastic deformation when a clear yield point is absent.",
+      "type": "mcq"
+    },
+    {
+      "unit": 1,
+      "id": "materials_tn_067",
+      "hard": false,
+      "text": "Which of the following descriptions best distinguishes the atomic arrangement in a typical advanced ceramic from a metallic glass?",
+      "opts": [
+        "Advanced ceramics are heavily cross-linked, while metallic glasses form long parallel chains.",
+        "Advanced ceramics feature a highly ordered crystalline lattice, while metallic glasses possess a random, amorphous structure.",
+        "Advanced ceramics rely purely on secondary bonds, while metallic glasses use primary ionic bonds.",
+        "Advanced ceramics are entirely amorphous, whereas metallic glasses are highly crystalline."
+      ],
+      "ans": 1,
+      "exp": "Advanced ceramics are engineered to have highly pure crystalline structures, whereas metallic glasses lack long-range atomic order.",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_tn_068",
+      "hard": false,
+      "text": "The Atomic Packing Factor (APF) of a Simple Cubic (SC) structure is approximately 0.52. This value is derived by dividing the volume of one spherical atom by the volume of a cubic unit cell with an edge length of:",
+      "opts": [
+        "R√2",
+        "2R",
+        "4R/√3",
+        "4R"
+      ],
+      "ans": 1,
+      "exp": "In a Simple Cubic unit cell, atoms touch directly along the edge of the cube, making the edge length (a) exactly equal to two atomic radii (2R).",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_tn_069",
+      "hard": false,
+      "text": "During the final stage of solidification of a molten metal, what physical feature is formed when growing crystals of different crystallographic orientations finally meet?",
+      "opts": [
+        "A grain boundary",
+        "A perfect single crystal",
+        "An amorphous zone",
+        "A nucleation site"
+      ],
+      "ans": 0,
+      "exp": "Grain boundaries are the high-energy, disordered interfaces that form where individual nucleated crystals (grains) impinge upon one another during final solidification.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_tn_070",
+      "hard": false,
+      "text": "Which two specific measurable parameters are most commonly extracted from a tensile test to quantify a material's ductility?",
+      "opts": [
+        "Yield strength and Ultimate Tensile Strength",
+        "Young's modulus and Poisson's ratio",
+        "Percent elongation and percent reduction in area",
+        "Modulus of resilience and modulus of toughness"
+      ],
+      "ans": 2,
+      "exp": "Ductility is quantified by how much it stretches (elongation) and how much its cross-section shrinks (reduction in area).",
+      "type": "mcq"
+    },
+    {
+      "unit": 1,
+      "id": "materials_tn_071",
+      "hard": false,
+      "text": "Why are perfectly amorphous metals (metallic glasses) significantly more difficult to manufacture compared to amorphous polymers?",
+      "opts": [
+        "Metals have highly complex, entangled molecular chains that resist glass formation.",
+        "Metals possess simple atomic structures that rapidly organize into crystalline lattices, requiring extreme cooling rates to prevent.",
+        "Metals lack the covalent bonds necessary to freeze atoms in place without crystallization.",
+        "Metals have extremely low melting temperatures, preventing them from solidifying quickly."
+      ],
+      "ans": 1,
+      "exp": "Because metal atoms are simple spheres, they can very easily and rapidly slide into ordered crystalline arrangements unless quenched at rates of millions of degrees per second.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_tn_072",
+      "hard": false,
+      "text": "On an engineering stress-strain curve, what is the fundamental thermodynamic distinction between the modulus of resilience and the modulus of toughness?",
+      "opts": [
+        "Resilience represents energy recovered upon unloading, while toughness represents total energy absorbed up to fracture.",
+        "Resilience applies only to compressive forces, while toughness applies only to tensile forces.",
+        "Resilience measures resistance to surface scratching, while toughness measures resistance to internal void formation.",
+        "Resilience represents plastic deformation energy, while toughness represents purely elastic deformation energy."
+      ],
+      "ans": 0,
+      "exp": "Resilience is the area under the elastic portion, whereas toughness is the entire area under the curve up to the point of catastrophic failure.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_tn_073",
+      "hard": false,
+      "text": "The Vickers hardness test employs a diamond pyramid indenter with a 136 degree angle between opposite faces. What is the primary operational advantage of this geometry compared to a spherical Brinell indenter?",
+      "opts": [
+        "It requires significantly higher loads to produce a measurable indentation.",
+        "It leaves a geometrically similar indentation regardless of the applied load, allowing one continuous scale for all materials.",
+        "The pyramid shape prevents the material from undergoing localized strain hardening.",
+        "It measures depth automatically, eliminating the need for optical microscopy."
+      ],
+      "ans": 1,
+      "exp": "Because the pyramid shape is uniform at all depths, the ratio of indentation size to depth is constant, meaning the Vickers value is largely independent of the applied force.",
+      "type": "mcq"
+    },
+    {
+      "unit": 1,
+      "id": "materials_tn_074",
+      "hard": false,
+      "text": "The high electrical and thermal conductivity characteristic of metallic materials is best explained by which feature of metallic bonding?",
+      "opts": [
+        "The strict sharing of localized electron pairs between adjacent atomic nuclei.",
+        "The rigid electrostatic attraction between perfectly alternating positive and negative ions.",
+        "The existence of a delocalized 'sea' of valence electrons that are highly mobile throughout the crystal lattice.",
+        "The presence of weak, temporary dipoles that allow electrons to tunnel between molecules."
+      ],
+      "ans": 2,
+      "exp": "In metallic bonds, valence electrons are not bound to any specific atom, allowing them to flow freely and transport charge and thermal energy.",
+      "type": "mcq"
+    },
+    {
+      "unit": 1,
+      "id": "materials_tn_075",
+      "hard": false,
+      "text": "Which of the following descriptions accurately highlights the structural difference between a composite material and a metal alloy?",
+      "opts": [
+        "An alloy contains only one element, while a composite contains two.",
+        "A composite consists of distinct macroscopic phases combined physically, whereas an alloy is combined at the atomic or molecular level.",
+        "A composite is formed exclusively through metallic bonding, while alloys utilize covalent bonds.",
+        "An alloy always possesses a crystalline structure, but a composite is strictly amorphous."
+      ],
+      "ans": 1,
+      "exp": "Composites retain clear physical boundaries between their constituent materials, whereas alloys form homogeneous solid solutions or microscopic intermetallic phases.",
+      "type": "mcq"
+    },
+    {
+      "unit": 1,
+      "id": "materials_tn_076",
+      "hard": false,
+      "text": "How do two distinct isotopes of the same metallic element differ in their atomic structure, and how does this difference influence their yield strength?",
+      "opts": [
+        "They differ in the number of valence electrons, leading to drastically different yield strengths.",
+        "They differ in the number of protons, changing the bond strength and elastic modulus.",
+        "They differ in the number of neutrons; however, because mechanical properties are governed by valence electrons, their yield strengths are essentially identical.",
+        "They differ in their crystalline structure at room temperature, causing one to be brittle and the other ductile."
+      ],
+      "ans": 2,
+      "exp": "Neutrons affect atomic mass but do not participate in chemical bonding or atomic slip mechanics, leaving macroscopic mechanical properties unchanged.",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_tn_077",
+      "hard": false,
+      "text": "Both Face-Centered Cubic (FCC) and Hexagonal Close-Packed (HCP) structures achieve the maximum theoretical Atomic Packing Factor (APF) of 0.74. What is the primary geometric difference in how their atomic planes are stacked?",
+      "opts": [
+        "FCC features a repeating ABCABC stacking sequence, while HCP features an ABABAB stacking sequence.",
+        "FCC atoms touch along the body diagonal, while HCP atoms touch along the edge.",
+        "FCC has a coordination number of 12, while HCP has a coordination number of 8.",
+        "FCC stacking creates macroscopic voids, while HCP stacking is perfectly solid without voids."
+      ],
+      "ans": 0,
+      "exp": "The third layer in HCP aligns perfectly with the first layer (ABAB...), whereas in FCC, the third layer sits in a unique set of hollows, requiring a fourth layer to repeat (ABCABC...).",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_tn_078",
+      "hard": false,
+      "text": "In a uniaxial tensile test of a perfectly isotropic elastic material, Poisson's ratio defines the negative ratio of lateral strain to axial strain. What is the theoretical maximum limit of Poisson's ratio for a stable, linear elastic material?",
+      "opts": [
+        "0.25",
+        "0.50",
+        "0.75",
+        "1.00"
+      ],
+      "ans": 1,
+      "exp": "A Poisson's ratio of 0.50 represents a perfectly incompressible material (volume remains perfectly constant during deformation).",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_tn_079",
+      "hard": false,
+      "text": "To observe the true grain structure of a polycrystalline metal under an optical microscope, the surface must be highly polished and subsequently treated with a chemical etchant. What is the specific metallurgical purpose of the etchant?",
+      "opts": [
+        "To fill in the microscopic voids left by the polishing process, creating a perfectly smooth reflective surface.",
+        "To react physically with the metal to create a brightly colored oxide layer over the entire surface.",
+        "To preferentially attack and dissolve the high-energy grain boundaries or specific crystallographic planes, creating topographical steps.",
+        "To align the surface atoms into a uniform crystalline direction, making them visible to the optical lens."
+      ],
+      "ans": 2,
+      "exp": "Because grain boundaries have a higher atomic energy state, the etchant corrodes them faster than the grain interiors, creating small grooves that scatter light.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_tn_080",
+      "hard": false,
+      "text": "The Ductile-to-Brittle Transition Temperature (DBTT) is predominantly observed in metals with a Body-Centered Cubic (BCC) structure. Why do Face-Centered Cubic (FCC) metals typically not exhibit a sudden brittle transition upon cooling?",
+      "opts": [
+        "FCC metals generate internal heat under stress, which prevents them from dropping below cryogenic temperatures.",
+        "FCC metals have significantly more close-packed slip systems that remain highly mobile and active even at extremely low temperatures.",
+        "FCC metals have a much lower overall density, giving the atoms more free volume to shift into during cold impacts.",
+        "FCC metals rely strictly on secondary Van der Waals bonds at lower temperatures, preserving their flexibility."
+      ],
+      "ans": 1,
+      "exp": "The densely packed planes in the FCC lattice allow dislocations to move (slip) easily regardless of thermal energy drops, allowing the metal to remain ductile.",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_tn_081",
+      "hard": false,
+      "text": "For geometric accuracy in a Simple Cubic (SC) unit cell, along which path must the atoms physically touch one another?",
+      "opts": [
+        "Along the cube edges",
+        "Along the body diagonal",
+        "Along the face diagonals",
+        "They do not touch in an SC structure"
+      ],
+      "ans": 0,
+      "exp": "In an SC structure, the atoms at the corners must continuously touch along the edges, making the edge length a = 2R.",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_tn_082",
+      "hard": false,
+      "text": "In a digitally sketched model of a Body-Centered Cubic (BCC) crystal plane, to maintain strict geometric accuracy, the central atom MUST make continuous physical contact with which other atoms?",
+      "opts": [
+        "The adjacent central atoms of neighboring unit cells.",
+        "The atoms located at the face centers.",
+        "The eight corner atoms along the body diagonals.",
+        "Only the four corner atoms on the top plane."
+      ],
+      "ans": 2,
+      "exp": "A geometrically accurate BCC sketch requires the central atom to perfectly touch all eight corner atoms along the diagonal axes.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_tn_083",
+      "hard": false,
+      "text": "During the structural analysis of a truss system, if a calculation error in the vertical coordinate geometry of a member leads to an artificially high calculated tensile force, what material property is most at risk of being falsely exceeded in the design phase?",
+      "opts": [
+        "Yield strength",
+        "Poisson's ratio",
+        "Modulus of elasticity",
+        "Atomic Packing Factor"
+      ],
+      "ans": 0,
+      "exp": "Overestimating the applied force might lead the engineer to believe the stress exceeds the yield strength, causing permanent plastic deformation.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_tn_084",
+      "hard": false,
+      "text": "When defining the sign convention for the bending of a horizontal structural beam that curves convex upwards (hogging), how is this bending moment mathematically treated in the standard convention?",
+      "opts": [
+        "As a negative moment",
+        "As a positive moment",
+        "As a zero-shear state",
+        "As a purely torsional load"
+      ],
+      "ans": 1,
+      "exp": "In this specific mandatory sign convention, hogging (tension on top, compression on bottom) is defined as a positive bending moment.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_tn_085",
+      "hard": false,
+      "text": "When designing components that must absorb elastic energy and return to their original shape (like springs in a mechanism), selecting a material with a high Modulus of Resilience ensures what specific behavior?",
+      "opts": [
+        "The material will fracture immediately upon yielding.",
+        "The components can absorb a large amount of elastic energy during rapid movements and return to their exact original shape.",
+        "The material can withstand massive plastic deformation before final failure.",
+        "The surface will heavily resist scratching and indentation."
+      ],
+      "ans": 1,
+      "exp": "Resilience is the capacity to absorb energy in the elastic range without undergoing permanent plastic deformation.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_tn_086",
+      "hard": false,
+      "text": "In the Brinell hardness test formula, what does the variable 'd' explicitly measure?",
+      "opts": [
+        "The diameter of the spherical indenter.",
+        "The measured diameter of the indentation left on the material's surface.",
+        "The depth of the indentation.",
+        "The diagonal of a square impression."
+      ],
+      "ans": 1,
+      "exp": "The lowercase 'd' represents the diameter of the impression left behind, measured optically.",
+      "type": "mcq"
+    },
+    {
+      "unit": 1,
+      "id": "materials_tn_087",
+      "hard": false,
+      "text": "Which of the following electron configurations represents the highly unreactive, stable state typical of inert gases, which only form weak van der Waals bonds?",
+      "opts": [
+        "1s² 2s² 2p⁶ 3s¹",
+        "1s² 2s² 2p⁵",
+        "1s² 2s² 2p⁶",
+        "1s² 2s² 2p⁶ 3s² 3p⁴"
+      ],
+      "ans": 2,
+      "exp": "This is Neon (Ne), which has a completely full outer electron shell, making it extremely stable and inert.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_tn_088",
+      "hard": false,
+      "text": "When assessing the structural integrity of a metal component subjected to continuous wave impacts, engineers rely on the material's toughness. How is toughness defined on a stress-strain curve?",
+      "opts": [
+        "The highest point on the y-axis.",
+        "The total area under the entire stress-strain curve up to the point of fracture.",
+        "The slope of the linear elastic region.",
+        "The area exclusively under the linear elastic region."
+      ],
+      "ans": 1,
+      "exp": "Toughness represents the total energy absorbed per unit volume before rupture, calculated as the total area under the curve.",
+      "type": "mcq"
+    },
+    {
+      "unit": 1,
+      "id": "materials_tn_089",
+      "hard": false,
+      "text": "What primary type of bonding holds the atoms together in a highly pure piece of aluminum used for a smartphone chassis?",
+      "opts": [
+        "Ionic bonding",
+        "Covalent bonding",
+        "Metallic bonding",
+        "Hydrogen bonding"
+      ],
+      "ans": 2,
+      "exp": "Aluminum atoms are held together by a 'sea' of delocalized valence electrons, characteristic of metallic bonding.",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_tn_090",
+      "hard": false,
+      "text": "In crystallography, what is the fundamental difference between an amorphous material (like glass) and a crystalline material (like quartz)?",
+      "opts": [
+        "Amorphous materials lack long-range atomic order, while crystalline materials feature a repeating, ordered 3D lattice.",
+        "Amorphous materials are always opaque, while crystalline materials are always transparent.",
+        "Amorphous materials have metallic bonds, while crystalline materials have covalent bonds.",
+        "Amorphous materials have grain boundaries, while crystalline materials do not."
+      ],
+      "ans": 0,
+      "exp": "Crystalline solids have atoms arranged in highly ordered, repeating patterns, whereas amorphous solids have random, disordered atomic arrangements.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_tn_091",
+      "hard": false,
+      "text": "During a laboratory impact test, a sample of low-carbon steel shatters brittlely rather than bending. What environmental factor most likely caused this BCC metal to change its normal behavior?",
+      "opts": [
+        "High humidity",
+        "A drastic drop in temperature below its DBTT.",
+        "Exposure to high-intensity ultraviolet light.",
+        "Heating the metal just below its melting point."
+      ],
+      "ans": 1,
+      "exp": "BCC metals experience a Ductile-to-Brittle Transition Temperature (DBTT), where cold temperatures cause them to lose ductility and shatter upon impact.",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_tn_092",
+      "hard": false,
+      "text": "How is the Atomic Packing Factor (APF) mathematically defined?",
+      "opts": [
+        "Volume of atoms in a unit cell divided by the total volume of the unit cell.",
+        "Total mass of the unit cell divided by its volume.",
+        "Number of atoms per unit cell multiplied by the atomic radius.",
+        "Volume of the unit cell divided by the coordination number."
+      ],
+      "ans": 0,
+      "exp": "APF is the dimensionless ratio representing the fraction of solid sphere volume relative to the total available geometric volume of the cell.",
+      "type": "mcq"
+    },
+    {
+      "unit": 1,
+      "id": "materials_tn_093",
+      "hard": false,
+      "text": "Which quantum number dictates the primary energy level and overall size of an electron's orbit?",
+      "opts": [
+        "Magnetic quantum number (m)",
+        "Spin quantum number (s)",
+        "Principal quantum number (n)",
+        "Secondary quantum number (l)"
+      ],
+      "ans": 2,
+      "exp": "The principal quantum number (n=1, 2, 3...) determines the main electron shell and distance from the nucleus.",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_tn_094",
+      "hard": false,
+      "text": "What is the coordination number of a Simple Cubic (SC) structure?",
+      "opts": [
+        "4",
+        "6",
+        "8",
+        "12"
+      ],
+      "ans": 1,
+      "exp": "In a Simple Cubic lattice, each atom touches one atom above, below, left, right, front, and back, totaling 6 nearest neighbors.",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_tn_095",
+      "hard": false,
+      "text": "When a metal solidifies from a molten state, what are the initial, microscopic solid particles that form first called?",
+      "opts": [
+        "Grains",
+        "Nuclei",
+        "Vacancies",
+        "Grain boundaries"
+      ],
+      "ans": 1,
+      "exp": "Solidification begins with nucleation, where tiny, stable solid crystal seeds called nuclei form in the liquid.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_tn_096",
+      "hard": false,
+      "text": "Why is true strain defined using the natural logarithm ln(l_i / l_0) instead of a simple ratio of change?",
+      "opts": [
+        "To account for the fact that strain is instantaneous and cumulative over continuously changing lengths.",
+        "To artificially inflate the value of the strain after necking occurs.",
+        "Because metals deform exponentially under high stress.",
+        "To convert the strain into degrees for angular measurement."
+      ],
+      "ans": 0,
+      "exp": "True strain integrates the incremental changes in length over the instantaneous length at each moment, resulting in a logarithmic function.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_tn_097",
+      "hard": false,
+      "text": "In the context of the 0.2% offset method for finding yield strength, what does the 0.002 strain value represent physically?",
+      "opts": [
+        "The point where the material breaks.",
+        "An acceptable, standardized amount of permanent plastic deformation.",
+        "The maximum elastic strain possible before necking.",
+        "The thermal expansion coefficient of the metal."
+      ],
+      "ans": 1,
+      "exp": "Because the exact transition is hard to see, engineers agree that a permanent stretch of 0.2% is the standard definition of 'yielding'.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_tn_098",
+      "hard": false,
+      "text": "Which hardness test is specifically designed to leave a rhombus-shaped (elongated) indentation, minimizing lateral stress for brittle ceramics?",
+      "opts": [
+        "Brinell test",
+        "Rockwell C test",
+        "Vickers test",
+        "Knoop test"
+      ],
+      "ans": 3,
+      "exp": "The Knoop microhardness test uses an asymmetrical, elongated diamond pyramid specifically for brittle materials and thin layers.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_tn_099",
+      "hard": false,
+      "text": "If an engineering material has a Poisson's ratio (ν) of 0.33, what happens to its cross-sectional area when it is pulled in tension?",
+      "opts": [
+        "The area increases.",
+        "The area remains exactly the same.",
+        "The area decreases.",
+        "The area fluctuates randomly."
+      ],
+      "ans": 2,
+      "exp": "Because the ratio is positive, stretching it axially causes it to contract laterally, reducing the cross-sectional area.",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_tn_100",
+      "hard": false,
+      "text": "What is the relationship between the number of atoms in a Body-Centered Cubic (BCC) unit cell and a Face-Centered Cubic (FCC) unit cell?",
+      "opts": [
+        "BCC has 1 atom, FCC has 2 atoms.",
+        "BCC has 2 atoms, FCC has 4 atoms.",
+        "BCC has 4 atoms, FCC has 8 atoms.",
+        "They both possess exactly 4 atoms."
+      ],
+      "ans": 1,
+      "exp": "BCC has 8(1/8) + 1 = 2 atoms. FCC has 8(1/8) + 6(1/2) = 4 atoms.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_tn_101",
+      "hard": false,
+      "text": "In a structural analysis diagram showing a simply supported beam, what internal stress state exists at the exact neutral axis during pure bending?",
+      "opts": [
+        "Maximum tension",
+        "Maximum compression",
+        "Zero normal stress",
+        "Maximum shear stress"
+      ],
+      "ans": 2,
+      "exp": "The neutral axis is the plane within the beam where the material is transitioning from tension to compression, experiencing exactly zero normal stress.",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_tn_102",
+      "hard": false,
+      "text": "Which of the following elements is known for exhibiting polymorphism (allotropy), changing its crystal structure from BCC to FCC when heated above 912°C?",
+      "opts": [
+        "Aluminum",
+        "Copper",
+        "Iron",
+        "Magnesium"
+      ],
+      "ans": 2,
+      "exp": "Pure iron undergoes an allotropic transformation from ferrite (BCC) to austenite (FCC) at high temperatures, which is the basis for steel heat treatment.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_tn_103",
+      "hard": false,
+      "text": "In materials science, the term 'isotropic' refers to a material that has:",
+      "opts": [
+        "Identical properties in all geometric directions.",
+        "Different properties depending on the direction of testing.",
+        "A purely amorphous atomic structure.",
+        "The ability to conduct electricity without resistance."
+      ],
+      "ans": 0,
+      "exp": "Isotropic materials (like randomly oriented polycrystalline metals) exhibit the same mechanical and physical properties regardless of the axis of testing.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_tn_104",
+      "hard": false,
+      "text": "During a tensile test, a reinforcing steel rebar exhibits a distinct 'yield point phenomenon' where the stress fluctuates slightly before strain hardening begins. What microstructural feature is suddenly breaking free to cause this?",
+      "opts": [
+        "Grain boundaries",
+        "Dislocations pinned by interstitial atoms",
+        "Covalent bonds",
+        "Micro-cracks"
+      ],
+      "ans": 1,
+      "exp": "In mild steels, carbon atoms 'pin' the dislocations. The distinct yield point occurs when these dislocations suddenly break free from their carbon anchors.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_tn_105",
+      "hard": false,
+      "text": "What is the primary factor that causes the theoretical strength of a pure metal to be hundreds of times higher than its actual, measured strength in the real world?",
+      "opts": [
+        "The presence of isotopes.",
+        "The presence of dislocations within the crystal lattice.",
+        "The natural logarithm used in true stress calculations.",
+        "The rapid cooling during manufacturing."
+      ],
+      "ans": 1,
+      "exp": "Theoretical strength assumes you must break all bonds at once. Real metals yield much earlier because dislocations allow atomic planes to slide one row at a time.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_tn_106",
+      "hard": false,
+      "text": "When examining the microstructure of a metal, what geometric characteristic most directly increases the material's overall yield strength according to the Hall-Petch relationship?",
+      "opts": [
+        "Increasing the size of the grains.",
+        "Decreasing the size of the grains.",
+        "Aligning all grains in a single direction.",
+        "Melting the metal into an amorphous state."
+      ],
+      "ans": 1,
+      "exp": "Smaller grains create exponentially more grain boundaries, which act as roadblocks to dislocation movement, thereby increasing the metal's strength.",
+      "type": "mcq"
+    },
+    {
+      "unit": 3,
+      "id": "materials_tn_107",
+      "hard": false,
+      "text": "If a metal has an HCP structure and another has an FCC structure, why might the FCC metal generally be more ductile?",
+      "opts": [
+        "FCC has a higher Atomic Packing Factor.",
+        "FCC has a higher number of intersecting close-packed slip systems.",
+        "HCP utilizes covalent bonds, while FCC uses metallic bonds.",
+        "FCC atoms are larger than HCP atoms."
+      ],
+      "ans": 1,
+      "exp": "FCC metals have multiple intersecting close-packed planes (12 slip systems), allowing extensive plastic deformation in many directions.",
+      "type": "mcq"
+    },
+    {
+      "unit": 1,
+      "id": "materials_tn_108",
+      "hard": false,
+      "text": "What does a deep, narrow energy trough in a material's interatomic bond energy curve indicate about its physical properties?",
+      "opts": [
+        "High melting temperature and high elastic modulus.",
+        "Low melting temperature and high ductility.",
+        "High thermal expansion coefficient.",
+        "Zero electrical conductivity."
+      ],
+      "ans": 0,
+      "exp": "A deep trough means a large amount of energy is required to break the bonds, and the narrow shape indicates strong resistance to stretching.",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_tn_109",
+      "hard": false,
+      "text": "Which specific defect must be present for a pure metal to undergo solid-state diffusion (atoms migrating through the lattice)?",
+      "opts": [
+        "Grain boundaries",
+        "Dislocations",
+        "Vacancies",
+        "Inclusions"
+      ],
+      "ans": 2,
+      "exp": "For an atom to move through a dense crystal lattice, there must be empty spaces (vacancies) for it to hop into.",
+      "type": "mcq"
+    },
+    {
+      "unit": 2,
+      "id": "materials_tn_110",
+      "hard": false,
+      "text": "The theoretical density of a metal is given by the formula ρ = (nA) / (V_c N_A). What does V_c represent?",
+      "opts": [
+        "The volume of a single atom.",
+        "The volume of the unit cell.",
+        "The valency of the metal.",
+        "The critical velocity of ultrasonic waves through the metal."
+      ],
+      "ans": 1,
+      "exp": "V_c represents the geometric volume of the repeating unit cell (e.g., a³ for a cubic system).",
+      "type": "mcq"
+    },
+    {
+      "unit": 4,
+      "year": 2024,
+      "id": "materials_tn_111",
+      "hard": false,
+      "text": "According to the principles of metal degradation, how is corrosion fundamentally defined?",
+      "opts": [
+        "The physical wearing away of a metal surface by mechanical friction.",
+        "The deterioration of metals due to a reaction with their environment.",
+        "The melting of metals at high temperatures.",
+        "The deliberate alloying of metals to change their structural properties."
+      ],
+      "ans": 1,
+      "exp": "Mechanical wear is a physical process, whereas corrosion is the chemical or electrochemical deterioration of metals due to a reaction with their environment.",
+      "type": "mcq"
+    },
+    {
+      "unit": 4,
+      "year": 2024,
+      "id": "materials_tn_112",
+      "hard": false,
+      "text": "What is the inherent nature of all metal corrosion reactions?",
+      "opts": [
+        "They are purely mechanical.",
+        "They are strictly thermal processes.",
+        "They are electrochemical in nature.",
+        "They are nuclear reactions."
+      ],
+      "ans": 2,
+      "exp": "All corrosion reactions are electrochemical, meaning they involve the transfer of electrons from one species to another.",
+      "type": "mcq"
+    },
+    {
+      "unit": 4,
+      "year": 2024,
+      "id": "materials_tn_113",
+      "hard": false,
+      "text": "During an electrochemical corrosion reaction, what occurs at the anode?",
+      "opts": [
+        "Oxidation, where electrons are lost by the metal.",
+        "Reduction, where electrons are gained.",
+        "The formation of hydrogen gas.",
+        "The deposition of pure metal from the environment."
+      ],
+      "ans": 0,
+      "exp": "The anode is the site of oxidation. The metal loses electrons and forms positive ions, which typically dissolve into the environment.",
+      "type": "mcq"
+    },
+    {
+      "unit": 4,
+      "year": 2024,
+      "id": "materials_tn_114",
+      "hard": false,
+      "text": "Which of the following represents a common reduction reaction that might be paired with metal oxidation during corrosion?",
+      "opts": [
+        "Fe -> Fe2+ + 2e-",
+        "Al -> Al3+ + 3e-",
+        "Cu -> Cu2+ + 2e-",
+        "2H+ + 2e- -> H2"
+      ],
+      "ans": 3,
+      "exp": "The Hydrogen Evolution Reaction (HER) is a standard cathodic reduction process where electrons are consumed. The other options are anodic oxidation reactions.",
+      "type": "mcq"
+    },
+    {
+      "unit": 4,
+      "year": 2024,
+      "id": "materials_tn_115",
+      "hard": false,
+      "text": "When polymers are exposed to liquids, what is the initial phase of degradation before dissolution?",
+      "opts": [
+        "Thermal cracking",
+        "Swelling",
+        "Photo-degradation",
+        "Mechanical scission"
+      ],
+      "ans": 1,
+      "exp": "Swelling occurs first as the liquid diffuses into the polymer matrix. If it continues indefinitely, it leads to dissolution.",
+      "type": "mcq"
+    },
+    {
+      "unit": 4,
+      "year": 2024,
+      "id": "materials_tn_116",
+      "hard": false,
+      "text": "What is the physical mechanism behind polymer swelling when exposed to a liquid?",
+      "opts": [
+        "The liquid covalently bonds to the polymer, creating a rigid network.",
+        "The liquid triggers a cross-linking chemical reaction.",
+        "The solute diffuses into the polymer, forcing the macromolecules apart.",
+        "The polymer chains shrink tightly together to repel the liquid."
+      ],
+      "ans": 2,
+      "exp": "The volume of the polymer increases and swells because the liquid molecules occupy the space between the polymer chains, physically separating them.",
+      "type": "mcq"
+    },
+    {
+      "unit": 4,
+      "year": 2024,
+      "id": "materials_tn_117",
+      "hard": false,
+      "text": "As a polymer undergoes swelling, how does the separation of macromolecules affect the material's properties?",
+      "opts": [
+        "It reduces the intermolecular secondary bonding forces, making the material softer.",
+        "It increases the primary covalent bond strength.",
+        "It increases the melting temperature significantly.",
+        "It makes the material highly electrically conductive."
+      ],
+      "ans": 0,
+      "exp": "Because the polymer chains are pushed further apart by the solvent, the weak secondary (Van der Waals) forces between them are reduced, leading to a softer material.",
+      "type": "mcq"
+    },
+    {
+      "unit": 4,
+      "year": 2024,
+      "id": "materials_tn_118",
+      "hard": false,
+      "text": "How is the process of 'dissolution' defined in the context of polymer degradation?",
+      "opts": [
+        "The breaking of the polymer chain by UV light.",
+        "The evaporation of the polymer into a gas.",
+        "The hardening of a polymer under extreme stress.",
+        "A continuation of swelling where the polymer becomes completely soluble."
+      ],
+      "ans": 3,
+      "exp": "Dissolution is the extreme end result of swelling; when the chains separate so much that they are fully surrounded by solvent, the polymer dissolves.",
+      "type": "mcq"
+    },
+    {
+      "unit": 4,
+      "year": 2024,
+      "id": "materials_tn_119",
+      "hard": false,
+      "text": "Which of the following is NOT listed as a common agent of polymer degradation?",
+      "opts": [
+        "Heat (thermal degradation)",
+        "Magnetic fields (magnetic degradation)",
+        "UV radiation (photo-degradation)",
+        "Stress (mechanical degradation)"
+      ],
+      "ans": 1,
+      "exp": "Magnetic fields do not typically degrade standard polymers. Heat, UV radiation, and mechanical stress are the primary agents of polymer degradation.",
+      "type": "mcq"
+    },
+    {
+      "unit": 4,
+      "year": 2024,
+      "id": "materials_tn_120",
+      "hard": false,
+      "text": "Why are ceramic materials frequently chosen for certain engineering applications despite their brittleness?",
+      "opts": [
+        "They have very high ductility.",
+        "They undergo highly beneficial swelling in liquids.",
+        "They are utilized because of their excellent resistance to corrosion.",
+        "They act as perfect electrical conductors at room temperature."
+      ],
+      "ans": 2,
+      "exp": "Unlike metals, most ceramics are chemically highly stable and do not easily react with their environment, making them extremely corrosion-resistant.",
+      "type": "mcq"
+    },
+    {
+      "unit": 4,
+      "year": 2024,
+      "id": "materials_tn_121",
+      "hard": false,
+      "text": "In an electrochemical cell causing corrosion, what must happen for the overall reaction to proceed?",
+      "opts": [
+        "Electron transfer must occur from one reaction to another in a paired process.",
+        "Only oxidation must occur.",
+        "Only reduction must occur.",
+        "The metal must be heated past its melting point."
+      ],
+      "ans": 0,
+      "exp": "Electrochemical reactions always happen in pairs (redox reactions). For oxidation to release an electron, a corresponding reduction reaction must consume it to maintain charge balance.",
+      "type": "mcq"
+    },
+    {
+      "unit": 4,
+      "year": 2024,
+      "id": "materials_tn_122",
+      "hard": false,
+      "text": "If a metal starts turning into positive metal ions (e.g., Fe to Fe2+), what role is that part of the metal playing?",
+      "opts": [
+        "The cathode",
+        "The anode",
+        "The solvent",
+        "The polymer matrix"
+      ],
+      "ans": 1,
+      "exp": "The anode is the specific site where the metal undergoes oxidation, losing electrons and becoming a positively charged ion.",
+      "type": "mcq"
+    },
+    {
+      "unit": 6,
+      "year": 2024,
+      "id": "materials_tn_123",
+      "hard": false,
+      "text": "What fundamental event results in an electric current in a material?",
+      "opts": [
+        "The mechanical vibration of the atomic nuclei.",
+        "The alignment of magnetic domains.",
+        "The motion of electrically charged particles in response to an applied electric field.",
+        "The absorption of visible light by the surface."
+      ],
+      "ans": 2,
+      "exp": "Electric current is defined as the flow of charge over time, which is driven by the application of an external electric field.",
+      "type": "mcq"
+    },
+    {
+      "unit": 6,
+      "year": 2024,
+      "id": "materials_tn_124",
+      "hard": false,
+      "text": "By conventional definition, how does the direction of electric current relate to the flow of electrons in a metal conductor?",
+      "opts": [
+        "They flow in the exact same direction.",
+        "Current direction is perpendicular to electron flow.",
+        "Current flow has no relationship to electron flow.",
+        "The direction of current is opposite to the flow of electrons."
+      ],
+      "ans": 3,
+      "exp": "Because electrons carry a negative charge, their physical flow is in the opposite direction to the historically defined positive electric current.",
+      "type": "mcq"
+    },
+    {
+      "unit": 6,
+      "year": 2024,
+      "id": "materials_tn_125",
+      "hard": false,
+      "text": "According to Ohm's Law (V = IR), if the resistance of a specimen increases while the applied electric potential remains constant, what happens to the current?",
+      "opts": [
+        "The current increases.",
+        "The current decreases.",
+        "The current remains exactly the same.",
+        "The current periodically reverses direction."
+      ],
+      "ans": 1,
+      "exp": "Current (I) and resistance (R) are inversely proportional when voltage (V) is constant. Therefore, higher resistance results in a lower current.",
+      "type": "mcq"
+    },
+    {
+      "unit": 6,
+      "year": 2024,
+      "id": "materials_tn_126",
+      "hard": false,
+      "text": "What is the defining characteristic of Piezoelectric materials?",
+      "opts": [
+        "They generate an electric voltage when subjected to applied stress.",
+        "They emit light when an electric current is applied.",
+        "They perfectly insulate against all heat transfer.",
+        "They become magnetic at absolute zero."
+      ],
+      "ans": 0,
+      "exp": "Piezoelectric materials directly couple mechanical stress to electrical potential, generating voltage when physically squeezed or pressed.",
+      "type": "mcq"
+    },
+    {
+      "unit": 6,
+      "year": 2024,
+      "id": "materials_tn_127",
+      "hard": false,
+      "text": "Which of the following is an example of a common piezoelectric material?",
+      "opts": [
+        "Polyaniline (PANI)",
+        "Carbon Nanotubes (CNTs)",
+        "Lead Zirconate Titanate (PZT)",
+        "Gallium Nitride (GaN)"
+      ],
+      "ans": 2,
+      "exp": "Lead Zirconate Titanate (PZT) is one of the most widely used industrial piezoelectric ceramics, often found in sensors and ultrasound devices.",
+      "type": "mcq"
+    },
+    {
+      "unit": 6,
+      "year": 2024,
+      "id": "materials_tn_128",
+      "hard": false,
+      "text": "Why are traditional polymers usually excellent electrical insulators?",
+      "opts": [
+        "Because they contain a high density of free metallic ions.",
+        "Because all their valence electrons are tightly bound in localized single covalent bonds.",
+        "Because they are completely composed of water molecules.",
+        "Because they have an overlapping p-orbital system."
+      ],
+      "ans": 1,
+      "exp": "Electrical conduction requires mobile charge carriers. In traditional polymers, all valence electrons are strictly tied up in local covalent bonds and cannot move freely.",
+      "type": "mcq"
+    },
+    {
+      "unit": 6,
+      "year": 2024,
+      "id": "materials_tn_129",
+      "hard": false,
+      "text": "Intrinsically conducting polymers (ICPs) can conduct electricity. What key structural feature allows them to do this?",
+      "opts": [
+        "A conjugated system of alternating double and single bonds.",
+        "The physical embedding of copper wires into the polymer.",
+        "A perfect, defect-free crystalline lattice.",
+        "A backbone composed entirely of nitrogen and oxygen."
+      ],
+      "ans": 0,
+      "exp": "The alternating single and double bonds (a conjugated backbone) allow electrons to be shared and move freely along the polymer chain.",
+      "type": "mcq"
+    },
+    {
+      "unit": 6,
+      "year": 2024,
+      "id": "materials_tn_130",
+      "hard": false,
+      "text": "In a conductive polymer, what is the role of 'overlapping p-orbitals'?",
+      "opts": [
+        "They trap electrons, preventing any current flow.",
+        "They physically link adjacent polymer chains together to form a rigid solid.",
+        "They absorb UV light to trigger degradation.",
+        "They create a system of delocalized pi-electrons that can move and carry charge."
+      ],
+      "ans": 3,
+      "exp": "The overlapping p-orbitals create a continuous path for pi-electrons to delocalize, essentially creating a 'highway' for electric current along the molecule.",
+      "type": "mcq"
+    },
+    {
+      "unit": 6,
+      "year": 2024,
+      "id": "materials_tn_131",
+      "hard": false,
+      "text": "Which of the following materials is an example of a Conductive Polymer?",
+      "opts": [
+        "Polyethylene (PE)",
+        "Poly(3,4-ethylenedioxythiophene) (PEDOT)",
+        "Polyvinyl Chloride (PVC)",
+        "Quartz"
+      ],
+      "ans": 1,
+      "exp": "PEDOT is an intrinsically conducting polymer (ICP) widely used for transparent, flexible electronic applications.",
+      "type": "mcq"
+    },
+    {
+      "unit": 6,
+      "year": 2024,
+      "id": "materials_tn_132",
+      "hard": false,
+      "text": "The formula for piezoelectric voltage is given theoretically as V = (d/ε) * σ * t. What does 'σ' represent in this context?",
+      "opts": [
+        "Electrical conductivity",
+        "Thickness of the material",
+        "Applied stress",
+        "Temperature"
+      ],
+      "ans": 2,
+      "exp": "In the context of this specific mechanical-electrical relationship for piezoelectricity, 'σ' represents the mechanical applied stress.",
+      "type": "mcq"
+    },
+    {
+      "unit": 6,
+      "year": 2024,
+      "id": "materials_tn_133",
+      "hard": false,
+      "text": "What is Polyvinylidene Fluoride (PVDF) primarily known for in the context of electrical properties?",
+      "opts": [
+        "It is a piezoelectric polymer.",
+        "It is an intrinsically conducting polymer.",
+        "It is a semiconductor used for LEDs.",
+        "It is a superconductor at room temperature."
+      ],
+      "ans": 0,
+      "exp": "PVDF is highly unique because it is a flexible polymer that exhibits strong piezoelectric properties, similar to ceramics like Quartz and PZT.",
+      "type": "mcq"
+    },
+    {
+      "unit": 6,
+      "year": 2024,
+      "id": "materials_tn_134",
+      "hard": false,
+      "text": "Why do engineers study the electrical properties of materials? (Select the most comprehensive reason provided in the notes)",
+      "opts": [
+        "Only to find better ways to insulate power lines.",
+        "To prevent polymers from swelling in water.",
+        "To calculate the density of new alloys.",
+        "For electrical energy conduction, storage, and insulation."
+      ],
+      "ans": 3,
+      "exp": "The three primary reasons outlined for studying electrical properties are to understand how materials conduct, store, and insulate against electrical energy.",
+      "type": "mcq"
+    },
+    {
+      "unit": 7,
+      "year": 2024,
+      "id": "materials_tn_135",
+      "hard": false,
+      "text": "By definition, the 'nanoscale' spans approximately what size range?",
+      "opts": [
+        "1 to 100 micrometers",
+        "1 to 100 nanometers",
+        "1 to 100 millimeters",
+        "0.1 to 1 nanometer"
+      ],
+      "ans": 1,
+      "exp": "The widely accepted ISO standard definition of the nanoscale is the size range from approximately 1 to 100 nanometers.",
+      "type": "mcq"
+    },
+    {
+      "unit": 7,
+      "year": 2024,
+      "id": "materials_tn_136",
+      "hard": false,
+      "text": "According to the ISO definition, a 'nanostructured material' differs from a 'nano object' because it has:",
+      "opts": [
+        "An external dimension in the nanoscale.",
+        "No mass whatsoever.",
+        "Internal structure or surface structure in the nanoscale.",
+        "Biological origins only."
+      ],
+      "ans": 2,
+      "exp": "While a nano object has an external dimension in the nanoscale, a nanostructured material may be macro-sized externally but possesses internal or surface features in the nanoscale.",
+      "type": "mcq"
+    },
+    {
+      "unit": 7,
+      "year": 2024,
+      "id": "materials_tn_137",
+      "hard": false,
+      "text": "What is the molecular structure of Buckminsterfullerene (C60)?",
+      "opts": [
+        "A flat, single-atom-thick sheet of carbon.",
+        "A long, hollow cylinder of carbon.",
+        "A random, amorphous clump of carbon atoms.",
+        "60 carbon atoms arranged in a spherical shape, like a soccer ball."
+      ],
+      "ans": 3,
+      "exp": "C60 (Buckyballs) consist of 60 carbon atoms bonded in a spherical, geodesic dome-like structure resembling a soccer ball.",
+      "type": "mcq"
+    },
+    {
+      "unit": 7,
+      "year": 2024,
+      "id": "materials_tn_138",
+      "hard": false,
+      "text": "How is heat primarily carried within Carbon Nanotubes (CNTs)?",
+      "opts": [
+        "By the flow of free electrons.",
+        "By lattice vibrations called phonons.",
+        "By the physical movement of carbon atoms down the tube.",
+        "By electromagnetic radiation emission."
+      ],
+      "ans": 1,
+      "exp": "Because of the rigid and incredibly strong C-C covalent bonds, heat is transmitted highly efficiently through the lattice via vibrational waves called phonons.",
+      "type": "mcq"
+    },
+    {
+      "unit": 7,
+      "year": 2024,
+      "id": "materials_tn_139",
+      "hard": false,
+      "text": "Carbon Nanotubes (CNTs) exhibit highly directional thermal properties. Which statement best describes this?",
+      "opts": [
+        "They are thermally insulating in all directions.",
+        "They have high thermal conductivity in the radial direction but insulate axially.",
+        "They have very high thermal conductivity in the axial direction but are insulating in the radial direction.",
+        "They conduct heat equally well in three dimensions."
+      ],
+      "ans": 2,
+      "exp": "Heat travels extremely rapidly along the length (axially) of the tube due to the unbroken carbon bonds, but the tube acts as an insulator across its diameter (radially).",
+      "type": "mcq"
+    },
+    {
+      "unit": 7,
+      "year": 2024,
+      "id": "materials_tn_140",
+      "hard": false,
+      "text": "The 'Lotus leaf effect' is an example of which nanoscale phenomenon applied to surface engineering?",
+      "opts": [
+        "Superconductivity",
+        "Electroluminescence",
+        "Thermal expansion",
+        "Superhydrophobicity"
+      ],
+      "ans": 3,
+      "exp": "The nanoscale surface structure of the lotus leaf causes extreme water repellency, known as superhydrophobicity, causing water to bead and roll off.",
+      "type": "mcq"
+    },
+    {
+      "unit": 7,
+      "year": 2024,
+      "id": "materials_tn_141",
+      "hard": false,
+      "text": "In the lab, engineers recreated the Lotus leaf's properties by using a 'CNT forest'. What additional coating was applied to achieve superhydrophobicity?",
+      "opts": [
+        "PTFE (Polytetrafluoroethylene).",
+        "A layer of liquid water.",
+        "Copper oxide.",
+        "Polyaniline (PANI)."
+      ],
+      "ans": 0,
+      "exp": "PTFE (commonly known as Teflon) is naturally hydrophobic. Coating the nanoscale CNT forest with it exponentially magnifies the water-repellent effect.",
+      "type": "mcq"
+    },
+    {
+      "unit": 7,
+      "year": 2024,
+      "id": "materials_tn_142",
+      "hard": false,
+      "text": "In the context of nanotechnology energy storage, what materials are often used as active porous electrodes in supercapacitors?",
+      "opts": [
+        "Solid blocks of pure lead.",
+        "Standard insulating polymers.",
+        "CNT or Graphene-based materials.",
+        "Quartz crystals."
+      ],
+      "ans": 2,
+      "exp": "Supercapacitors require electrodes with massive surface areas to store ions. CNT and Graphene provide immense surface-area-to-volume ratios, making them ideal.",
+      "type": "mcq"
+    },
+    {
+      "unit": 7,
+      "year": 2024,
+      "id": "materials_tn_143",
+      "hard": false,
+      "text": "Photovoltaic cells use nanomaterials for what primary purpose?",
+      "opts": [
+        "Energy storage",
+        "Energy harvesting",
+        "Thermal insulation",
+        "Mechanical reinforcement"
+      ],
+      "ans": 1,
+      "exp": "Photovoltaic (solar) cells 'harvest' energy from solar radiation to generate an electric current, distinct from energy storage mechanisms like batteries.",
+      "type": "mcq"
+    },
+    {
+      "unit": 7,
+      "year": 2024,
+      "id": "materials_tn_144",
+      "hard": false,
+      "text": "Why is the thermal conductivity of a Carbon Nanotube significantly higher than that of Silver?",
+      "opts": [
+        "Because CNTs contain more free electrons than Silver.",
+        "Because CNTs are much heavier than Silver.",
+        "Because CNTs swell when heated.",
+        "Because of the strong C-C covalent bonds facilitating rapid phonon transfer."
+      ],
+      "ans": 3,
+      "exp": "The stiff, strong carbon-carbon covalent bonds in a CNT transmit vibrations (phonons) much faster and more efficiently than the metallic bonds in silver.",
+      "type": "mcq"
+    },
+    {
+      "unit": 7,
+      "year": 2024,
+      "id": "materials_tn_145",
+      "hard": false,
+      "text": "Which of the following describes a 'nano object'?",
+      "opts": [
+        "A bulk piece of steel with microscopic grains.",
+        "A sponge with 10 nm wide pores inside.",
+        "A particle with a diameter of 50 nm.",
+        "A human hair."
+      ],
+      "ans": 2,
+      "exp": "A nano object must have at least one of its external physical boundaries (like the diameter of a particle) in the 1-100 nm range.",
+      "type": "mcq"
+    },
+    {
+      "unit": 7,
+      "year": 2024,
+      "id": "materials_tn_146",
+      "hard": false,
+      "text": "Is Graphene considered a nanomaterial?",
+      "opts": [
+        "No, because it can be seen with the naked eye.",
+        "Yes, because its thickness (one external dimension) is within the nanoscale.",
+        "No, because it is only made of carbon.",
+        "Yes, but only when rolled into a tube."
+      ],
+      "ans": 1,
+      "exp": "Even if a sheet of graphene is macroscopic in width and length, its thickness is only a single atom (roughly 0.3 nm), satisfying the requirement of having one dimension in the nanoscale.",
+      "type": "mcq"
+    },
+    {
+      "unit": 5,
+      "year": 2024,
+      "id": "materials_tn_147",
+      "hard": false,
+      "text": "In material selection taxonomy, what is the highest, most broad categorization level?",
+      "opts": [
+        "Family",
+        "Kingdom",
+        "Class",
+        "Member"
+      ],
+      "ans": 1,
+      "exp": "Similar to biological classification, Kingdoms (e.g., Metals, Ceramics, Polymers) represent the broadest top-level categories of materials.",
+      "type": "mcq"
+    },
+    {
+      "unit": 5,
+      "year": 2024,
+      "id": "materials_tn_148",
+      "hard": false,
+      "text": "Within the 'Metals' Kingdom, which of the following represents a 'Family'?",
+      "opts": [
+        "Alloy 6061",
+        "Ceramics",
+        "6000 series",
+        "Al-alloys"
+      ],
+      "ans": 3,
+      "exp": "A Family groups materials based on their base element. Under the Kingdom 'Metals', 'Al-alloys' (Aluminum alloys) is a Family.",
+      "type": "mcq"
+    },
+    {
+      "unit": 5,
+      "year": 2024,
+      "id": "materials_tn_149",
+      "hard": false,
+      "text": "In the hierarchical taxonomy of materials (Kingdom -> Family -> Class -> Sub-class -> Member), what corresponds to the 'Member'?",
+      "opts": [
+        "A broad group like Polymers.",
+        "A specific, individual material record with exact property values (e.g., 6061).",
+        "A property like Density.",
+        "A structural category like 5000 series."
+      ],
+      "ans": 1,
+      "exp": "The Member is the final node in the taxonomy tree, representing a tangible, specifiable individual material that an engineer could order.",
+      "type": "mcq"
+    },
+    {
+      "unit": 5,
+      "year": 2024,
+      "id": "materials_tn_150",
+      "hard": false,
+      "text": "What is the primary function of material selection software (like CES EduPack)?",
+      "opts": [
+        "To artificially synthesize new molecules.",
+        "To simulate the thermal degradation of polymers in real-time.",
+        "To store and filter material data based on hierarchical structure and attributes.",
+        "To automatically write the manufacturing G-code for CNC machines."
+      ],
+      "ans": 2,
+      "exp": "Selection software acts as an intelligent, searchable database. It organizes property data hierarchically to help engineers quickly filter and compare materials.",
+      "type": "mcq"
+    },
+    {
+      "unit": 5,
+      "year": 2024,
+      "id": "materials_tn_151",
+      "hard": false,
+      "text": "On an Ashby material selection chart plotting Strength vs. Density, which parameter is typically used to represent the 'Strength' of a Ceramic?",
+      "opts": [
+        "Yield Strength",
+        "Tensile failure strength",
+        "Modulus of Rupture (MOR)",
+        "Tensile tear strength"
+      ],
+      "ans": 2,
+      "exp": "Because ceramics are highly brittle and very difficult to test in pure tension without shattering prematurely, bend tests measuring the Modulus of Rupture (MOR) are used to define their strength.",
+      "type": "mcq"
+    },
+    {
+      "unit": 5,
+      "year": 2024,
+      "id": "materials_tn_152",
+      "hard": false,
+      "text": "When an engineer begins the material selection process, what is the critical first step?",
+      "opts": [
+        "Guessing a random metal.",
+        "Translate design requirements into functions, constraints, and objectives.",
+        "Testing all materials in the laboratory.",
+        "Purchasing the cheapest material available."
+      ],
+      "ans": 1,
+      "exp": "Before searching for a material, an engineer must strictly define what the part must do (function), the non-negotiable limits (constraints), and the parameters to optimize (objectives).",
+      "type": "mcq"
+    },
+    {
+      "unit": 5,
+      "year": 2024,
+      "id": "materials_tn_153",
+      "hard": false,
+      "text": "Which of the following is considered an 'Attribute' of a material Member in a database?",
+      "opts": [
+        "Metals",
+        "Density",
+        "Cu-alloys",
+        "6061"
+      ],
+      "ans": 1,
+      "exp": "Attributes are the specific numerical or qualitative properties (such as density, strength, thermal conductivity) assigned to a material Member.",
+      "type": "mcq"
+    },
+    {
+      "unit": 5,
+      "year": 2024,
+      "id": "materials_tn_154",
+      "hard": false,
+      "text": "In the material taxonomy, 'Hybrids' (like composites) are classified at what level?",
+      "opts": [
+        "As a Sub-class of Polymers.",
+        "As a specific Member.",
+        "As an Attribute.",
+        "As a Kingdom, alongside Metals, Ceramics, and Polymers."
+      ],
+      "ans": 3,
+      "exp": "Because hybrids combine materials from different fundamental groups to create unique structures, modern selection databases give them their own top-level Kingdom.",
+      "type": "mcq"
+    },
+    {
+      "unit": 5,
+      "year": 2024,
+      "id": "materials_tn_155",
+      "hard": false,
+      "text": "Conventional classification of materials groups them as Metals, Polymers, Ceramics, or Composites. What is this classification primarily based upon?",
+      "opts": [
+        "Only their biological origins.",
+        "Chemical, mechanical, and physical properties.",
+        "The country they were discovered in.",
+        "Their final cost in the market."
+      ],
+      "ans": 1,
+      "exp": "The traditional grouping relates strictly to the inherent chemical composition, physical nature, and mechanical behavior of the material.",
+      "type": "mcq"
+    },
+    {
+      "unit": 5,
+      "year": 2024,
+      "id": "materials_tn_156",
+      "hard": false,
+      "text": "How does 'Functional Classification' differ from conventional classification?",
+      "opts": [
+        "It classifies materials based purely on their color.",
+        "It applies only to nanomaterials.",
+        "It classifies materials based on whether their most important role is electronic, magnetic, optical, biomedical, etc., rather than just structural.",
+        "It ignores all physical properties."
+      ],
+      "ans": 2,
+      "exp": "Functional classification focuses on what the material actively 'does' (its application or response to stimuli) rather than just what it is chemically composed of.",
+      "type": "mcq"
+    },
+    {
+      "unit": 5,
+      "year": 2024,
+      "id": "materials_tn_157",
+      "hard": false,
+      "text": "What is a defining characteristic of 'Functional Materials'?",
+      "opts": [
+        "Their properties can be significantly changed in a controlled fashion by external stimuli.",
+        "They must have zero electrical conductivity.",
+        "They are exclusively used to hold up heavy loads.",
+        "They cannot be synthesized in a lab."
+      ],
+      "ans": 0,
+      "exp": "Functional materials are 'active'; their properties respond dynamically and predictably to external triggers like heat, pressure, or electric fields.",
+      "type": "mcq"
+    },
+    {
+      "unit": 5,
+      "year": 2024,
+      "id": "materials_tn_158",
+      "hard": false,
+      "text": "Which of the following falls under the category of Functional Materials?",
+      "opts": [
+        "A steel beam used in a bridge.",
+        "Concrete used in a foundation.",
+        "Wood used for a table.",
+        "A Piezoelectric crystal used in a pressure sensor."
+      ],
+      "ans": 3,
+      "exp": "The piezoelectric crystal performs an active function (converting pressure into an electrical signal) rather than just providing passive structural support.",
+      "type": "mcq"
+    },
+    {
+      "unit": 8,
+      "year": 2024,
+      "id": "materials_tn_159",
+      "hard": false,
+      "text": "In a Light Emitting Diode (LED), light is produced by a process called Electroluminescence. Where exactly does this occur?",
+      "opts": [
+        "In a vacuum tube.",
+        "Inside a carbon nanotube forest.",
+        "At a semiconductor p-n junction.",
+        "On the surface of a corroding metal."
+      ],
+      "ans": 2,
+      "exp": "LEDs are solid-state devices. The electroluminescence happens precisely at the junction boundary between the p-type and n-type semiconductor materials.",
+      "type": "mcq"
+    },
+    {
+      "unit": 8,
+      "year": 2024,
+      "id": "materials_tn_160",
+      "hard": false,
+      "text": "What atomic-level event actually releases the photon (light) in an LED?",
+      "opts": [
+        "The recombination of an electron (from the n-type) and a hole (from the p-type).",
+        "The breaking of a covalent carbon bond.",
+        "The vibration of a heavy metal nucleus.",
+        "The sudden expansion of the polymer matrix."
+      ],
+      "ans": 0,
+      "exp": "When a high-energy electron drops into a lower-energy 'hole', the excess energy it loses during that drop is emitted outward as a photon of light.",
+      "type": "mcq"
+    },
+    {
+      "unit": 8,
+      "year": 2024,
+      "id": "materials_tn_161",
+      "hard": false,
+      "text": "Why is electroluminescence considered highly efficient compared to traditional incandescent bulbs?",
+      "opts": [
+        "Because it produces massive amounts of heat.",
+        "Because it requires extremely high voltages to operate.",
+        "Because it uses mechanical friction to generate sparks.",
+        "Because it directly converts electrical energy into light with minimal heat."
+      ],
+      "ans": 3,
+      "exp": "Incandescence wastes energy by first heating a filament until it glows. Electroluminescence directly creates photons via electron drops, bypassing heat waste.",
+      "type": "mcq"
+    },
+    {
+      "unit": 8,
+      "year": 2024,
+      "id": "materials_tn_162",
+      "hard": false,
+      "text": "What specific property of the semiconductor material dictates the color of light emitted by an LED?",
+      "opts": [
+        "The physical size of the LED casing.",
+        "The energy bandgap of the semiconductor.",
+        "The density of the material.",
+        "The electrical resistance of the connecting wires."
+      ],
+      "ans": 1,
+      "exp": "The energy bandgap defines the exact energy drop an electron experiences. This specific quantum of energy determines the wavelength, and thus the color, of the emitted photon.",
+      "type": "mcq"
+    },
+    {
+      "unit": 8,
+      "year": 2024,
+      "id": "materials_tn_163",
+      "hard": false,
+      "text": "If you wanted to manufacture a Blue LED, which of the following materials would be most appropriate based on standard industrial use?",
+      "opts": [
+        "Gallium Arsenide Phosphide (GaAsP)",
+        "Polyethylene",
+        "Gallium Nitride (GaN) or Indium Gallium Nitride (InGaN)",
+        "Copper"
+      ],
+      "ans": 2,
+      "exp": "Gallium Nitride (GaN) and its alloys have the relatively large bandgap required to produce higher-energy blue and ultraviolet photons.",
+      "type": "mcq"
+    },
+    {
+      "unit": 8,
+      "year": 2024,
+      "id": "materials_tn_164",
+      "hard": false,
+      "text": "How can engineers fine-tune or modify the specific color emitted by an LED within a certain range?",
+      "opts": [
+        "By painting the semiconductor.",
+        "By stretching the semiconductor mechanically.",
+        "By submerging the LED in water.",
+        "By modifying the bandgap via doping."
+      ],
+      "ans": 3,
+      "exp": "Adding tiny amounts of impurity elements (doping) to the semiconductor lattice slightly shifts its energy levels, allowing engineers to tune the bandgap and the resulting color.",
+      "type": "mcq"
+    },
+    {
+      "unit": 8,
+      "year": 2024,
+      "id": "materials_tn_165",
+      "hard": false,
+      "text": "For a functional material to be useful in a practical device (like a sensor or LED), what else is required?",
+      "opts": [
+        "Proper integration into a whole device architecture (electrodes, casing, circuitry).",
+        "It must be structurally strong enough to hold up a building.",
+        "It only needs to be left alone; it works entirely by itself.",
+        "It must be cooled to absolute zero."
+      ],
+      "ans": 0,
+      "exp": "A functional material is only the active 'core'. It requires supporting electrodes, circuitry, and physical architecture to interface with the real world.",
+      "type": "mcq"
+    },
+    {
+      "unit": 8,
+      "year": 2024,
+      "id": "materials_tn_166",
+      "hard": false,
+      "text": "Under functional classification, into which category would a material used for an artificial hip joint fall?",
+      "opts": [
+        "Magnetic Materials",
+        "Optical Materials",
+        "Biomedical Materials",
+        "Energy Materials"
+      ],
+      "ans": 2,
+      "exp": "These materials are chosen and engineered specifically for their ability to safely interface and function alongside living biological tissue.",
+      "type": "mcq"
+    },
+    {
+      "unit": 8,
+      "year": 2024,
+      "id": "materials_tn_167",
+      "hard": false,
+      "text": "What distinguishes an 'intrinsically' conducting polymer (like PANI) from a composite conductive polymer?",
+      "opts": [
+        "The composite uses conjugated backbones, the intrinsic uses metal powder.",
+        "There is no difference; they are two names for the same thing.",
+        "Intrinsic polymers only conduct at extremely high temperatures.",
+        "The intrinsic polymer conducts due to its own molecular structure, while the composite relies on added conductive particles."
+      ],
+      "ans": 3,
+      "exp": "Intrinsic conducting polymers move electrons through their own chemical backbone (conjugated bonds). Composites are just standard insulating plastics with metal dust mixed in.",
+      "type": "mcq"
+    },
+    {
+      "unit": 8,
+      "year": 2024,
+      "id": "materials_tn_168",
+      "hard": false,
+      "text": "When a metal acts as the anode during corrosion, what happens to its physical state?",
+      "opts": [
+        "It grows thicker as it absorbs oxygen.",
+        "It transitions into a positively charged ion, often dissolving into the surrounding environment.",
+        "It becomes a perfect electrical insulator.",
+        "It turns into a polymer."
+      ],
+      "ans": 1,
+      "exp": "As the metal atoms lose electrons (oxidation), they become positively charged ions that detach from the solid metal lattice, causing the metal to dissolve or pit.",
+      "type": "mcq"
+    },
+    {
+      "unit": 8,
+      "year": 2024,
+      "id": "materials_tn_169",
+      "hard": false,
+      "text": "If an engineer is designing a highly efficient heat sink that needs to draw heat in one specific direction very rapidly without conducting electricity, which nanomaterial structure might be investigated?",
+      "opts": [
+        "A block of solid Silver.",
+        "A buckyball (C60) powder.",
+        "An aligned array of Carbon Nanotubes (CNTs).",
+        "A standard traditional polymer."
+      ],
+      "ans": 2,
+      "exp": "CNTs possess extreme axial thermal conductivity (they move heat efficiently in one direction) while acting as electrical insulators in the radial direction.",
+      "type": "mcq"
+    },
+    {
+      "unit": 8,
+      "year": 2024,
+      "id": "materials_tn_170",
+      "hard": false,
+      "text": "Which of the following describes the relationship between the bandgap of an LED semiconductor and the emitted light?",
+      "opts": [
+        "A wider bandgap results in a lower energy photon (red light).",
+        "The bandgap only controls brightness, not color.",
+        "There is no relationship between bandgap and light.",
+        "A wider bandgap results in a higher energy photon (e.g., blue or UV light)."
+      ],
+      "ans": 3,
+      "exp": "The larger the energy gap the electron falls across, the greater the energy of the resulting photon, shifting the light toward the higher-frequency (blue/UV) end of the spectrum.",
+      "type": "mcq"
+    }
+  ]
+}
