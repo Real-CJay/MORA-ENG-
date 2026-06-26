@@ -15,8 +15,10 @@ quiz/
 │   └── example_fig1.png
 │
 ├── quiz_manager.py            ← Add/edit subjects, units, questions interactively
-├── extract_questions.py       ← Strip questions out of quiz_data.js → skeleton
-├── merge_questions.py         ← Merge stripped questions back in
+|-- tools/
+|   |-- export_legacy_subjects.py <- Export subject_data chunks to JSON packs
+|   |-- validate_questions.py      <- Validate JSON question packs
+|   `-- registry_check.py          <- Validate semester/module registry
 │
 └── claude_prompt_generator.py ← Build a Claude prompt to answer past paper PDFs
 ```
@@ -201,7 +203,7 @@ python quiz_manager.py
 ```
 1. Manage questions in a subject   → add, delete, import, list questions
 2. Manage units in a subject       → rename, add, delete units
-3. Merge from extracted HTML       → re-insert questions stripped by extract_questions.py
+3. Export/validate legacy packs   -> use tools/export_legacy_subjects.py and tools/validate_questions.py
 4. Rename a subject                → change label, description, icon
 5. Add a new subject               → creates all arrays + SUBJECTS entry automatically
 6. Delete a subject                → removes all arrays and questions permanently
@@ -228,39 +230,24 @@ quiz_manager creates `THERMO_PAST_UNIT`, `THERMO_PAST_PAPER`, `THERMO_TARGET_HAR
 
 ---
 
-## Context Window Management (extract / merge)
+## Legacy Export and Validation
 
-When `quiz_data.js` grows large (thousands of questions), it may exceed Claude's
-context window. The extract/merge scripts solve this by temporarily stripping out
-the middle questions, leaving a small "skeleton" file.
+The old extract/merge helper workflow is no longer the documented path in this repo. Current question chunks live in `subject_data/*.js`, and Stage 2 exports them into JSON packs without changing the runtime data.
 
-### Extract (before uploading to Claude)
+Export the legacy subject chunks:
 
-```
-python extract_questions.py
-
-  Path to quiz_data.js    : quiz_data.js
-  Skeleton output filename: quiz_data_skeleton.js
-  Removed output filename : quiz_data_removed.html
+```powershell
+python tools/export_legacy_subjects.py
 ```
 
-This creates:
-- `quiz_data_skeleton.js` — tiny file with only first+last question per unit
-- `quiz_data_removed.html` — all the stripped questions, safe for storage
+Validate exported packs manually:
 
-Upload `quiz_data_skeleton.js` to Claude instead of the full file.
-
-### Merge (after Claude edits the skeleton)
-
-```
-python merge_questions.py
-
-  Skeleton JS filename: quiz_data_skeleton_updated.js
-  Removed HTML filename: quiz_data_removed.html
-  Output filename: quiz_data.js
+```powershell
+$packs = Get-ChildItem -Path content/question-packs -Recurse -Filter *.json | ForEach-Object { $_.FullName }
+python tools/validate_questions.py $packs
 ```
 
-Questions go back to exactly where they came from, in original order.
+The exported packs intentionally keep each question in the legacy flat shape. The adapter/renderer work happens in a later stage.
 
 ---
 
@@ -296,16 +283,15 @@ Questions can exist in both PAST_UNIT and PAST_PAPER if they fit both modes.
 - **Output**: saves back to `quiz_data.js` (or new file)
 - **Purpose**: all CRUD operations on subjects, units, questions
 
-### extract_questions.py
-- **Input**: `quiz_data.js` (or HTML if still using single-file mode)
-- **Output**: `_skeleton.js` + `_removed.html`
-- **Purpose**: shrink the data file before uploading to Claude
-- **Note**: skips `TIMER_PRESETS` and other non-question arrays automatically
+### tools/export_legacy_subjects.py
+- **Input**: `subject_data/*.js`
+- **Output**: `content/question-packs/<subject>/<bucket>.json`
+- **Purpose**: export current lazy-loaded legacy chunks into JSON packs
 
-### merge_questions.py
-- **Input**: skeleton JS + removed HTML
-- **Output**: merged `quiz_data.js`
-- **Purpose**: restore all questions after Claude edits the skeleton
+### tools/validate_questions.py
+- **Input**: schema v2 packs or exported legacy packs
+- **Output**: terminal validation report
+- **Purpose**: catch data-shape errors before runtime adapter work
 
 ### claude_prompt_generator.py
 - **Input**: interactive questions
@@ -338,8 +324,8 @@ Questions can exist in both PAST_UNIT and PAST_PAPER if they fit both modes.
 → Verify the filename in `img` matches exactly (case-sensitive on Linux/Mac).
 → Check the image is in the same folder as `index.html` (or `images/` subfolder).
 
-**extract_questions.py crashes with NameError: by_unit**
-→ You're running the old version. Replace it with `extract_questions_v2.py`.
+**Exported packs fail validation**
+-> Run `python tools/export_legacy_subjects.py` again and review the validator report. Legacy-format warnings are expected; validation errors need data review.
 
 **quiz_manager.py: UnicodeDecodeError on JSON import**
 → The JSON file has special characters (math symbols). This is fixed in the current

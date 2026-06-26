@@ -1,5 +1,11 @@
 # Local/dev helpers
 start.bat
+.env
+.env.*
+node_modules/
+supabase/.temp/
+__pycache__/
+*.pyc
 
 # Netlify-only files
 _headers
