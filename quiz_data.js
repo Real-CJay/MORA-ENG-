@@ -1,6 +1,27 @@
 // quiz_data.js - lightweight subject registry, counts, and constants
 // Question banks are lazy loaded from subject_data/*.js.
 
+const SEMESTERS = {
+  sem1: {
+    id: 'sem1',
+    label: 'Semester 1',
+    active: true,
+    hasDepartments: false,
+    departments: null,
+  },
+  sem2: {
+    id: 'sem2',
+    label: 'Semester 2',
+    active: true,
+    hasDepartments: true,
+    departments: {
+      civil: { id: 'civil', label: 'Civil Engineering' },
+      mechanical: { id: 'mechanical', label: 'Mechanical Engineering' },
+      eee: { id: 'eee', label: 'Electrical & Electronic Engineering' },
+    },
+  },
+};
+
 const SUBJECT_COUNTS = {
   "materials": {
     "pastUnit": {
@@ -118,6 +139,8 @@ const SUBJECTS = {
   materials: {
     key: 'materials',
     label: 'Materials Science',
+    semesterId: 'sem1',
+    departmentIds: ['all'],
     icon: '⚗️',
     color: '#6c8bef',
     colorBg: '#1a2040',
@@ -138,6 +161,8 @@ const SUBJECTS = {
   mechanics: {
     key: 'mechanics',
     label: 'Mechanics',
+    semesterId: 'sem1',
+    departmentIds: ['all'],
     icon: '⚙️',
     color: '#4ade80',
     colorBg: '#0d2b1a',
@@ -157,6 +182,8 @@ const SUBJECTS = {
   fluid: {
     key: 'fluid',
     label: 'Fluid Mechanics',
+    semesterId: 'sem1',
+    departmentIds: ['all'],
     icon: '💧',
     color: '#38bdf8',
     colorBg: '#0c1f2e',
@@ -176,6 +203,8 @@ const SUBJECTS = {
   cs: {
     key: 'cs',
     label: 'Computer Science',
+    semesterId: 'sem1',
+    departmentIds: ['all'],
     icon: '💻',
     color: '#f59e0b',
     colorBg: '#2b1e05',
@@ -195,6 +224,8 @@ const SUBJECTS = {
   math: {
     key: 'math',
     label: 'Mathematics',
+    semesterId: 'sem1',
+    departmentIds: ['all'],
     icon: '📐',
     color: '#a78bfa',
     colorBg: '#1a1040',
@@ -212,6 +243,42 @@ const SUBJECTS = {
     progressKeyTarget: 'msq_target_progress_math',
   },
 };
+
+function getSemesters() {
+  return Object.values(SEMESTERS)
+    .map((semester, index) => ({ semester, index }))
+    .sort((a, b) => {
+      if (Boolean(a.semester.active) !== Boolean(b.semester.active)) {
+        return a.semester.active ? -1 : 1;
+      }
+      return a.index - b.index;
+    })
+    .map(entry => entry.semester);
+}
+
+function getDepartments(semesterId) {
+  const semester = SEMESTERS[semesterId];
+  if (!semester || !semester.hasDepartments) return null;
+  return Object.values(semester.departments || {});
+}
+
+function getModules(semesterId, departmentId) {
+  const semester = SEMESTERS[semesterId];
+  if (!semester) return [];
+
+  return Object.values(SUBJECTS).filter(subject => {
+    if (subject.semesterId !== semesterId) return false;
+    if (!semester.hasDepartments) return true;
+
+    const departmentIds = Array.isArray(subject.departmentIds) ? subject.departmentIds : [];
+    return departmentIds.includes('all') || Boolean(departmentId && departmentIds.includes(departmentId));
+  });
+}
+
+function isArchived(semesterId) {
+  const semester = SEMESTERS[semesterId];
+  return Boolean(semester && !semester.active);
+}
 
 const letters = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
 

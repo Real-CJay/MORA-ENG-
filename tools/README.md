@@ -6,6 +6,8 @@ Stage 1 adds a schema foundation and validator for future question packs. These 
 
 - `tools/validate_questions.py` validates schemaVersion 2 JSON packs and accepts legacy flat questions with migration warnings.
 - `tools/question_schema.md` documents the block-based schema.
+- `tools/registry_check.py` validates the semester/department subject registry in `quiz_data.js`.
+- `tools/registry_schema.md` documents the programme registry shape for semesters, departments, and shared modules.
 - `examples/sample_questions.json` is a clean mixed-content demo pack.
 - `examples/sample_with_errors.json` is an intentionally broken demo pack.
 
@@ -43,6 +45,16 @@ python tools/validate_questions.py --images-root . examples/sample_questions.jso
 - `1`: at least one validation error was found, or a file could not be parsed/read.
 
 Warnings do not fail the command. They are intended for migration hints and data-quality cleanup.
+
+## Validate Programme Registry
+
+Run from the app root:
+
+```powershell
+python tools/registry_check.py
+```
+
+This checks that every subject points at a real semester, department-specific modules point at real departments, and archived/shared-module cases are visible in the report.
 
 ## Schema Notes
 
