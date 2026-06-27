@@ -15,7 +15,7 @@
         <p class="preview-kicker">Standalone development preview</p>
         <h1>Mora Quiz Question Renderer</h1>
       </div>
-      <p id="preview-status" class="preview-status">Loading examples/sample_questions.json...</p>
+      <p id="preview-status" class="preview-status">Loading examples/renderer_preview_fixtures.json...</p>
     </header>
 
     <section class="preview-note">
@@ -34,29 +34,55 @@
 
     const status = document.getElementById('preview-status');
     const list = document.getElementById('preview-list');
+    const previewSource = '../examples/renderer_preview_fixtures.json';
 
-    function questionLabel(question, index) {
-      const id = question.id ? ` - ${question.id}` : '';
-      const type = question.type ? ` (${question.type})` : '';
-      return `Sample ${index + 1}${type}${id}`;
+    function fixtureInfo(pack, question) {
+      return question.id ? pack.previewFixtures?.[question.id] || null : null;
+    }
+
+    function questionLabel(question, index, fixture) {
+      const fixtureName = fixture?.label || question.type || 'Question';
+      return `Fixture ${index + 1}: ${fixtureName}`;
+    }
+
+    function appendFixtureMeta(wrapper, question, fixture) {
+      const meta = document.createElement('div');
+      meta.className = 'preview-fixture-meta';
+
+      const details = document.createElement('p');
+      details.className = 'preview-fixture-id';
+      details.textContent = `${question.id || 'missing id'} - ${question.type || 'legacy/adapted'}`;
+      meta.appendChild(details);
+
+      if (fixture?.expected) {
+        const expected = document.createElement('p');
+        expected.className = 'preview-fixture-expected';
+        expected.textContent = `Expected: ${fixture.expected}`;
+        meta.appendChild(expected);
+      }
+
+      wrapper.appendChild(meta);
     }
 
     async function loadPreview() {
       try {
-        const response = await fetch('../examples/sample_questions.json', { cache: 'no-store' });
+        const response = await fetch(previewSource, { cache: 'no-store' });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const pack = normalizePack(await response.json());
 
-        status.textContent = `Loaded ${pack.questions.length} sample questions from examples/sample_questions.json.`;
+        status.textContent = `Loaded ${pack.questions.length} preview fixtures from examples/renderer_preview_fixtures.json.`;
         list.replaceChildren();
 
         pack.questions.forEach((question, index) => {
+          const fixture = fixtureInfo(pack, question);
           const wrapper = document.createElement('section');
           wrapper.className = 'preview-card';
+          if (question.id) wrapper.dataset.fixtureId = question.id;
 
           const title = document.createElement('h2');
-          title.textContent = questionLabel(question, index);
+          title.textContent = questionLabel(question, index, fixture);
           wrapper.appendChild(title);
+          appendFixtureMeta(wrapper, question, fixture);
 
           const mount = document.createElement('div');
           wrapper.appendChild(mount);
@@ -65,7 +91,7 @@
           renderQuestion(mount, question, pack, { questionNumber: index + 1 });
         });
       } catch (error) {
-        status.textContent = 'Failed to load examples/sample_questions.json.';
+        status.textContent = 'Failed to load examples/renderer_preview_fixtures.json.';
         const message = document.createElement('pre');
         message.className = 'preview-error';
         message.textContent = String(error && error.message ? error.message : error);

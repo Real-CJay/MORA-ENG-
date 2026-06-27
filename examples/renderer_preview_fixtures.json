@@ -1,0 +1,357 @@
+{
+  "schemaVersion": 2,
+  "subject": "preview",
+  "bucket": "pastPaper",
+  "stimuli": {
+    "PREVIEW_COMMON_PASSAGE": {
+      "title": "Shared battery passage",
+      "body": [
+        {
+          "type": "text",
+          "value": "A simple circuit has a 12 V battery connected to two identical lamps in series. Use this same passage for the next two questions."
+        }
+      ]
+    }
+  },
+  "images": {
+    "preview_existing_cs_figure": {
+      "src": "/IMAGES/CS/Past Papers/pp_2022_Batch_20_FIG1.png",
+      "alt": "Existing CS past-paper figure used only to verify the preview renderer image block.",
+      "caption": "Existing repository image path used by the preview fixture."
+    }
+  },
+  "previewFixtures": {
+    "PREVIEW_PLAIN_MCQ": {
+      "label": "Plain MCQ",
+      "expected": "Selecting B should be correct. This fixture has no math, image, table, or code blocks."
+    },
+    "PREVIEW_MATH_FRACTION": {
+      "label": "Math block with fraction",
+      "expected": "The display math should render as a real KaTeX fraction for a over b; without KaTeX it should remain visible as plain LaTeX."
+    },
+    "PREVIEW_CODE_BLOCK": {
+      "label": "Code block",
+      "expected": "The HTML-like text should display as escaped code and must not create real page elements."
+    },
+    "PREVIEW_TABLE_BLOCK": {
+      "label": "Table block",
+      "expected": "The header row and body rows should render as a table. Selecting C should be correct."
+    },
+    "PREVIEW_IMAGE_BLOCK": {
+      "label": "Image block",
+      "expected": "The existing repository image should load with alt text and caption. Selecting A should be correct."
+    },
+    "PREVIEW_MULTI_SELECT": {
+      "label": "Multi-select",
+      "expected": "Selecting A and C together should be correct; selecting only one should be incorrect."
+    },
+    "PREVIEW_NUMERIC_TOLERANCE": {
+      "label": "Numeric tolerance",
+      "expected": "Entering 10.4 should be correct because it is within 5% of 10."
+    },
+    "PREVIEW_TEXT_ANY": {
+      "label": "Text answer, matchMode any",
+      "expected": "Entering either EU or European Union should be correct."
+    },
+    "PREVIEW_TEXT_ALL": {
+      "label": "Text answer, matchMode all",
+      "expected": "Two input boxes should appear; metre and kilogram are both required."
+    },
+    "PREVIEW_SELF_MARK": {
+      "label": "Manual/self-mark",
+      "expected": "Show model answer should reveal the explanation and then show self-mark buttons."
+    },
+    "PREVIEW_SHARED_STIMULUS_Q1": {
+      "label": "Shared stimulus MCQ 1",
+      "expected": "The shared battery passage should appear above this question. Selecting B should be correct."
+    },
+    "PREVIEW_SHARED_STIMULUS_Q2": {
+      "label": "Shared stimulus MCQ 2",
+      "expected": "The same shared battery passage should appear here too. Selecting C should be correct."
+    },
+    "PREVIEW_LEGACY_ESCAPED": {
+      "label": "Legacy adapted question",
+      "expected": "The legacy flat question should render through the adapter, and angle-bracket text should remain plain text, not HTML."
+    }
+  },
+  "questions": [
+    {
+      "id": "PREVIEW_PLAIN_MCQ",
+      "type": "mcq",
+      "body": [
+        {
+          "type": "text",
+          "value": "Which option is the ordinary plain-text answer?"
+        }
+      ],
+      "options": [
+        { "label": "a", "body": [{ "type": "text", "value": "First" }] },
+        { "label": "b", "body": [{ "type": "text", "value": "Second" }] },
+        { "label": "c", "body": [{ "type": "text", "value": "Third" }] }
+      ],
+      "answer": { "mode": "single", "value": "b" },
+      "explanation": [
+        { "type": "text", "value": "This is the smallest plain MCQ fixture." }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "PREVIEW_MATH_FRACTION",
+      "type": "mcq",
+      "body": [
+        {
+          "type": "text",
+          "value": "The block below should exercise display math rendering."
+        },
+        {
+          "type": "math",
+          "latex": "\\frac{a}{b}",
+          "display": true
+        }
+      ],
+      "options": [
+        { "label": "a", "body": [{ "type": "text", "value": "A fraction with numerator a and denominator b" }] },
+        { "label": "b", "body": [{ "type": "text", "value": "A product of a and b" }] },
+        { "label": "c", "body": [{ "type": "text", "value": "A sum of a and b" }] }
+      ],
+      "answer": { "mode": "single", "value": "a" },
+      "explanation": [
+        {
+          "type": "math",
+          "latex": "\\frac{a}{b}",
+          "display": true
+        }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "PREVIEW_CODE_BLOCK",
+      "type": "mcq",
+      "body": [
+        {
+          "type": "text",
+          "value": "The code block intentionally includes script-like text."
+        },
+        {
+          "type": "code",
+          "language": "html",
+          "value": "<section data-preview=\"safe\">Displayed as code, not HTML.</section>\nconst escaped = \"&lt;script&gt;\";"
+        }
+      ],
+      "options": [
+        { "label": "a", "body": [{ "type": "text", "value": "It should create real page elements" }] },
+        { "label": "b", "body": [{ "type": "text", "value": "It should display as code" }] },
+        { "label": "c", "body": [{ "type": "text", "value": "It should disappear" }] }
+      ],
+      "answer": { "mode": "single", "value": "b" },
+      "explanation": [
+        { "type": "text", "value": "Code blocks use textContent, so script-like text is escaped." }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "PREVIEW_TABLE_BLOCK",
+      "type": "mcq",
+      "body": [
+        {
+          "type": "text",
+          "value": "Use the table to choose the correct symbol."
+        },
+        {
+          "type": "table",
+          "header": true,
+          "rows": [
+            ["Quantity", "Symbol"],
+            ["Density", "rho"],
+            ["Dynamic viscosity", "mu"],
+            ["Kinematic viscosity", "nu"]
+          ]
+        }
+      ],
+      "options": [
+        { "label": "a", "body": [{ "type": "text", "value": "rho" }] },
+        { "label": "b", "body": [{ "type": "text", "value": "mu" }] },
+        { "label": "c", "body": [{ "type": "text", "value": "nu" }] }
+      ],
+      "answer": { "mode": "single", "value": "c" },
+      "explanation": [
+        { "type": "text", "value": "The table maps kinematic viscosity to nu." }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "PREVIEW_IMAGE_BLOCK",
+      "type": "image_based",
+      "body": [
+        {
+          "type": "text",
+          "value": "This fixture verifies that an image block can resolve an existing image asset."
+        },
+        {
+          "type": "image",
+          "assetId": "preview_existing_cs_figure"
+        }
+      ],
+      "options": [
+        { "label": "a", "body": [{ "type": "text", "value": "The image loads from the registry" }] },
+        { "label": "b", "body": [{ "type": "text", "value": "The image is missing" }] },
+        { "label": "c", "body": [{ "type": "text", "value": "The image is rendered as code" }] }
+      ],
+      "answer": { "mode": "single", "value": "a" },
+      "explanation": [
+        { "type": "text", "value": "The image is declared in the pack-level image registry." }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "PREVIEW_MULTI_SELECT",
+      "type": "multi_select",
+      "body": [
+        {
+          "type": "text",
+          "value": "Select all even numbers."
+        }
+      ],
+      "options": [
+        { "label": "a", "body": [{ "type": "text", "value": "2" }] },
+        { "label": "b", "body": [{ "type": "text", "value": "3" }] },
+        { "label": "c", "body": [{ "type": "text", "value": "4" }] },
+        { "label": "d", "body": [{ "type": "text", "value": "5" }] }
+      ],
+      "answer": { "mode": "multiple", "value": ["a", "c"] },
+      "explanation": [
+        { "type": "text", "value": "2 and 4 are even." }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "PREVIEW_NUMERIC_TOLERANCE",
+      "type": "numeric",
+      "body": [
+        {
+          "type": "text",
+          "value": "Enter a value within 5% of 10."
+        }
+      ],
+      "answer": {
+        "mode": "numeric",
+        "value": 10,
+        "tolerance": 0.05,
+        "toleranceType": "relative"
+      },
+      "explanation": [
+        { "type": "text", "value": "Five percent of 10 is 0.5, so values from 9.5 to 10.5 are accepted." }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "PREVIEW_TEXT_ANY",
+      "type": "short_answer",
+      "body": [
+        {
+          "type": "text",
+          "value": "Write the abbreviation or full name for the European Union."
+        }
+      ],
+      "answer": {
+        "mode": "text",
+        "value": ["EU", "European Union"],
+        "matchMode": "any"
+      },
+      "explanation": [
+        { "type": "text", "value": "Either accepted phrasing is enough." }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "PREVIEW_TEXT_ALL",
+      "type": "short_answer",
+      "body": [
+        {
+          "type": "text",
+          "value": "Name both SI base units requested here: length and mass."
+        }
+      ],
+      "answer": {
+        "mode": "text",
+        "value": ["metre", "kilogram"],
+        "matchMode": "all"
+      },
+      "explanation": [
+        { "type": "text", "value": "The SI base unit for length is metre, and for mass is kilogram." }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "PREVIEW_SELF_MARK",
+      "type": "structured",
+      "body": [
+        {
+          "type": "text",
+          "value": "Explain in one or two sentences why a convergent real sequence is Cauchy."
+        }
+      ],
+      "answer": { "mode": "self_mark", "value": null },
+      "explanation": [
+        {
+          "type": "text",
+          "value": "If x_n converges to L, then for large m and n, both x_m and x_n are close to L, so the triangle inequality makes them close to each other."
+        }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "PREVIEW_SHARED_STIMULUS_Q1",
+      "type": "mcq",
+      "stimulusId": "PREVIEW_COMMON_PASSAGE",
+      "body": [
+        {
+          "type": "text",
+          "value": "What is the battery voltage in the shared passage?"
+        }
+      ],
+      "options": [
+        { "label": "a", "body": [{ "type": "text", "value": "6 V" }] },
+        { "label": "b", "body": [{ "type": "text", "value": "12 V" }] },
+        { "label": "c", "body": [{ "type": "text", "value": "24 V" }] }
+      ],
+      "answer": { "mode": "single", "value": "b" },
+      "explanation": [
+        { "type": "text", "value": "The passage states that the battery is 12 V." }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "PREVIEW_SHARED_STIMULUS_Q2",
+      "type": "mcq",
+      "stimulusId": "PREVIEW_COMMON_PASSAGE",
+      "body": [
+        {
+          "type": "text",
+          "value": "How are the two lamps connected?"
+        }
+      ],
+      "options": [
+        { "label": "a", "body": [{ "type": "text", "value": "Parallel" }] },
+        { "label": "b", "body": [{ "type": "text", "value": "Not connected" }] },
+        { "label": "c", "body": [{ "type": "text", "value": "Series" }] }
+      ],
+      "answer": { "mode": "single", "value": "c" },
+      "explanation": [
+        { "type": "text", "value": "The passage says the lamps are in series." }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "PREVIEW_LEGACY_ESCAPED",
+      "unit": 1,
+      "year": "2024",
+      "context": "Legacy context should become safe text.",
+      "text": "Legacy flat text with <strong>angle-bracket markup</strong> should not become real HTML.",
+      "opts": ["Render HTML", "Escape as text", "Drop the text"],
+      "ans": "b",
+      "exp": "Legacy explanation with <em>tags</em> is adapted as plain text.",
+      "type": "mcq"
+    }
+  ]
+}
