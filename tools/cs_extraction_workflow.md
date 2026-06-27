@@ -2,19 +2,42 @@
 
 This workflow is for rebuilding CS1033 Programming Fundamentals past-paper data as typed block JSON. It is tooling only. Do not wire the Stage 3 renderer into the live quiz flow, and do not import CS data without manual approval.
 
-## 1. Prepare Page Images
-
-Export page images or page crops for the small group you want Claude to read. Page images are preferred for code-heavy or layout-heavy questions because Claude can see indentation, tables, flowcharts, and shared figures.
-
-Use the PDF as the document source, but treat page images as the source of truth during extraction. Parsed PDF text is only a helper.
-
-## 2. Generate Grouped Claude Prompts
-
-Run from the app root:
+The normal user-facing entry point is:
 
 ```powershell
 python tools\cs_block_prompt_generator.py
 ```
+
+Use `tools\pdf_image_extractor.py` only through the CS tool's image converter/cropper option, or directly if you need to debug the cropper.
+
+## Simple Workflow
+
+1. Run `python tools\cs_block_prompt_generator.py`.
+2. Choose `Generate grouped Claude prompts`.
+3. Paste each prompt into Claude with the relevant page image(s).
+4. Save each Claude group output JSON.
+5. Run `python tools\cs_block_prompt_generator.py` again.
+6. Choose `Review a Claude group output JSON`.
+7. Choose `Merge reviewed group output JSON files into one full paper JSON`.
+8. Choose `Review a merged full paper JSON`.
+9. Crop images with `pdf_image_extractor.py` only if needed.
+10. Preview manually before import.
+
+Do not ask Claude to convert the full 80-question paper at once.
+
+## Menu Options
+
+```text
+1. Generate grouped Claude prompts
+2. Review a Claude group output JSON
+3. Merge reviewed group output JSON files into one full paper JSON
+4. Review a merged full paper JSON
+5. Show workflow/help
+6. Open image converter/cropper
+0. Exit
+```
+
+## Generate Grouped Prompts
 
 The generator asks for:
 
@@ -38,15 +61,11 @@ Use small groups such as:
 62-65 pages 17-18 | shared linked-list code
 ```
 
-Do not ask Claude to convert the full 80-question paper at once.
+Page images are the source of truth for layout, indentation, tables, flowcharts, shared figures, and option text. Parsed PDF text is only a helper.
 
-## 3. Attach Only Relevant Images
+## Review Group Output
 
-Open a new Claude chat for each group. Attach only the relevant page image(s) or crops for that prompt. If the prompt includes parsed text, use it only as a helper and resolve conflicts from the page image.
-
-## 4. Paste One Prompt Per Group
-
-Paste one generated prompt for the group. Claude should return JSON only, with this top-level shape:
+Save each Claude response as a `.json` file with this top-level shape:
 
 ```json
 {
@@ -55,40 +74,45 @@ Paste one generated prompt for the group. Claude should return JSON only, with t
 }
 ```
 
-Use typed blocks for the question body and explanations. Do not add an `html` block type. Keep HTML-like source text escaped/plain unless it has been manually converted into typed blocks.
+Then choose `Review a Claude group output JSON` in the CS tool. The review reports missing IDs, duplicate IDs, missing source pages, missing question numbers, option-count issues, code accidentally placed in text blocks, raw HTML-like tags in explanation blocks, flattened I/II/III statements, suspicious one-line Python code, missing image paths, and answer indexes outside the options array.
 
-## 5. Save Claude Output JSON
-
-Save each Claude response as a `.json` file. Keep the group files separate until they have passed review.
-
-## 6. Run CS Extraction Review
-
-Run:
+The existing direct review command still works:
 
 ```powershell
 python tools\cs_extraction_review.py path\to\claude-output.json
 ```
 
-The review script reports missing IDs, duplicate IDs, missing source pages, missing question numbers, option-count issues, code accidentally placed in text blocks, raw HTML-like tags in explanation blocks, flattened I/II/III statements, suspicious one-line Python code, missing image paths, and answer indexes outside the options array.
+## Merge Group Outputs
 
-The script does not modify files.
+Choose `Merge reviewed group output JSON files into one full paper JSON`. You can provide a folder containing group JSON files or semicolon-separated explicit file paths.
 
-## 7. Crop Image Blocks If Needed
+The merge keeps the shape:
 
-If the JSON contains image blocks, run:
+```json
+{
+  "questions": [],
+  "defects": []
+}
+```
+
+Before writing anything, the tool reports total group files, total questions, total defects, duplicate IDs, duplicate question numbers, missing question numbers when an expected range is supplied, option count issues, answer index issues, raw HTML-like tags, code-looking text inside text blocks, and suspicious one-line code blocks.
+
+The tool writes the merged JSON only after you confirm. It does not modify input files.
+
+## Image Converter/Cropper
+
+After merging and reviewing the full paper JSON, choose `Open image converter/cropper` from the CS tool if the paper has image blocks. Then provide the PDF path when the image tool asks for it.
+
+The CS tool launches the existing cropper:
 
 ```powershell
 python tools\pdf_image_extractor.py
 ```
 
-Use it to crop the referenced figures from the PDF after saving Claude output. The extractor keeps old top-level `img` support and can update `img` inside `blocks` and `explanationBlocks`.
-
 Do not write actual crop output into `IMAGES/` during this tooling stage unless that specific test output has been approved.
 
-## 8. Preview Visually
+## Preview And Import
 
 Use the dev preview workflow to inspect rendered questions. Pay special attention to Python indentation, pseudo-code indentation, I/II/III statement grouping, shared figures, flowcharts, tables, and output blocks.
 
-## 9. Import Only After Approval
-
-Only import reviewed CS data after manual approval. This stage creates the safer extraction workflow; it does not start Stage 4.1 and does not restore CS to the live app.
+Only import reviewed CS data after manual approval. This stage simplifies the extraction workflow; it does not start Stage 4.1 and does not restore CS to the live app.

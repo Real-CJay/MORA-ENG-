@@ -1,22 +1,51 @@
 #!/usr/bin/env python3
-"""Generate grouped Claude prompts for CS block-schema extraction.
+"""Main CS block-schema extraction workflow tool.
 
-This tool is intentionally CS-specific for the first extraction stage. It does
-not import questions into the app and does not rewrite the older prompt
-generator. It creates one prompt file per small question group so code-heavy
-CS1033 papers can be extracted safely into typed block JSON.
+This tool is intentionally CS-specific for the first extraction stage. It keeps
+prompt generation, review, and full-paper merge in one user-facing menu so the
+normal workflow starts with:
+
+    python tools/cs_block_prompt_generator.py
 """
 
 from __future__ import annotations
 
+import json
+import os
 import re
+import subprocess
+import sys
 import textwrap
+from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
+
+try:
+    from cs_extraction_review import (
+        Review,
+        find_json_files,
+        load_payload,
+        normalize_payload,
+        print_review,
+        review_file,
+        review_question,
+    )
+except ImportError:  # pragma: no cover - useful only if imported as a package
+    from .cs_extraction_review import (  # type: ignore
+        Review,
+        find_json_files,
+        load_payload,
+        normalize_payload,
+        print_review,
+        review_file,
+        review_question,
+    )
 
 
 DEFAULT_MODULE = "CS1033 Programming Fundamentals"
 DEFAULT_YEAR = "2024"
+SCRIPT_DIR = Path(__file__).resolve().parent
 
 
 @dataclass(frozen=True)
@@ -347,7 +376,317 @@ def write_prompts(
     return written
 
 
-def main() -> int:
+def ask_yes_no(prompt: str, default: bool = False) -> bool:
+    suffix = "[Y/n]" if default else "[y/N]"
+    raw = ask(f"{prompt} {suffix}", "").lower()
+    if not raw:
+        return default
+    return raw in {"y", "yes"}
+
+
+def parse_int(value: Any) -> int | None:
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return value
+    if isinstance(value, str):
+        stripped = value.strip()
+        if stripped.isdigit():
+            return int(stripped)
+    return None
+
+
+def question_number(question: dict[str, Any]) -> int | None:
+    source = question.get("source")
+    if isinstance(source, dict):
+        parsed = parse_int(source.get("questionNumber"))
+        if parsed is not None:
+            return parsed
+    return None
+
+
+def id_question_number(question: dict[str, Any]) -> int | None:
+    qid = question.get("id")
+    if not isinstance(qid, str):
+        return None
+    q_match = re.search(r"(?:^|[_-])Q(\d+)$", qid, re.IGNORECASE)
+    if q_match:
+        return int(q_match.group(1))
+    numbers = re.findall(r"\d+", qid)
+    if numbers:
+        return int(numbers[-1])
+    return None
+
+
+def question_sort_key(item: tuple[int, dict[str, Any]]) -> tuple[int, int, int]:
+    original_index, question = item
+    qno = question_number(question)
+    if qno is not None:
+        return (0, qno, original_index)
+    id_qno = id_question_number(question)
+    if id_qno is not None:
+        return (1, id_qno, original_index)
+    return (2, original_index, original_index)
+
+
+def parse_expected_range(raw: str) -> set[int]:
+    expected: set[int] = set()
+    raw = raw.strip()
+    if not raw:
+        return expected
+    for part in raw.split(","):
+        part = part.strip()
+        if not part:
+            continue
+        match = re.fullmatch(r"(\d+)\s*[-:]\s*(\d+)", part)
+        if match:
+            start = int(match.group(1))
+            end = int(match.group(2))
+            if end < start:
+                start, end = end, start
+            expected.update(range(start, end + 1))
+            continue
+        if part.isdigit():
+            expected.add(int(part))
+            continue
+        raise ValueError(f"could not parse expected range part: {part!r}")
+    return expected
+
+
+def collect_review_paths() -> list[Path]:
+    raw = ask("JSON file/folder, or semicolon-separated JSON files")
+    if not raw:
+        return []
+    parts = [p.strip() for p in raw.split(";") if p.strip()] if ";" in raw else [raw]
+    return find_json_files(parts)
+
+
+def collect_group_paths() -> list[Path]:
+    raw = ask("Group JSON folder, or semicolon-separated group JSON files")
+    if not raw:
+        return []
+
+    if ";" in raw:
+        paths = [normalize_path(part) for part in raw.split(";") if part.strip()]
+    else:
+        path = normalize_path(raw)
+        if path.is_dir():
+            paths = sorted(path.glob("*.json"))
+        else:
+            paths = [path]
+
+    valid_paths: list[Path] = []
+    for path in paths:
+        if path.is_file():
+            valid_paths.append(path)
+        else:
+            print(f"Skipping missing file: {path}")
+    return valid_paths
+
+
+def build_review_from_questions(
+    label: str,
+    questions: list[dict[str, Any]],
+    defects: list[Any],
+) -> Review:
+    review = Review(label)
+    review.total_questions = len(questions)
+    review.total_defects = len(defects)
+
+    ids = [q.get("id") for q in questions if isinstance(q.get("id"), str) and q.get("id")]
+    for qid, count in Counter(ids).items():
+        if count > 1:
+            review.add("duplicate IDs", f"{qid}: {count} occurrences")
+
+    for index, question in enumerate(questions):
+        review_question(review, question, index)
+
+    return review
+
+
+def duplicate_question_numbers(questions: list[dict[str, Any]]) -> list[str]:
+    counts = Counter(
+        qno for qno in (question_number(question) for question in questions)
+        if qno is not None
+    )
+    return [f"Q{qno}: {count} occurrences" for qno, count in sorted(counts.items()) if count > 1]
+
+
+def print_issue_list(label: str, items: list[str]) -> None:
+    print(f"  {label}: {len(items)}")
+    for item in items:
+        print(f"    - {item}")
+
+
+def print_merge_summary(
+    *,
+    group_count: int,
+    questions: list[dict[str, Any]],
+    defects: list[Any],
+    review: Review,
+    expected_numbers: set[int],
+) -> None:
+    present_numbers = {
+        qno for qno in (question_number(question) for question in questions)
+        if qno is not None
+    }
+    missing_numbers = sorted(expected_numbers - present_numbers) if expected_numbers else []
+
+    print()
+    print("Merge summary")
+    print(f"  total group files: {group_count}")
+    print(f"  total questions: {len(questions)}")
+    print(f"  total defects: {len(defects)}")
+    print_issue_list("duplicate IDs", review.issues["duplicate IDs"])
+    print_issue_list("duplicate question numbers", duplicate_question_numbers(questions))
+    if expected_numbers:
+        print_issue_list("missing question numbers", [f"Q{number}" for number in missing_numbers])
+    print_issue_list("option count issues", review.issues["option count not equal to 5"])
+    print_issue_list("answer index issues", review.issues["answer index out of range"])
+    print_issue_list("raw HTML-like tags", review.issues["raw HTML-like tags in explanation blocks"])
+    print_issue_list("code-looking content inside text blocks", review.issues["code-looking text inside text blocks"])
+    print_issue_list("suspicious one-line code blocks", review.issues["suspicious one-line Python code"])
+
+
+def merge_group_files(paths: list[Path]) -> tuple[list[dict[str, Any]], list[Any]]:
+    questions_with_order: list[tuple[int, dict[str, Any]]] = []
+    defects: list[Any] = []
+    order = 0
+
+    for path in paths:
+        payload = load_payload(path)
+        questions, group_defects = normalize_payload(payload)
+        for question in questions:
+            questions_with_order.append((order, question))
+            order += 1
+        defects.extend(group_defects)
+
+    sorted_questions = [
+        question for _, question in sorted(questions_with_order, key=question_sort_key)
+    ]
+    return sorted_questions, defects
+
+
+def write_merged_json(output_path: Path, questions: list[dict[str, Any]], defects: list[Any]) -> None:
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {"questions": questions, "defects": defects}
+    output_path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
+def run_review_menu(label: str) -> bool:
+    print()
+    print(label)
+    paths = collect_review_paths()
+    if not paths:
+        print("No JSON files selected.")
+        return False
+
+    reviewed_any = False
+    for path in paths:
+        try:
+            review = review_file(path)
+        except Exception as exc:
+            print(f"\n{path}")
+            print(f"  error: {exc}")
+            continue
+        print_review(review)
+        reviewed_any = True
+    return reviewed_any
+
+
+def run_merge_menu() -> bool:
+    print()
+    print("Merge reviewed group output JSON files")
+    paths = collect_group_paths()
+    if not paths:
+        print("No group JSON files selected.")
+        return False
+
+    expected_numbers: set[int] = set()
+    expected_raw = ask("Expected question range, for example 1-80, blank to skip", "")
+    if expected_raw:
+        try:
+            expected_numbers = parse_expected_range(expected_raw)
+        except ValueError as exc:
+            print(f"Invalid expected range: {exc}")
+            return False
+
+    try:
+        questions, defects = merge_group_files(paths)
+    except Exception as exc:
+        print(f"Could not merge group files: {exc}")
+        return False
+
+    review = build_review_from_questions("merged candidate", questions, defects)
+    print_merge_summary(
+        group_count=len(paths),
+        questions=questions,
+        defects=defects,
+        review=review,
+        expected_numbers=expected_numbers,
+    )
+
+    if not ask_yes_no("Write merged JSON now?", default=False):
+        print("Merge output was not written.")
+        return False
+
+    default_output = paths[0].parent / "cs_merged_full_paper.json"
+    output_path = normalize_path(ask("Output merged JSON path", str(default_output)))
+    if output_path.exists() and not ask_yes_no(f"Overwrite existing file {output_path}?", default=False):
+        print("Merge output was not written.")
+        return False
+
+    write_merged_json(output_path, questions, defects)
+    print(f"Saved merged JSON: {output_path}")
+    return True
+
+
+def open_image_converter() -> int:
+    extractor = SCRIPT_DIR / "pdf_image_extractor.py"
+    if not extractor.is_file():
+        print(f"Image converter/cropper not found: {extractor}")
+        return 1
+
+    print()
+    print("Opening image converter/cropper.")
+    print("Provide the Claude output JSON and PDF path when it asks.")
+    sys.stdout.flush()
+    env = os.environ.copy()
+    env.setdefault("PYTHONIOENCODING", "utf-8")
+    run_kwargs: dict[str, Any] = {"env": env}
+    if not sys.stdin.isatty():
+        run_kwargs.update({"input": "exit\nexit\n", "text": True})
+    try:
+        completed = subprocess.run([sys.executable, str(extractor)], **run_kwargs)
+    except OSError as exc:
+        print(f"Could not launch image converter/cropper: {exc}")
+        return 1
+    return completed.returncode
+
+
+def ask_open_image_converter() -> None:
+    if ask_yes_no("Do you want to open the image converter/cropper now?", default=False):
+        open_image_converter()
+
+
+def show_workflow_help() -> None:
+    print()
+    print("Simplified CS extraction workflow")
+    print("  1. Run python tools\\cs_block_prompt_generator.py")
+    print("  2. Choose Generate grouped Claude prompts")
+    print("  3. Paste each prompt into Claude with the relevant page image(s)")
+    print("  4. Save each Claude group output JSON")
+    print("  5. Run this tool again")
+    print("  6. Choose Review a Claude group output JSON")
+    print("  7. Choose Merge reviewed group output JSON files into one full paper JSON")
+    print("  8. Choose Review a merged full paper JSON")
+    print("  9. Choose Open image converter/cropper only if image blocks need crops")
+    print(" 10. Preview manually before import")
+    print()
+    print(f"Full notes: {SCRIPT_DIR / 'cs_extraction_workflow.md'}")
+
+
+def generate_grouped_prompts() -> int:
     print("CS Block Prompt Generator")
     print("Creates one Claude prompt per small CS question group.")
     print()
@@ -392,6 +731,40 @@ def main() -> int:
     print()
     print("Do not ask Claude to convert the full 80-question paper at once.")
     return 0
+
+
+def main() -> int:
+    while True:
+        print()
+        print("CS Block Extraction Tool")
+        print("1. Generate grouped Claude prompts")
+        print("2. Review a Claude group output JSON")
+        print("3. Merge reviewed group output JSON files into one full paper JSON")
+        print("4. Review a merged full paper JSON")
+        print("5. Show workflow/help")
+        print("6. Open image converter/cropper")
+        print("0. Exit")
+        choice = ask("Choose an option")
+
+        if choice == "1":
+            generate_grouped_prompts()
+        elif choice == "2":
+            if run_review_menu("Review a Claude group output JSON"):
+                ask_open_image_converter()
+        elif choice == "3":
+            if run_merge_menu():
+                ask_open_image_converter()
+        elif choice == "4":
+            if run_review_menu("Review a merged full paper JSON"):
+                ask_open_image_converter()
+        elif choice == "5":
+            show_workflow_help()
+        elif choice == "6":
+            open_image_converter()
+        elif choice == "0":
+            return 0
+        else:
+            print("Invalid option. Choose 0-6.")
 
 
 if __name__ == "__main__":
