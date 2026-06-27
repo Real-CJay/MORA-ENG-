@@ -14,14 +14,19 @@ Use `tools\pdf_image_extractor.py` only through the CS tool's image converter/cr
 
 1. Run `python tools\cs_block_prompt_generator.py`.
 2. Choose `Generate grouped Claude prompts`.
-3. Paste each prompt into Claude with the relevant page image(s).
-4. Save each Claude group output JSON.
-5. Run `python tools\cs_block_prompt_generator.py` again.
-6. Choose `Review a Claude group output JSON`.
-7. Choose `Merge reviewed group output JSON files into one full paper JSON`.
-8. Choose `Review a merged full paper JSON`.
-9. Crop images with `pdf_image_extractor.py` only if needed.
-10. Preview manually before import.
+3. Enter paper details once.
+4. Enter all groups one by one using `range | type | pages | note`.
+5. Press Enter on a blank line.
+6. Confirm the summary.
+7. The tool writes all prompt files, `PROMPT_INDEX.md`, and `prompt_plan.json` at once.
+8. Paste each prompt into Claude with only the relevant page images.
+9. Save each Claude group output JSON.
+10. Run `python tools\cs_block_prompt_generator.py` again.
+11. Choose `Review a Claude group output JSON`.
+12. Choose `Merge reviewed group output JSON files into one full paper JSON`.
+13. Choose `Review a merged full paper JSON`.
+14. Crop images with the image converter/cropper only if needed.
+15. Preview manually before import.
 
 Do not ask Claude to convert the full 80-question paper at once.
 
@@ -39,27 +44,75 @@ Do not ask Claude to convert the full 80-question paper at once.
 
 ## Generate Grouped Prompts
 
-The generator asks for:
-
-- PDF path
-- paper name/year tag
-- module name
-- ID prefix
-- output folder for generated prompts
-- page image folder, if available
-- question group ranges
-
-Use small groups such as:
+Option 1 asks for paper-level details once:
 
 ```text
-1-4 pages 1-2 | shared flowchart
-8-10 p4 | shared recursive Search(A, i, k)
-51-55 pages 12-13 | shared Stack class
-56-57 p14 | shared transpose code
-58-59 p15 | shared binary search code
-60-61 p16 | shared heap sort code
-62-65 pages 17-18 | shared linked-list code
+PDF path:
+Paper name:
+Year:
+Module name:
+ID prefix:
+Output prompt folder:
+Page image folder, optional:
 ```
+
+Then enter groups until a blank line:
+
+```text
+range | type | pages | note
+```
+
+Example grouping for a CS paper:
+
+```text
+1-4 | shared_flowchart | pages 3-4 | Fig. 1 flowchart
+8-10 | shared_code | pages 5-6 | recursive Search(A, i, k)
+11-20 | normal_code | pages 6-9 | independent Python/code questions
+51-55 | shared_code | pages 18-20 | Stack class
+58-59 | shared_code | pages 21-22 | binary search code
+60-61 | algorithm_trace | pages 22-23 | heap sort code
+62-65 | shared_code | pages 23-25 | linked-list class
+```
+
+Supported group types:
+
+```text
+normal
+normal_code
+shared_flowchart
+shared_code
+algorithm_trace
+code_table
+statement_group
+image_question
+mixed
+```
+
+If a group type is unknown, the tool warns and asks whether to continue using `mixed`.
+
+After the blank line, the tool shows a summary such as:
+
+```text
+Group 1: Q1-Q4, shared_flowchart, pages 3-4, Fig. 1 flowchart
+Group 2: Q8-Q10, shared_code, pages 5-6, recursive Search(A, i, k)
+```
+
+The tool writes files only after you confirm.
+
+## Prompt Output Files
+
+Prompt filenames use the group order, question range, and group type:
+
+```text
+001_Q001-Q004_shared_flowchart.md
+002_Q008-Q010_shared_code.md
+003_Q011-Q020_normal_code.md
+```
+
+The output folder also contains:
+
+- `PROMPT_INDEX.md`, a human-readable list of paper details, prompt filenames, question ranges, group types, pages, notes, and what page images/PDF pages to attach to Claude.
+- `prompt_plan.json`, a reusable plan containing paper details and groups so it can be edited or reused later.
 
 Page images are the source of truth for layout, indentation, tables, flowcharts, shared figures, and option text. Parsed PDF text is only a helper.
 
@@ -115,4 +168,4 @@ Do not write actual crop output into `IMAGES/` during this tooling stage unless 
 
 Use the dev preview workflow to inspect rendered questions. Pay special attention to Python indentation, pseudo-code indentation, I/II/III statement grouping, shared figures, flowcharts, tables, and output blocks.
 
-Only import reviewed CS data after manual approval. This stage simplifies the extraction workflow; it does not start Stage 4.1 and does not restore CS to the live app.
+Only import reviewed CS data after manual approval. This stage improves grouped prompt generation; it does not start Stage 4.1 and does not restore CS to the live app.

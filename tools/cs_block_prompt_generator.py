@@ -46,12 +46,70 @@ except ImportError:  # pragma: no cover - useful only if imported as a package
 DEFAULT_MODULE = "CS1033 Programming Fundamentals"
 DEFAULT_YEAR = "2024"
 SCRIPT_DIR = Path(__file__).resolve().parent
+SUPPORTED_GROUP_TYPES = {
+    "normal",
+    "normal_code",
+    "shared_flowchart",
+    "shared_code",
+    "algorithm_trace",
+    "code_table",
+    "statement_group",
+    "image_question",
+    "mixed",
+}
+
+GROUP_TYPE_GUIDANCE = {
+    "normal": [
+        "This group likely contains independent questions.",
+        "Use the normal strict CS block rules for each question.",
+    ],
+    "normal_code": [
+        "This group likely contains independent Python/code/output questions.",
+        "Keep every Python or code snippet as a code block, never as plain text.",
+        "Preserve indentation and line breaks exactly.",
+    ],
+    "shared_flowchart": [
+        "This group likely depends on one shared diagram or flowchart.",
+        "Use image blocks for the flowchart if transcription is risky.",
+        "Do not repeat the full flowchart inside every question if a shared stimulus block is supported by this prompt style.",
+    ],
+    "shared_code": [
+        "This group likely depends on one shared code or pseudocode block.",
+        "Preserve indentation exactly.",
+        "Keep the shared code as a code block or shared stimulus, not inline plain text.",
+    ],
+    "algorithm_trace": [
+        "This group likely asks for algorithm tracing or state changes.",
+        "Preserve algorithm state and execution order clearly.",
+        "Use code and table blocks where appropriate.",
+    ],
+    "code_table": [
+        "This group likely includes code with tabular state, trace tables, or data tables.",
+        "Preserve rows and columns.",
+        "Use a table block only if the table can be represented cleanly; otherwise use an image block.",
+    ],
+    "statement_group": [
+        "This group likely includes I/II/III or similar statement sets.",
+        "Do not flatten I/II/III statements into one paragraph.",
+        "Use separate text or list-style blocks for each statement.",
+    ],
+    "image_question": [
+        "This group likely depends on a figure, chart, diagram, or screenshot.",
+        "Do not invent image content.",
+        "Use image blocks if the figure is needed to answer the question.",
+    ],
+    "mixed": [
+        "This group may contain mixed CS question layouts.",
+        "Use the normal strict CS block rules and choose text, code, table, or image blocks based on the source layout.",
+    ],
+}
 
 
 @dataclass(frozen=True)
 class QuestionGroup:
     q_start: int
     q_end: int
+    group_type: str = "mixed"
     page_start: int | None = None
     page_end: int | None = None
     note: str = ""
@@ -64,9 +122,13 @@ class QuestionGroup:
 
     @property
     def filename_slug(self) -> str:
+        return f"{self.filename_range}_{self.group_type}"
+
+    @property
+    def filename_range(self) -> str:
         if self.q_start == self.q_end:
-            return f"q{self.q_start:02d}"
-        return f"q{self.q_start:02d}_q{self.q_end:02d}"
+            return f"Q{self.q_start:03d}"
+        return f"Q{self.q_start:03d}-Q{self.q_end:03d}"
 
     @property
     def pages(self) -> list[int]:
@@ -74,6 +136,15 @@ class QuestionGroup:
             return []
         end = self.page_end if self.page_end is not None else self.page_start
         return list(range(self.page_start, end + 1))
+
+    @property
+    def pages_label(self) -> str:
+        if self.page_start is None:
+            return "not specified"
+        end = self.page_end if self.page_end is not None else self.page_start
+        if self.page_start == end:
+            return f"page {self.page_start}"
+        return f"pages {self.page_start}-{end}"
 
 
 def ask(prompt: str, default: str | None = None) -> str:
@@ -86,45 +157,67 @@ def normalize_path(raw: str) -> Path:
     return Path(raw.strip().strip('"').strip("'")).expanduser()
 
 
-def parse_group(raw: str) -> QuestionGroup:
-    """Parse lines like '1-4 pages 1-2 | shared flowchart'."""
-    text = raw.strip()
-    note = ""
-    if "|" in text:
-        text, note = [part.strip() for part in text.split("|", 1)]
+def normalize_group_type(raw: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "_", raw.strip().lower()).strip("_")
 
-    q_match = re.search(r"(?:q\s*)?(\d+)\s*(?:[-:]\s*(?:q\s*)?(\d+))?", text, re.IGNORECASE)
-    if not q_match:
+
+def parse_question_range(raw: str) -> tuple[int, int]:
+    match = re.fullmatch(r"(?:q\s*)?(\d+)\s*(?:[-:]\s*(?:q\s*)?(\d+))?", raw.strip(), re.IGNORECASE)
+    if not match:
         raise ValueError("missing question range")
+    start = int(match.group(1))
+    end = int(match.group(2) or start)
+    if end < start:
+        start, end = end, start
+    return start, end
 
-    q_start = int(q_match.group(1))
-    q_end = int(q_match.group(2) or q_start)
-    if q_end < q_start:
-        q_start, q_end = q_end, q_start
 
-    page_match = re.search(
-        r"(?:pages?|p)\s*(\d+)\s*(?:[-:]\s*(\d+))?",
-        text,
-        re.IGNORECASE,
-    )
-    page_start = page_end = None
-    if page_match:
-        page_start = int(page_match.group(1))
-        page_end = int(page_match.group(2) or page_start)
-        if page_end < page_start:
-            page_start, page_end = page_end, page_start
+def parse_pages(raw: str) -> tuple[int | None, int | None]:
+    raw = raw.strip()
+    if not raw:
+        return None, None
+    match = re.search(r"(?:pages?|p)?\s*(\d+)\s*(?:[-:]\s*(\d+))?", raw, re.IGNORECASE)
+    if not match:
+        raise ValueError("missing page range")
+    start = int(match.group(1))
+    end = int(match.group(2) or start)
+    if end < start:
+        start, end = end, start
+    return start, end
 
-    return QuestionGroup(q_start, q_end, page_start, page_end, note)
+
+def parse_group(raw: str) -> QuestionGroup:
+    """Parse 'range | type | pages | note'."""
+    parts = [part.strip() for part in raw.strip().split("|")]
+    if len(parts) < 3:
+        raise ValueError("expected format: range | type | pages | note")
+
+    q_start, q_end = parse_question_range(parts[0])
+    group_type = normalize_group_type(parts[1])
+    page_start, page_end = parse_pages(parts[2])
+    note = " | ".join(parts[3:]).strip() if len(parts) > 3 else ""
+
+    return QuestionGroup(q_start, q_end, group_type, page_start, page_end, note)
 
 
 def collect_groups() -> list[QuestionGroup]:
     print()
-    print("Enter one small group per line.")
+    print("Enter question groups one by one.")
+    print("Press Enter on a blank line when finished.")
+    print()
+    print("Format:")
+    print("  range | type | pages | note")
+    print()
     print("Examples:")
-    print("  1-4 pages 1-2 | shared flowchart")
-    print("  8-10 p4 | shared recursive Search(A, i, k)")
-    print("  51-55 pages 12-13 | shared Stack class")
-    print("Leave blank when finished.")
+    print("  1-4 | shared_flowchart | pages 3-4 | Fig. 1 flowchart")
+    print("  8-10 | shared_code | pages 5-6 | recursive Search(A, i, k)")
+    print("  11-20 | normal_code | pages 6-9 | independent code/output questions")
+    print("  51-55 | shared_code | pages 18-20 | Stack class")
+    print("  60-61 | algorithm_trace | pages 22-23 | heap sort code")
+    print("  62-65 | shared_code | pages 23-25 | linked-list class")
+    print()
+    print("Supported types:")
+    print("  " + ", ".join(sorted(SUPPORTED_GROUP_TYPES)))
     print()
 
     groups: list[QuestionGroup] = []
@@ -133,9 +226,26 @@ def collect_groups() -> list[QuestionGroup]:
         if not raw:
             break
         try:
-            groups.append(parse_group(raw))
+            group = parse_group(raw)
         except ValueError as exc:
             print(f"Could not parse group: {exc}")
+            continue
+
+        if group.group_type not in SUPPORTED_GROUP_TYPES:
+            print(f"Unknown group type: {group.group_type}")
+            if not ask_yes_no("Continue using mixed for this group?", default=False):
+                print("Group skipped. Re-enter it with a supported type.")
+                continue
+            group = QuestionGroup(
+                group.q_start,
+                group.q_end,
+                "mixed",
+                group.page_start,
+                group.page_end,
+                group.note,
+            )
+
+        groups.append(group)
 
     return groups
 
@@ -223,6 +333,7 @@ def build_prompt(
     page_image_lines = "\n".join(f"- {path}" for path in page_images) if page_images else "- Attach the relevant page image(s) manually."
     parsed_text_block = build_parsed_text_block(parsed_text)
     note_line = group.note or "No extra group note provided."
+    guidance_lines = "\n".join(f"- {line}" for line in GROUP_TYPE_GUIDANCE.get(group.group_type, GROUP_TYPE_GUIDANCE["mixed"]))
 
     return textwrap.dedent(f"""\
         You are extracting a small group of Computer Science MCQ questions into typed block JSON for the Mora Quiz app.
@@ -233,6 +344,7 @@ def build_prompt(
         - Year tag: {year_tag}
         - ID prefix: {id_prefix}
         - Requested questions: {group.label}
+        - Group type: {group.group_type}
         - Source pages: {format_page_list(group.pages)}
         - Group note: {note_line}
         - PDF path for human reference: {pdf_path}
@@ -245,6 +357,9 @@ def build_prompt(
 
         Suggested page image files, if available:
         {page_image_lines}
+
+        GROUP TYPE GUIDANCE
+        {guidance_lines}
 
         OUTPUT RULES
         - Output valid JSON only.
@@ -350,9 +465,10 @@ def write_prompts(
     id_prefix: str,
     output_dir: Path,
     page_image_dir: Path | None,
-) -> list[Path]:
+) -> tuple[list[Path], Path, Path]:
     output_dir.mkdir(parents=True, exist_ok=True)
     written: list[Path] = []
+    records: list[dict[str, Any]] = []
 
     for index, group in enumerate(groups, start=1):
         pages = group.pages
@@ -369,11 +485,141 @@ def write_prompts(
             page_images=page_images,
             parsed_text=parsed_text,
         )
-        out_path = output_dir / f"{index:02d}_{id_prefix}_{group.filename_slug}.txt"
+        filename = f"{index:03d}_{group.filename_slug}.md"
+        out_path = output_dir / filename
         out_path.write_text(prompt, encoding="utf-8")
         written.append(out_path)
+        records.append({
+            "index": index,
+            "filename": filename,
+            "questionRange": group.label,
+            "groupType": group.group_type,
+            "pages": group.pages_label,
+            "pageNumbers": pages,
+            "note": group.note,
+            "pageImages": page_images,
+        })
 
-    return written
+    index_path = output_dir / "PROMPT_INDEX.md"
+    write_prompt_index(
+        index_path,
+        paper_name=paper_name,
+        year_tag=year_tag,
+        id_prefix=id_prefix,
+        output_dir=output_dir,
+        pdf_path=pdf_path,
+        page_image_dir=page_image_dir,
+        records=records,
+    )
+
+    plan_path = output_dir / "prompt_plan.json"
+    write_prompt_plan(
+        plan_path,
+        pdf_path=pdf_path,
+        paper_name=paper_name,
+        year_tag=year_tag,
+        module_name=module_name,
+        id_prefix=id_prefix,
+        output_dir=output_dir,
+        page_image_dir=page_image_dir,
+        groups=groups,
+    )
+
+    return written, index_path, plan_path
+
+
+def write_prompt_index(
+    path: Path,
+    *,
+    paper_name: str,
+    year_tag: str,
+    id_prefix: str,
+    output_dir: Path,
+    pdf_path: Path,
+    page_image_dir: Path | None,
+    records: list[dict[str, Any]],
+) -> None:
+    lines = [
+        "# CS Prompt Index",
+        "",
+        f"- Paper name: {paper_name}",
+        f"- Year: {year_tag}",
+        f"- ID prefix: {id_prefix}",
+        f"- Output folder: {output_dir}",
+        f"- PDF path: {pdf_path}",
+        f"- Page image folder: {page_image_dir or 'not provided'}",
+        "",
+        "Attach only the listed page images or PDF pages for each Claude prompt.",
+        "",
+        "| # | Prompt file | Question range | Group type | Pages | Note | Attach to Claude |",
+        "|---|---|---|---|---|---|---|",
+    ]
+
+    for record in records:
+        attach = format_attachment_hint(record["pageNumbers"], record["pageImages"])
+        lines.append(
+            "| {index} | {filename} | {questionRange} | {groupType} | {pages} | {note} | {attach} |".format(
+                index=record["index"],
+                filename=record["filename"],
+                questionRange=record["questionRange"],
+                groupType=record["groupType"],
+                pages=record["pages"],
+                note=escape_table_cell(record["note"] or "-"),
+                attach=escape_table_cell(attach),
+            )
+        )
+
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def format_attachment_hint(page_numbers: list[int], page_images: list[str]) -> str:
+    if page_images:
+        return "; ".join(page_images)
+    if page_numbers:
+        return f"PDF pages {format_page_list(page_numbers)} or matching page images/crops"
+    return "Relevant PDF page images/crops for this group"
+
+
+def escape_table_cell(value: str) -> str:
+    return value.replace("|", "\\|").replace("\n", " ")
+
+
+def write_prompt_plan(
+    path: Path,
+    *,
+    pdf_path: Path,
+    paper_name: str,
+    year_tag: str,
+    module_name: str,
+    id_prefix: str,
+    output_dir: Path,
+    page_image_dir: Path | None,
+    groups: list[QuestionGroup],
+) -> None:
+    plan = {
+        "pdfPath": str(pdf_path),
+        "paperName": paper_name,
+        "year": year_tag,
+        "moduleName": module_name,
+        "idPrefix": id_prefix,
+        "outputPromptFolder": str(output_dir),
+        "pageImageFolder": str(page_image_dir) if page_image_dir else "",
+        "groups": [
+            {
+                "range": group.label,
+                "qStart": group.q_start,
+                "qEnd": group.q_end,
+                "type": group.group_type,
+                "pages": group.pages_label,
+                "pageStart": group.page_start,
+                "pageEnd": group.page_end,
+                "note": group.note,
+                "promptFilename": f"{index:03d}_{group.filename_slug}.md",
+            }
+            for index, group in enumerate(groups, start=1)
+        ],
+    }
+    path.write_text(json.dumps(plan, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
 def ask_yes_no(prompt: str, default: bool = False) -> bool:
@@ -669,19 +915,36 @@ def ask_open_image_converter() -> None:
         open_image_converter()
 
 
+def print_group_summary(groups: list[QuestionGroup]) -> None:
+    print()
+    print("Prompt group summary")
+    for index, group in enumerate(groups, start=1):
+        note = group.note or "-"
+        print(
+            f"Group {index}: {group.label}, {group.group_type}, "
+            f"{group.pages_label}, {note}"
+        )
+
+
 def show_workflow_help() -> None:
     print()
     print("Simplified CS extraction workflow")
     print("  1. Run python tools\\cs_block_prompt_generator.py")
     print("  2. Choose Generate grouped Claude prompts")
-    print("  3. Paste each prompt into Claude with the relevant page image(s)")
-    print("  4. Save each Claude group output JSON")
-    print("  5. Run this tool again")
-    print("  6. Choose Review a Claude group output JSON")
-    print("  7. Choose Merge reviewed group output JSON files into one full paper JSON")
-    print("  8. Choose Review a merged full paper JSON")
-    print("  9. Choose Open image converter/cropper only if image blocks need crops")
-    print(" 10. Preview manually before import")
+    print("  3. Enter paper details once")
+    print("  4. Enter all groups as: range | type | pages | note")
+    print("  5. Press Enter on a blank line and confirm the summary")
+    print("  6. Paste each prompt into Claude with the relevant page image(s)")
+    print("  7. Save each Claude group output JSON")
+    print("  8. Run this tool again")
+    print("  9. Choose Review a Claude group output JSON")
+    print(" 10. Choose Merge reviewed group output JSON files into one full paper JSON")
+    print(" 11. Choose Review a merged full paper JSON")
+    print(" 12. Choose Open image converter/cropper only if image blocks need crops")
+    print(" 13. Preview manually before import")
+    print()
+    print("Example group:")
+    print("  1-4 | shared_flowchart | pages 3-4 | Fig. 1 flowchart")
     print()
     print(f"Full notes: {SCRIPT_DIR / 'cs_extraction_workflow.md'}")
 
@@ -695,15 +958,14 @@ def generate_grouped_prompts() -> int:
     if not pdf_path.is_file():
         print(f"Warning: PDF not found, prompts will still be generated without parsed text: {pdf_path}")
 
-    year_tag = ask("Paper name/year tag, for example 2024", DEFAULT_YEAR)
-    paper_name_default = f"CS1033 {year_tag}"
-    paper_name = ask("Paper/source name, for example 23 Batch 2024", paper_name_default)
+    paper_name = ask("Paper name", "23 Batch 2024")
+    year_tag = ask("Year", DEFAULT_YEAR)
     module_name = ask("Module name", DEFAULT_MODULE)
     id_prefix = ask("ID prefix", f"cs1033_{year_tag}")
     output_default = str(Path("..") / "AI exports" / "cs_prompts" / id_prefix)
-    output_dir = normalize_path(ask("Output folder for generated prompts", output_default))
+    output_dir = normalize_path(ask("Output prompt folder", output_default))
 
-    page_image_raw = ask("Page image folder if available, blank to skip", "")
+    page_image_raw = ask("Page image folder, optional", "")
     page_image_dir = normalize_path(page_image_raw) if page_image_raw else None
     if page_image_dir and not page_image_dir.is_dir():
         print(f"Warning: page image folder not found, prompts will not list image candidates: {page_image_dir}")
@@ -713,7 +975,12 @@ def generate_grouped_prompts() -> int:
         print("No groups entered. Nothing to write.")
         return 1
 
-    written = write_prompts(
+    print_group_summary(groups)
+    if not ask_yes_no("Generate prompts for these groups?", default=False):
+        print("No prompt files were written.")
+        return 0
+
+    written, index_path, plan_path = write_prompts(
         groups,
         pdf_path=pdf_path,
         paper_name=paper_name,
@@ -728,6 +995,8 @@ def generate_grouped_prompts() -> int:
     print(f"Wrote {len(written)} prompt file(s):")
     for path in written:
         print(f"  {path}")
+    print(f"  {index_path}")
+    print(f"  {plan_path}")
     print()
     print("Do not ask Claude to convert the full 80-question paper at once.")
     return 0
