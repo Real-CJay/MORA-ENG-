@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mora Quiz Dataset Renderer Preview</title>
+  <link rel="stylesheet" href="../vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="./renderer_preview.css">
+  <style>
+    .dataset-controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin: 18px 0;
+      padding: 14px;
+      border: 1px solid #2d3746;
+      border-radius: 8px;
+      background: #171c24;
+    }
+
+    .dataset-control {
+      display: grid;
+      gap: 6px;
+      color: #cbd7e7;
+      font-size: 13px;
+    }
+
+    .dataset-control input,
+    .dataset-control select {
+      border: 1px solid #334155;
+      border-radius: 6px;
+      background: #0c1016;
+      color: #eef2f8;
+      padding: 8px;
+    }
+
+    .dataset-checkbox {
+      align-content: end;
+    }
+
+    .dataset-checkbox span {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 36px;
+    }
+
+    .dataset-summary {
+      margin: 0 0 14px;
+      color: #9fb0c7;
+    }
+
+    .dataset-meta {
+      display: grid;
+      gap: 8px;
+      margin: -6px 0 16px;
+      padding: 10px 12px;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      background: #111721;
+    }
+
+    .dataset-meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 0;
+    }
+
+    .dataset-chip {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid #3b4b63;
+      border-radius: 999px;
+      padding: 3px 8px;
+      color: #dbe6f5;
+      background: #1e293b;
+      font-size: 12px;
+    }
+
+    .dataset-chip-warning {
+      border-color: #7f4a13;
+      background: #2b1a08;
+      color: #ffd79a;
+    }
+
+    .dataset-chip-failure {
+      border-color: #7f1d1d;
+      background: #351b1b;
+      color: #ffc2c2;
+    }
+
+    .dataset-warnings {
+      margin: 0;
+      color: #ffd79a;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <main class="preview-shell">
+    <header class="preview-header">
+      <div>
+        <p class="preview-kicker">Dev-only full dataset preview</p>
+        <h1>Mora Quiz Dataset Renderer Preview</h1>
+      </div>
+      <p id="preview-status" class="preview-status">Loading dev/dataset_renderer_manifest.json...</p>
+    </header>
+
+    <section class="preview-note">
+      <p>This page renders exported question packs through the Stage 3 preview renderer and legacy adapter only. It is not linked from, or wired into, the live quiz flow.</p>
+    </section>
+
+    <section class="dataset-controls" aria-label="Dataset preview filters">
+      <label class="dataset-control">
+        <span>Subject</span>
+        <select id="filter-subject"></select>
+      </label>
+      <label class="dataset-control">
+        <span>Pack</span>
+        <select id="filter-pack"></select>
+      </label>
+      <label class="dataset-control">
+        <span>Status</span>
+        <select id="filter-status">
+          <option value="">All statuses</option>
+          <option value="ok">OK</option>
+          <option value="warning">Warning</option>
+          <option value="failure">Failure</option>
+        </select>
+      </label>
+      <label class="dataset-control">
+        <span>Question type</span>
+        <select id="filter-type"></select>
+      </label>
+      <label class="dataset-control">
+        <span>Search ID/text</span>
+        <input id="filter-search" type="search" placeholder="Question ID, text, warning...">
+      </label>
+      <label class="dataset-control">
+        <span>Render limit</span>
+        <select id="filter-limit">
+          <option value="10">10 cards</option>
+          <option value="25" selected>25 cards</option>
+          <option value="50">50 cards</option>
+          <option value="100">100 cards</option>
+        </select>
+      </label>
+      <label class="dataset-control dataset-checkbox">
+        <span><input id="filter-image" type="checkbox"> Has image</span>
+      </label>
+      <label class="dataset-control dataset-checkbox">
+        <span><input id="filter-math" type="checkbox"> Has math/LaTeX</span>
+      </label>
+    </section>
+
+    <p id="dataset-summary" class="dataset-summary"></p>
+    <section id="preview-list" class="preview-list" aria-live="polite"></section>
+  </main>
+
+  <script src="../vendor/katex/katex.min.js"></script>
+  <script src="../vendor/katex/contrib/auto-render.min.js"></script>
+  <script type="module">
+    import { normalizePack } from '../js/legacy_adapter.js';
+    import { renderQuestion } from '../js/question_renderer.js';
+
+    const manifestUrl = './dataset_renderer_manifest.json';
+    const status = document.getElementById('preview-status');
+    const list = document.getElementById('preview-list');
+    const summary = document.getElementById('dataset-summary');
+    const controls = {
+      subject: document.getElementById('filter-subject'),
+      pack: document.getElementById('filter-pack'),
+      status: document.getElementById('filter-status'),
+      type: document.getElementById('filter-type'),
+      search: document.getElementById('filter-search'),
+      limit: document.getElementById('filter-limit'),
+      image: document.getElementById('filter-image'),
+      math: document.getElementById('filter-math'),
+    };
+
+    let manifest = null;
+    let renderRun = 0;
+    const packCache = new Map();
+
+    function option(value, label) {
+      const node = document.createElement('option');
+      node.value = value;
+      node.textContent = label;
+      return node;
+    }
+
+    function fillSelect(select, values, allLabel) {
+      select.replaceChildren(option('', allLabel));
+      for (const value of values) select.appendChild(option(value, value));
+    }
+
+    function uniqueSorted(values) {
+      return [...new Set(values.filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b)));
+    }
+
+    function populateControls() {
+      fillSelect(controls.subject, uniqueSorted(manifest.questions.map(item => item.subject)), 'All subjects');
+      fillSelect(controls.pack, uniqueSorted(manifest.questions.map(item => item.file)), 'All packs');
+      fillSelect(controls.type, uniqueSorted(manifest.questions.map(item => item.adaptedType || item.rawType)), 'All types');
+    }
+
+    function matchesFilters(item) {
+      const query = controls.search.value.trim().toLowerCase();
+      if (controls.subject.value && item.subject !== controls.subject.value) return false;
+      if (controls.pack.value && item.file !== controls.pack.value) return false;
+      if (controls.status.value && item.status !== controls.status.value) return false;
+      if (controls.type.value && (item.adaptedType || item.rawType) !== controls.type.value) return false;
+      if (controls.image.checked && !item.flags?.hasImage) return false;
+      if (controls.math.checked && !item.flags?.hasMath) return false;
+      if (query) {
+        const haystack = [
+          item.id,
+          item.file,
+          item.subject,
+          item.bucket,
+          item.rawType,
+          item.adaptedType,
+          item.searchText,
+          ...(item.errors || []),
+          ...(item.warnings || []),
+        ].join('\n').toLowerCase();
+        if (!haystack.includes(query)) return false;
+      }
+      return true;
+    }
+
+    async function loadPack(file) {
+      if (packCache.has(file)) return packCache.get(file);
+      const response = await fetch(`../${file}`, { cache: 'no-store' });
+      if (!response.ok) throw new Error(`Failed to fetch ${file}: HTTP ${response.status}`);
+      const pack = normalizePack(await response.json());
+      pack.images = normalizeImageSources(pack.images || {});
+      packCache.set(file, pack);
+      return pack;
+    }
+
+    function normalizeImageSources(images) {
+      const normalized = {};
+      for (const [assetId, image] of Object.entries(images)) {
+        normalized[assetId] = {
+          ...image,
+          src: previewImageSrc(image?.src)
+        };
+      }
+      return normalized;
+    }
+
+    function previewImageSrc(src) {
+      if (!src || typeof src !== 'string') return src;
+      if (/^(https?:|data:|blob:)/i.test(src)) return src;
+      return `../${src.replace(/^\/+/, '')}`;
+    }
+
+    function statusChip(item) {
+      if (item.status === 'failure') return 'dataset-chip dataset-chip-failure';
+      if (item.status === 'warning') return 'dataset-chip dataset-chip-warning';
+      return 'dataset-chip';
+    }
+
+    function appendMeta(card, item) {
+      const meta = document.createElement('div');
+      meta.className = 'dataset-meta';
+
+      const row = document.createElement('p');
+      row.className = 'dataset-meta-row';
+      const chips = [
+        `${item.file} #${item.index + 1}`,
+        `id: ${item.id}`,
+        `type: ${item.adaptedType || item.rawType || 'unknown'}`,
+        `answer: ${item.answerMode || 'unknown'}`,
+        `status: ${item.status}`,
+      ];
+      for (const label of chips) {
+        const chip = document.createElement('span');
+        chip.className = label.startsWith('status:') ? statusChip(item) : 'dataset-chip';
+        chip.textContent = label;
+        row.appendChild(chip);
+      }
+      meta.appendChild(row);
+
+      const flags = Object.entries(item.flags || {})
+        .filter(([, value]) => value)
+        .map(([key]) => key);
+      if (flags.length) {
+        const flagRow = document.createElement('p');
+        flagRow.className = 'dataset-meta-row';
+        for (const flag of flags) {
+          const chip = document.createElement('span');
+          chip.className = 'dataset-chip dataset-chip-warning';
+          chip.textContent = flag;
+          flagRow.appendChild(chip);
+        }
+        meta.appendChild(flagRow);
+      }
+
+      const warnings = [...(item.errors || []), ...(item.warnings || [])];
+      if (warnings.length) {
+        const warning = document.createElement('p');
+        warning.className = 'dataset-warnings';
+        warning.textContent = warnings.join(' | ');
+        meta.appendChild(warning);
+      }
+
+      const imageStatus = document.createElement('p');
+      imageStatus.className = 'dataset-meta-row';
+      imageStatus.dataset.role = 'image-status';
+      imageStatus.textContent = item.flags?.hasImage ? 'Image load status: pending render' : 'Image load status: no image';
+      meta.appendChild(imageStatus);
+
+      card.appendChild(meta);
+    }
+
+    function updateImageStatus(card) {
+      const statusLine = card.querySelector('[data-role="image-status"]');
+      const images = [...card.querySelectorAll('img.mq-image')];
+      if (!statusLine) return;
+      if (!images.length) {
+        statusLine.textContent = 'Image load status: no rendered image element';
+        return;
+      }
+
+      function refresh() {
+        const parts = images.map((img, index) => {
+          if (img.complete && img.naturalWidth > 0) return `image ${index + 1}: loaded ${img.naturalWidth}x${img.naturalHeight}`;
+          if (img.complete) return `image ${index + 1}: failed`;
+          return `image ${index + 1}: loading`;
+        });
+        statusLine.textContent = `Image load status: ${parts.join('; ')}`;
+      }
+
+      for (const img of images) {
+        img.addEventListener('load', refresh);
+        img.addEventListener('error', refresh);
+      }
+      refresh();
+    }
+
+    async function renderItem(item, token) {
+      const sourcePack = await loadPack(item.file);
+      if (token !== renderRun) return;
+      const pack = { ...sourcePack, images: { ...(sourcePack.images || {}) } };
+      const question = pack.questions[item.index];
+      if (item.flags?.missingImage && Array.isArray(question?.images)) {
+        for (const assetId of question.images) {
+          if (pack.images[assetId]) pack.images[assetId] = { ...pack.images[assetId], src: '' };
+        }
+      }
+      const card = document.createElement('section');
+      card.className = 'preview-card';
+      card.dataset.questionKey = item.key;
+
+      const title = document.createElement('h2');
+      title.textContent = `${item.id} (${item.subject}/${item.bucket})`;
+      card.appendChild(title);
+      appendMeta(card, item);
+
+      const mount = document.createElement('div');
+      card.appendChild(mount);
+      list.appendChild(card);
+
+      try {
+        const api = renderQuestion(mount, question, pack, { questionNumber: item.index + 1 });
+        api.showExplanation();
+      } catch (error) {
+        const message = document.createElement('pre');
+        message.className = 'preview-error';
+        message.textContent = String(error && error.message ? error.message : error);
+        mount.replaceChildren(message);
+      }
+      updateImageStatus(card);
+    }
+
+    async function renderList() {
+      if (!manifest) return;
+      const token = ++renderRun;
+      const filtered = manifest.questions.filter(matchesFilters);
+      const limit = Number(controls.limit.value) || 25;
+      const visible = filtered.slice(0, limit);
+      summary.textContent = `Showing ${visible.length} of ${filtered.length} matching questions. Dataset total: ${manifest.totals.questions}.`;
+      list.replaceChildren();
+      for (const item of visible) {
+        if (token !== renderRun) return;
+        await renderItem(item, token);
+      }
+    }
+
+    async function loadPreview() {
+      try {
+        const response = await fetch(manifestUrl, { cache: 'no-store' });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        manifest = await response.json();
+        status.textContent = `Loaded ${manifest.totals.questions} questions from ${manifest.totals.packs} packs.`;
+        populateControls();
+        for (const control of Object.values(controls)) control.addEventListener('input', renderList);
+        await renderList();
+      } catch (error) {
+        status.textContent = 'Failed to load dev/dataset_renderer_manifest.json.';
+        const message = document.createElement('pre');
+        message.className = 'preview-error';
+        message.textContent = String(error && error.message ? error.message : error);
+        list.replaceChildren(message);
+      }
+    }
+
+    loadPreview();
+  </script>
+</body>
+</html>
