@@ -1127,7 +1127,6 @@ const LEARNING_ACHIEVEMENTS = [
   { id:'streak7', group:'Consistency', title:'7 Day Streak', desc:'Complete quizzes on 7 consecutive days.', target:7, metric:'longestStreak' },
   { id:'streak30', group:'Consistency', title:'30 Day Streak', desc:'Complete quizzes on 30 consecutive days.', target:30, metric:'longestStreak' },
   { id:'master_math', group:'Subject Mastery', title:'Mathematics Master', desc:'Reach 85% accuracy after 100 Mathematics questions.', target:1, metric:'master_math' },
-  { id:'master_cs', group:'Subject Mastery', title:'Computer Science Master', desc:'Reach 85% accuracy after 100 Computer Science questions.', target:1, metric:'master_cs' },
   { id:'master_mechanics', group:'Subject Mastery', title:'Mechanics Master', desc:'Reach 85% accuracy after 100 Mechanics questions.', target:1, metric:'master_mechanics' },
   { id:'master_fluid', group:'Subject Mastery', title:'Fluid Mechanics Master', desc:'Reach 85% accuracy after 100 Fluid questions.', target:1, metric:'master_fluid' },
   { id:'master_materials', group:'Subject Mastery', title:'Material Science Master', desc:'Reach 85% accuracy after 100 Materials questions.', target:1, metric:'master_materials' }
@@ -2035,4 +2034,3 @@ async function submitAuth() {
     if (_isAuthRateLimit(err)) _startAuthCooldown();
   }
 }
-

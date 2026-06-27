@@ -89,28 +89,6 @@ const SUBJECT_COUNTS = {
       "placeholder": []
     }
   },
-  "cs": {
-    "pastUnit": {
-      "count": 0,
-      "placeholder": []
-    },
-    "pastPaper": {
-      "count": 750,
-      "placeholder": []
-    },
-    "targetHard": {
-      "count": 0,
-      "placeholder": []
-    },
-    "targetNormal": {
-      "count": 0,
-      "placeholder": []
-    },
-    "allTarget": {
-      "count": 0,
-      "placeholder": []
-    }
-  },
   "math": {
     "pastUnit": {
       "count": 0,
@@ -199,27 +177,6 @@ const SUBJECTS = {
     progressKeyPastUnit: 'msq_progress_unit_fluid',
     progressKeyPastPaper: 'msq_progress_paper_fluid',
     progressKeyTarget: 'msq_target_progress_fluid',
-  },
-  cs: {
-    key: 'cs',
-    label: 'Computer Science',
-    semesterId: 'sem1',
-    departmentIds: ['all'],
-    icon: '💻',
-    color: '#f59e0b',
-    colorBg: '#2b1e05',
-    desc: 'Algorithms, data structures, logic & systems',
-    pastUnit: SUBJECT_COUNTS.cs.pastUnit.placeholder,
-    pastPaper: SUBJECT_COUNTS.cs.pastPaper.placeholder,
-    targetHard: SUBJECT_COUNTS.cs.targetHard.placeholder,
-    targetNormal: SUBJECT_COUNTS.cs.targetNormal.placeholder,
-    allTarget: SUBJECT_COUNTS.cs.allTarget.placeholder,
-    units: {1:'Number Systems & Networks', 2:'Algorithms & Data Structures', 3:'Logic & Digital Systems'},
-    unitColors: ['unit1','unit2','unit3'],
-    historyKey: 'msq_history_cs',
-    progressKeyPastUnit: 'msq_progress_unit_cs',
-    progressKeyPastPaper: 'msq_progress_paper_cs',
-    progressKeyTarget: 'msq_target_progress_cs',
   },
   math: {
     key: 'math',

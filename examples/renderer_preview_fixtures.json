@@ -15,8 +15,8 @@
   },
   "images": {
     "preview_existing_cs_figure": {
-      "src": "/IMAGES/CS/Past Papers/pp_2022_Batch_20_FIG1.png",
-      "alt": "Existing CS past-paper figure used only to verify the preview renderer image block.",
+      "src": "/IMAGES/Fluid Mechanics/Past Papers/2015 Batch 14/pp_2015_Batch_14_FIG1.png",
+      "alt": "Existing non-CS past-paper figure used only to verify the preview renderer image block.",
       "caption": "Existing repository image path used by the preview fixture."
     }
   },
