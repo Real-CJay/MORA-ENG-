@@ -1,27 +1,35 @@
-const CACHE_VERSION = 'mora-quiz-v83';
+const CACHE_PREFIX = 'mora-quiz';
+const CACHE_VERSION = 'mora-quiz-v84';
 const APP_SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const RUNTIME_CACHE   = `${CACHE_VERSION}-runtime`;
 // Subject data cache is not versioned; it survives app updates so downloaded
 // modules remain available offline even after the user gets a new app version.
-const SUBJECTS_CACHE  = 'mora-quiz-subjects';
+const SUBJECTS_CACHE  = `${CACHE_PREFIX}-subjects`;
+// This mirrors the cache-busting query currently used by index.html.
+const PRECACHE_ASSET_VERSION = '82';
 
-const APP_SHELL = [
+const versionedAppAsset = path => `${path}?v=${PRECACHE_ASSET_VERSION}`;
+
+const REQUIRED_APP_SHELL = [
   '/',
   '/index.html',
+  versionedAppAsset('/manifest.json'),
+  versionedAppAsset('/quiz_style.css'),
+  versionedAppAsset('/quiz_data.js'),
+  versionedAppAsset('/auth.js'),
+  versionedAppAsset('/quiz_app.js'),
+  versionedAppAsset('/pwa.js'),
+  '/vendor/katex/katex.min.css',
+  '/vendor/katex/katex.min.js',
+  '/vendor/katex/contrib/auto-render.min.js'
+];
+
+const OPTIONAL_APP_SHELL = [
   '/manifest.json',
-  '/manifest.json?v=82',
-  '/quiz_style.css?v=82',
-  '/quiz_data.js?v=82',
-  '/auth.js?v=82',
-  '/quiz_app.js?v=82',
-  '/pwa.js?v=82',
   '/assets/icons/icon-192.png',
   '/assets/icons/icon-512.png',
   '/assets/icons/icon-maskable-192.png',
   '/assets/icons/icon-maskable-512.png',
-  '/vendor/katex/katex.min.css',
-  '/vendor/katex/katex.min.js',
-  '/vendor/katex/contrib/auto-render.min.js',
   '/vendor/katex/fonts/KaTeX_AMS-Regular.ttf',
   '/vendor/katex/fonts/KaTeX_AMS-Regular.woff',
   '/vendor/katex/fonts/KaTeX_AMS-Regular.woff2',
@@ -84,6 +92,14 @@ const APP_SHELL = [
   '/vendor/katex/fonts/KaTeX_Typewriter-Regular.woff2'
 ];
 
+const CURRENT_CACHES = new Set([APP_SHELL_CACHE, RUNTIME_CACHE, SUBJECTS_CACHE]);
+
+function cacheOptionalAssets(cache) {
+  // Fonts and icons improve offline polish, but one missing optional file should
+  // not block a newer service worker from installing.
+  return Promise.allSettled(OPTIONAL_APP_SHELL.map(item => cache.add(item)));
+}
+
 function isApiRequest(url) {
   return [
     'supabase.co',
@@ -141,7 +157,7 @@ function matchOrFallback(request, fallback) {
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(APP_SHELL_CACHE)
-      .then(cache => Promise.allSettled(APP_SHELL.map(item => cache.add(item))))
+      .then(cache => cache.addAll(REQUIRED_APP_SHELL).then(() => cacheOptionalAssets(cache)))
   );
 });
 
@@ -150,8 +166,8 @@ self.addEventListener('activate', event => {
     caches.keys()
       .then(keys => Promise.all(
         keys
-          // Keep versioned caches + the persistent subjects cache
-          .filter(key => ![APP_SHELL_CACHE, RUNTIME_CACHE, SUBJECTS_CACHE].includes(key))
+          // Keep current Mora Quiz caches plus the persistent subjects cache.
+          .filter(key => key.startsWith(`${CACHE_PREFIX}-`) && !CURRENT_CACHES.has(key))
           .map(key => caches.delete(key))
       ))
       .then(() => self.clients.claim())
@@ -249,7 +265,7 @@ self.addEventListener('fetch', event => {
           caches.open(APP_SHELL_CACHE).then(cache => cache.put('/index.html', copy));
           return response;
         })
-        .catch(() => caches.match('/index.html').then(cached => cached || offlineHtmlResponse()))
+        .catch(() => caches.match('/index.html').then(cached => cached || caches.match('/').then(root => root || offlineHtmlResponse())))
     );
     return;
   }
