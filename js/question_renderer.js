@@ -28,8 +28,60 @@ function getAnswerMode(question) {
   return null;
 }
 
-function renderTextMathIfAvailable(node) {
-  if (typeof window === 'undefined' || typeof window.renderMathInElement !== 'function') return;
+const KATEX_READY_TIMEOUT_MS = 2500;
+let katexRenderReadyPromise = null;
+let textMathReadyPromise = null;
+
+function hasKatexRenderer() {
+  return typeof window !== 'undefined'
+    && window.katex
+    && typeof window.katex.render === 'function';
+}
+
+function hasTextMathRenderer() {
+  return typeof window !== 'undefined'
+    && typeof window.renderMathInElement === 'function';
+}
+
+function waitForRenderer(predicate) {
+  if (typeof window === 'undefined') return Promise.resolve(false);
+  if (predicate()) return Promise.resolve(true);
+
+  return new Promise(resolve => {
+    const start = Date.now();
+    const interval = window.setInterval(() => {
+      if (predicate()) {
+        window.clearInterval(interval);
+        resolve(true);
+      } else if (Date.now() - start >= KATEX_READY_TIMEOUT_MS) {
+        window.clearInterval(interval);
+        resolve(false);
+      }
+    }, 50);
+  });
+}
+
+function waitForKatexRenderer() {
+  if (hasKatexRenderer()) return Promise.resolve(true);
+  if (!katexRenderReadyPromise) {
+    katexRenderReadyPromise = waitForRenderer(hasKatexRenderer).finally(() => {
+      if (!hasKatexRenderer()) katexRenderReadyPromise = null;
+    });
+  }
+  return katexRenderReadyPromise;
+}
+
+function waitForTextMathRenderer() {
+  if (hasTextMathRenderer()) return Promise.resolve(true);
+  if (!textMathReadyPromise) {
+    textMathReadyPromise = waitForRenderer(hasTextMathRenderer).finally(() => {
+      if (!hasTextMathRenderer()) textMathReadyPromise = null;
+    });
+  }
+  return textMathReadyPromise;
+}
+
+function renderTextMath(node) {
   try {
     window.renderMathInElement(node, {
       delimiters: [
@@ -43,6 +95,17 @@ function renderTextMathIfAvailable(node) {
   } catch {
     // Keep the original safe text if auto-render fails.
   }
+}
+
+function renderTextMathIfAvailable(node) {
+  if (hasTextMathRenderer()) {
+    renderTextMath(node);
+    return;
+  }
+
+  waitForTextMathRenderer().then(available => {
+    if (available) renderTextMath(node);
+  });
 }
 
 function resolveImage(block, context) {
@@ -108,14 +171,22 @@ function renderMathBlock(block, parent) {
   const wrapper = createEl(displayMode ? 'div' : 'span', displayMode ? 'mq-math-display' : 'mq-math-inline');
   const latex = getLatex(block);
 
-  if (typeof window !== 'undefined' && window.katex && typeof window.katex.render === 'function') {
+  function renderKatex() {
+    if (!hasKatexRenderer()) return false;
     try {
       window.katex.render(latex, wrapper, { displayMode, throwOnError: false });
+      return true;
     } catch {
       wrapper.textContent = latex;
+      return false;
     }
-  } else {
+  }
+
+  if (!renderKatex()) {
     wrapper.textContent = latex;
+    waitForKatexRenderer().then(available => {
+      if (available) renderKatex();
+    });
   }
 
   parent.appendChild(wrapper);
