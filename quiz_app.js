@@ -97,6 +97,18 @@ var formatTime = MoraQuizUtils.formatTime;
 var unitClass = MoraQuizUtils.unitClass;
 var clampQuestionCount = MoraQuizUtils.clampQuestionCount;
 
+const MoraTransitionHelpers = window.MoraTransitionHelpers;
+if (!MoraTransitionHelpers) {
+  throw new Error('MoraTransitionHelpers must load before quiz_app.js');
+}
+var SUBJECT_TRANSITIONS = MoraTransitionHelpers.SUBJECT_TRANSITIONS;
+var TRANSITION_SEEN_KEY = MoraTransitionHelpers.TRANSITION_SEEN_KEY;
+var hasSeenTransition = MoraTransitionHelpers.hasSeenTransition;
+var markTransitionSeen = MoraTransitionHelpers.markTransitionSeen;
+var wait = MoraTransitionHelpers.wait;
+var preloadImage = MoraTransitionHelpers.preloadImage;
+var preloadSubjectTransitionAssets = MoraTransitionHelpers.preloadSubjectTransitionAssets;
+
 async function downloadForOffline(type, subjectKey, id) {
   const safeId = String(id).replace(/[\s'"]/g, '-');
   const btn = document.getElementById(`ol-btn-${type}-${subjectKey}-${safeId}`);
@@ -1490,40 +1502,6 @@ function _doRenderApp() {
   if (state.screen === 'landing') setTimeout(maybeShowAppTutorial, 450);
 }
 
-const SUBJECT_TRANSITIONS = {
-  materials: {
-    title: 'No Engineering without Materials',
-    image: 'assets/materials-transition.png',
-    caption: 'Parallelepiped'
-  },
-  math: {
-    title: 'Good Choice',
-    image: 'assets/math-transition.png',
-    caption: ''
-  }
-};
-
-const TRANSITION_SEEN_KEY = 'mora_transition_seen_v1';
-function hasSeenTransition(subjectKey) {
-  try {
-    const seen = JSON.parse(localStorage.getItem(TRANSITION_SEEN_KEY) || '{}');
-    return seen[subjectKey] === true;
-  } catch(e) { return false; }
-}
-function markTransitionSeen(subjectKey) {
-  try {
-    const seen = JSON.parse(localStorage.getItem(TRANSITION_SEEN_KEY) || '{}');
-    seen[subjectKey] = true;
-    localStorage.setItem(TRANSITION_SEEN_KEY, JSON.stringify(seen));
-  } catch(e) {}
-}
-
-const _subjectTransitionImageCache = {};
-
-function wait(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 function appScrollToElement(id, duration = 620) {
   const target = document.getElementById(id);
   if (!target) return;
@@ -1580,33 +1558,6 @@ if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initCompactNavOnScroll, { once: true });
 } else {
   initCompactNavOnScroll();
-}
-
-function preloadImage(src) {
-  if (!src) return Promise.resolve();
-  if (_subjectTransitionImageCache[src]) return _subjectTransitionImageCache[src];
-  _subjectTransitionImageCache[src] = new Promise(resolve => {
-    const img = new Image();
-    img.onload = async () => {
-      try {
-        if (img.decode) await img.decode();
-      } catch(e) {}
-      resolve(true);
-    };
-    img.onerror = () => resolve(false);
-    img.src = src;
-  });
-  return _subjectTransitionImageCache[src];
-}
-
-function preloadSubjectTransitionAssets() {
-  Object.values(SUBJECT_TRANSITIONS).forEach(item => preloadImage(rootAssetPath(item.image)));
-}
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => setTimeout(preloadSubjectTransitionAssets, 250), { once: true });
-} else {
-  setTimeout(preloadSubjectTransitionAssets, 250);
 }
 
 function enterSubject(subjectKey) {
@@ -5006,7 +4957,6 @@ bootAuth().then(() => {
   initRouter();
   renderChatMessages();
 });
-
 
 
 
