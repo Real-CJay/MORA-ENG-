@@ -2967,38 +2967,12 @@ function renderAllDone() {
 
 
 // ── Question Directory ───────────────────────────────────────────────────────
-async function ensureDirectoryDataLoaded() {
-  await Promise.allSettled(Object.keys(SUBJECTS).map(key => ensureSubjectData(key)));
+const MoraDirectoryData = window.MoraDirectoryData;
+if (!MoraDirectoryData) {
+  throw new Error('MoraDirectoryData must load before quiz_app.js');
 }
-
-function directoryRecords() {
-  const rows = [];
-  const sourceDefs = [
-    ['pastUnit', 'Unit-wise Past Paper', 'pastUnit'],
-    ['pastPaper', 'Full Past Paper', 'pastPaper'],
-    ['targetNormal', 'Normal Target', 'targetNormal'],
-    ['targetHard', 'Hard Target', 'targetHard']
-  ];
-  Object.entries(SUBJECTS).forEach(([subjectKey, s]) => {
-    sourceDefs.forEach(([prop, label, source]) => {
-      (s[prop] || []).forEach(q => {
-        rows.push({
-          id: `${subjectKey}:${source}:${q.id}`,
-          subjectKey,
-          subjectLabel: s.label,
-          color: s.color,
-          source,
-          sourceLabel: label,
-          unit: q.unit,
-          unitLabel: q.unit ? (s.units?.[q.unit] || `Unit ${q.unit}`) : '',
-          year: q.year || '',
-          q
-        });
-      });
-    });
-  });
-  return rows;
-}
+var ensureDirectoryDataLoaded = MoraDirectoryData.ensureDirectoryDataLoaded;
+var directoryRecords = MoraDirectoryData.directoryRecords;
 
 function filteredDirectoryRecords() {
   const query = String(state.directoryQuery || '').trim().toLowerCase();
@@ -5050,7 +5024,6 @@ bootAuth().then(() => {
   initRouter();
   renderChatMessages();
 });
-
 
 
 
