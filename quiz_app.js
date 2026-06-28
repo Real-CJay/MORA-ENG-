@@ -87,6 +87,16 @@ if (!MoraOfflineCache) {
 var _cacheSubjectData = MoraOfflineCache.cacheSubjectData;
 var _cacheImages = MoraOfflineCache.cacheImages;
 
+const MoraQuizUtils = window.MoraQuizUtils;
+if (!MoraQuizUtils) {
+  throw new Error('MoraQuizUtils must load before quiz_app.js');
+}
+var shuffle = MoraQuizUtils.shuffle;
+var shuffleQuestionOptions = MoraQuizUtils.shuffleQuestionOptions;
+var formatTime = MoraQuizUtils.formatTime;
+var unitClass = MoraQuizUtils.unitClass;
+var clampQuestionCount = MoraQuizUtils.clampQuestionCount;
+
 async function downloadForOffline(type, subjectKey, id) {
   const safeId = String(id).replace(/[\s'"]/g, '-');
   const btn = document.getElementById(`ol-btn-${type}-${subjectKey}-${safeId}`);
@@ -178,23 +188,6 @@ function renderSubjectLoading() {
   `;
 }
 
-function shuffle(arr) {
-  let a = [...arr];
-  for (let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
-  return a;
-}
-
-function shuffleQuestionOptions(q) {
-  // Build an indexed list of options, shuffle them, update ans index
-  const correctText = q.opts[q.ans];
-  const indices = q.opts.map((_,i) => i);
-  // Fisher-Yates on indices
-  for (let i=indices.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[indices[i],indices[j]]=[indices[j],indices[i]];}
-  const newOpts = indices.map(i => q.opts[i]);
-  const newAns = newOpts.indexOf(correctText);
-  return {...q, opts: newOpts, ans: newAns};
-}
-
 
 // ── Persistence: save & restore quiz progress ────────────────────────────────
 // ── Persistence: remember answers across sessions ────────────────────────────
@@ -276,12 +269,6 @@ function togglePauseTimer() {
 
 function stopTimer() {
   if (state.timerInterval) { clearInterval(state.timerInterval); state.timerInterval = null; }
-}
-
-function formatTime(s) {
-  const m = Math.floor(s / 60);
-  const sec = s % 60;
-  return m + ':' + String(sec).padStart(2, '0');
 }
 
 function startQuiz(onlyWrong = false) {
@@ -618,7 +605,6 @@ function unitTag(u) {
   const units = subj().units;
   return units[u] || '';
 }
-function unitClass(u) { return ['unit1','unit2','unit3','unit4','unit5','unit6','unit7','unit8'][u-1] || ''; }
 
 function startPaper(yr) {
   state.appMode = 'fullpaper';
@@ -1088,13 +1074,6 @@ function buildSmartPool(questions, subject) {
   const seen = new Set();
   return bag.filter(q => { if (seen.has(q.id)) return false; seen.add(q.id); return true; })
             .map(q => ({...q}));
-}
-
-function clampQuestionCount(value, maxAvailable) {
-  const max = Math.max(1, parseInt(maxAvailable, 10) || 1);
-  const n = parseInt(value, 10);
-  if (!Number.isFinite(n) || n < 1) return Math.min(20, max);
-  return Math.min(n, max);
 }
 
 function setQuestionCount(value, maxAvailable) {
@@ -5027,7 +5006,6 @@ bootAuth().then(() => {
   initRouter();
   renderChatMessages();
 });
-
 
 
 
