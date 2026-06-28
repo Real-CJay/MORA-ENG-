@@ -80,31 +80,12 @@ var ensureAllSubjectData = MoraSubjectData.ensureAllSubjectData;
 var getSubjectLoadError = MoraSubjectData.getSubjectLoadError;
 
 // ── Offline / Download (per-unit and per-paper) ───────────────────────────────
-async function _cacheSubjectData(subjectKey) {
-  const src = rootAssetPath(`subject_data/${subjectKey}.js?v=${MoraSubjectData.SUBJECT_DATA_VERSION}`);
-  if (navigator.serviceWorker?.controller) {
-    await new Promise(resolve => {
-      const ch = new MessageChannel();
-      ch.port1.onmessage = () => resolve();
-      navigator.serviceWorker.controller.postMessage(
-        { type: 'CACHE_SUBJECT', url: src, subjectKey },
-        [ch.port2]
-      );
-      setTimeout(resolve, 8000);
-    });
-  } else {
-    await fetch(src).catch(() => {});
-  }
+const MoraOfflineCache = window.MoraOfflineCache;
+if (!MoraOfflineCache) {
+  throw new Error('MoraOfflineCache must load before quiz_app.js');
 }
-
-async function _cacheImages(urls) {
-  if (!urls.length) return;
-  if (navigator.serviceWorker?.controller) {
-    navigator.serviceWorker.controller.postMessage({ type: 'CACHE_IMAGES', urls });
-  } else {
-    await Promise.allSettled(urls.map(u => fetch(u).catch(() => {})));
-  }
-}
+var _cacheSubjectData = MoraOfflineCache.cacheSubjectData;
+var _cacheImages = MoraOfflineCache.cacheImages;
 
 async function downloadForOffline(type, subjectKey, id) {
   const safeId = String(id).replace(/[\s'"]/g, '-');
@@ -5069,7 +5050,6 @@ bootAuth().then(() => {
   initRouter();
   renderChatMessages();
 });
-
 
 
 
