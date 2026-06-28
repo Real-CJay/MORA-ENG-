@@ -109,6 +109,12 @@ var wait = MoraTransitionHelpers.wait;
 var preloadImage = MoraTransitionHelpers.preloadImage;
 var preloadSubjectTransitionAssets = MoraTransitionHelpers.preloadSubjectTransitionAssets;
 
+const MoraSubjectHelpers = window.MoraSubjectHelpers;
+if (!MoraSubjectHelpers) {
+  throw new Error('MoraSubjectHelpers must load before quiz_app.js');
+}
+var subjectCategoryCount = MoraSubjectHelpers.subjectCategoryCount;
+
 async function downloadForOffline(type, subjectKey, id) {
   const safeId = String(id).replace(/[\s'"]/g, '-');
   const btn = document.getElementById(`ol-btn-${type}-${subjectKey}-${safeId}`);
@@ -2615,11 +2621,6 @@ function renderLanding() {
         : '');
 }
 
-function subjectCategoryCount(subjectKey, mode) {
-  if (mode === 'target') return subjectCount(subjectKey, 'allTarget');
-  return subjectCount(subjectKey, 'pastUnit') + subjectCount(subjectKey, 'pastPaper');
-}
-
 function renderCategorySubjects() {
   const mode = state.categoryMode === 'target' ? 'target' : 'pastpaper';
   const title = mode === 'target' ? 'Target Quiz' : 'Past Papers';
@@ -4957,7 +4958,6 @@ bootAuth().then(() => {
   initRouter();
   renderChatMessages();
 });
-
 
 
 
