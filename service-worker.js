@@ -1,5 +1,5 @@
 const CACHE_PREFIX = 'mora-quiz';
-const CACHE_VERSION = 'mora-quiz-v84';
+const CACHE_VERSION = 'mora-quiz-v85';
 const APP_SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const RUNTIME_CACHE   = `${CACHE_VERSION}-runtime`;
 // Subject data cache is not versioned; it survives app updates so downloaded
@@ -17,6 +17,13 @@ const REQUIRED_APP_SHELL = [
   versionedAppAsset('/quiz_style.css'),
   versionedAppAsset('/quiz_data.js'),
   versionedAppAsset('/auth.js'),
+  versionedAppAsset('/js/app_helpers.js'),
+  versionedAppAsset('/js/app_subject_loader.js'),
+  versionedAppAsset('/js/app_offline_cache.js'),
+  versionedAppAsset('/js/app_directory_data.js'),
+  versionedAppAsset('/js/app_quiz_utils.js'),
+  versionedAppAsset('/js/app_transition_helpers.js'),
+  versionedAppAsset('/js/app_subject_helpers.js'),
   versionedAppAsset('/quiz_app.js'),
   versionedAppAsset('/pwa.js'),
   '/vendor/katex/katex.min.css',
@@ -298,7 +305,6 @@ self.addEventListener('fetch', event => {
     );
   }
 });
-
 
 
 
