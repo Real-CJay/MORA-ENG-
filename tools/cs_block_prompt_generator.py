@@ -26,9 +26,11 @@ try:
         Review,
         find_json_files,
         load_payload,
+        maybe_print_correction_prompt,
         normalize_payload,
         print_review,
         review_file,
+        review_parse_error,
         review_question,
     )
 except ImportError:  # pragma: no cover - useful only if imported as a package
@@ -36,9 +38,11 @@ except ImportError:  # pragma: no cover - useful only if imported as a package
         Review,
         find_json_files,
         load_payload,
+        maybe_print_correction_prompt,
         normalize_payload,
         print_review,
         review_file,
+        review_parse_error,
         review_question,
     )
 
@@ -422,7 +426,9 @@ def build_prompt(
         - Preserve Python indentation exactly.
         - Preserve pseudo-code indentation.
         - Do not flatten code into one line.
-        - Flowcharts and diagrams should use {{ "type": "image", "img": "{id_prefix}_FIG1.png", "alt": "brief plain description" }}.
+        - Flowcharts and diagrams should use image blocks with alt text, not legacy imgAlt.
+        - Preferred renderer/schema shape is assetId with an image registry entry containing alt text.
+        - For this simplified CS extraction/cropping workflow, image placeholders may use {{ "type": "image", "img": "{id_prefix}_FIG1.png", "alt": "brief plain description" }}.
         - If a table or code layout is too risky to transcribe, use an image block instead.
         - Tables should use {{ "type": "table", "rows": [["Header 1", "Header 2"], ["A", "B"]] }} only if they can be represented cleanly.
         - Do not flatten tables into paragraphs.
@@ -832,10 +838,9 @@ def run_review_menu(label: str) -> bool:
         try:
             review = review_file(path)
         except Exception as exc:
-            print(f"\n{path}")
-            print(f"  error: {exc}")
-            continue
+            review = review_parse_error(path, exc)
         print_review(review)
+        maybe_print_correction_prompt(review)
         reviewed_any = True
     return reviewed_any
 

@@ -127,13 +127,46 @@ Save each Claude response as a `.json` file with this top-level shape:
 }
 ```
 
-Then choose `Review a Claude group output JSON` in the CS tool. The review reports missing IDs, duplicate IDs, missing source pages, missing question numbers, option-count issues, code accidentally placed in text blocks, raw HTML-like tags in explanation blocks, flattened I/II/III statements, suspicious one-line Python code, missing image paths, and answer indexes outside the options array.
+Then choose `Review a Claude group output JSON` in the CS tool. The review reports missing IDs, duplicate IDs, missing source pages, missing question numbers, option-count issues, code accidentally placed in text blocks, prose that mentions code-like terms, raw HTML-like tags in explanation blocks, flattened I/II/III statements, suspicious one-line Python code, missing image paths, and answer indexes outside the options array.
 
 The existing direct review command still works:
 
 ```powershell
 python tools\cs_extraction_review.py path\to\claude-output.json
 ```
+
+## How To Interpret Review Results
+
+Review findings are classified as:
+
+```text
+ERROR   = must fix before accepting
+WARNING = manually inspect; may be okay
+INFO    = informational
+```
+
+Typical `ERROR` findings:
+
+- invalid JSON
+- missing or duplicate IDs
+- missing `source.page` or `source.questionNumber`
+- no options
+- answer index out of range
+- image block missing an image path or asset reference
+- raw HTML-like tags in `explanationBlocks`
+- suspicious one-line code blocks where real code may have been flattened
+- actual multi-line code or pseudocode inside a text block
+
+Typical `WARNING` findings:
+
+- option count not equal to 5
+- prose mentions of code-like terms such as `Search(A, i, k)`, `A[i][j]`, `len(A)`, `N^2`, `i`, `j`, `IF`, `FOR`, `WHILE`, or `RETURN`
+- I/II/III-looking text that may be flattened
+- image blocks using legacy `imgAlt` instead of `alt`
+
+Some warnings are expected and acceptable when prose mentions code terms. For CS extraction, do not keep correcting forever if there are zero errors and the warnings are harmless prose. Always visually check hard groups like shared flowcharts, code tables, shared code blocks, algorithm traces, and I/II/III statements.
+
+When review finds errors or warnings, the tool can generate a correction prompt. If you choose `Generate correction prompt`, it prints a ready-to-paste prompt that includes the file name, issue list, block paths, fixing rules, and strict JSON-only output instructions.
 
 ## Merge Group Outputs
 
@@ -161,6 +194,8 @@ The CS tool launches the existing cropper:
 ```powershell
 python tools\pdf_image_extractor.py
 ```
+
+For image text, prefer `alt`, not legacy `imgAlt`. The current block renderer/schema prefer `assetId` with a pack image registry entry that contains `alt`; direct image blocks may use `src` plus `alt`. The simplified CS crop workflow may temporarily use `img` plus `alt` placeholders before final schema conversion, but do not use `imgAlt` for typed image blocks.
 
 Do not write actual crop output into `IMAGES/` during this tooling stage unless that specific test output has been approved.
 
