@@ -52,7 +52,6 @@ let _routerReady = false;
 let _isApplyingRoute = false;
 let _lastRoutePath = '';
 let _allowQuizBackOnce = false;
-const SUBJECT_DATA_VERSION = '82';
 
 function targetPoolForSubject(subjectEntry = subj()) {
   return state.targetHardOnly ? subjectEntry.targetHard : subjectEntry.targetNormal;
@@ -62,41 +61,27 @@ function targetModeLabel() {
   return state.targetHardOnly ? 'Hard Target' : 'Normal Target';
 }
 
+const MoraSubjectData = window.MoraSubjectData;
+if (!MoraSubjectData) {
+  throw new Error('MoraSubjectData must load before quiz_app.js');
+}
+
+var rootAssetPath = MoraSubjectData.rootAssetPath;
+var isUnitOffline = MoraSubjectData.isUnitOffline;
+var isPaperOffline = MoraSubjectData.isPaperOffline;
+var _markOfflineItem = MoraSubjectData._markOfflineItem;
+var _hasAnyOffline = MoraSubjectData._hasAnyOffline;
+var subjectCount = MoraSubjectData.subjectCount;
+var subjectTotalCount = MoraSubjectData.subjectTotalCount;
+var isSubjectLoaded = MoraSubjectData.isSubjectLoaded;
+var applySubjectData = MoraSubjectData.applySubjectData;
+var ensureSubjectData = MoraSubjectData.ensureSubjectData;
+var ensureAllSubjectData = MoraSubjectData.ensureAllSubjectData;
+var getSubjectLoadError = MoraSubjectData.getSubjectLoadError;
+
 // ── Offline / Download (per-unit and per-paper) ───────────────────────────────
-const OFFLINE_V2_KEY = 'mora_offline_v2';
-
-function _offlineData() {
-  try { return JSON.parse(localStorage.getItem(OFFLINE_V2_KEY) || '{}'); }
-  catch(e) { return {}; }
-}
-function _saveOfflineData(d) {
-  try { localStorage.setItem(OFFLINE_V2_KEY, JSON.stringify(d)); } catch(e) {}
-}
-function isUnitOffline(subjectKey, unitId) {
-  return (_offlineData()[subjectKey]?.units || []).includes(Number(unitId));
-}
-function isPaperOffline(subjectKey, year) {
-  return (_offlineData()[subjectKey]?.papers || []).includes(String(year));
-}
-function _markOfflineItem(type, subjectKey, id, on) {
-  const d = _offlineData();
-  if (!d[subjectKey]) d[subjectKey] = { units: [], papers: [] };
-  const arr = type === 'unit' ? 'units' : 'papers';
-  const val = type === 'unit' ? Number(id) : String(id);
-  if (on) {
-    if (!d[subjectKey][arr].includes(val)) d[subjectKey][arr].push(val);
-  } else {
-    d[subjectKey][arr] = d[subjectKey][arr].filter(x => x !== val);
-  }
-  _saveOfflineData(d);
-}
-function _hasAnyOffline(subjectKey) {
-  const d = _offlineData()[subjectKey];
-  return !!(d && (d.units?.length > 0 || d.papers?.length > 0));
-}
-
 async function _cacheSubjectData(subjectKey) {
-  const src = rootAssetPath(`subject_data/${subjectKey}.js?v=${SUBJECT_DATA_VERSION}`);
+  const src = rootAssetPath(`subject_data/${subjectKey}.js?v=${MoraSubjectData.SUBJECT_DATA_VERSION}`);
   if (navigator.serviceWorker?.controller) {
     await new Promise(resolve => {
       const ch = new MessageChannel();
@@ -141,7 +126,7 @@ async function downloadForOffline(type, subjectKey, id) {
 async function removeFromOffline(type, subjectKey, id) {
   _markOfflineItem(type, subjectKey, id, false);
   if (!_hasAnyOffline(subjectKey)) {
-    const src = rootAssetPath(`subject_data/${subjectKey}.js?v=${SUBJECT_DATA_VERSION}`);
+    const src = rootAssetPath(`subject_data/${subjectKey}.js?v=${MoraSubjectData.SUBJECT_DATA_VERSION}`);
     if (navigator.serviceWorker?.controller) {
       navigator.serviceWorker.controller.postMessage({ type: 'REMOVE_SUBJECT', url: src, subjectKey });
     }
@@ -177,8 +162,6 @@ function _offlineBtn(type, subjectKey, id) {
 
 window.downloadForOffline = downloadForOffline;
 window.removeFromOffline  = removeFromOffline;
-const _subjectLoadPromises = {};
-const _subjectLoadErrors = {};
 let _appTutorialStep = 0;
 let _appTutorialActive = false;
 let _appTutorialPrevState = null;
@@ -189,98 +172,17 @@ let chatState = {
   isTyping: false
 };
 
-function subjectCount(subjectKey, bucket) {
-  const s = SUBJECTS[subjectKey];
-  if (!s) return 0;
-  const live = Array.isArray(s[bucket]) ? s[bucket].length : 0;
-  if (s._questionsLoaded || live > 0) return live;
-  return SUBJECT_COUNTS?.[subjectKey]?.[bucket]?.count || 0;
-}
-
-function subjectTotalCount(subjectKey) {
-  return subjectCount(subjectKey, 'pastUnit')
-    + subjectCount(subjectKey, 'pastPaper')
-    + subjectCount(subjectKey, 'allTarget');
-}
-
-function isSubjectLoaded(subjectKey) {
-  const s = SUBJECTS[subjectKey];
-  return !!(s && (s._questionsLoaded || subjectTotalCount(subjectKey) === 0));
-}
-
-function applySubjectData(subjectKey, data) {
-  const s = SUBJECTS[subjectKey];
-  if (!s || !data) return false;
-  s.pastUnit = Array.isArray(data.pastUnit) ? data.pastUnit : [];
-  s.pastPaper = Array.isArray(data.pastPaper) ? data.pastPaper : [];
-  s.targetHard = Array.isArray(data.targetHard) ? data.targetHard : [];
-  s.targetNormal = Array.isArray(data.targetNormal) ? data.targetNormal : [];
-  s.allTarget = [...s.targetHard, ...s.targetNormal];
-  s._questionsLoaded = true;
-  delete _subjectLoadErrors[subjectKey];
-  return true;
-}
-
-function ensureSubjectData(subjectKey) {
-  const s = SUBJECTS[subjectKey];
-  if (!s) return Promise.reject(new Error('Unknown subject'));
-  if (isSubjectLoaded(subjectKey)) return Promise.resolve(s);
-  if (_subjectLoadPromises[subjectKey]) return _subjectLoadPromises[subjectKey];
-
-  _subjectLoadPromises[subjectKey] = new Promise((resolve, reject) => {
-    const existing = window.MORA_SUBJECT_CHUNKS?.[subjectKey];
-    if (existing) {
-      applySubjectData(subjectKey, existing);
-      resolve(s);
-      return;
-    }
-
-    const script = document.createElement('script');
-    script.src = rootAssetPath(`subject_data/${subjectKey}.js?v=${SUBJECT_DATA_VERSION}`);
-    script.async = true;
-    script.onload = () => {
-      const chunk = window.MORA_SUBJECT_CHUNKS?.[subjectKey];
-      if (applySubjectData(subjectKey, chunk)) resolve(s);
-      else {
-        const err = new Error('Question data was empty or invalid.');
-        _subjectLoadErrors[subjectKey] = err.message;
-        reject(err);
-      }
-    };
-    script.onerror = () => {
-      const err = new Error('Could not load question data. Check your connection and try again.');
-      _subjectLoadErrors[subjectKey] = err.message;
-      reject(err);
-    };
-    document.head.appendChild(script);
-  }).catch(err => {
-    delete _subjectLoadPromises[subjectKey];
-    throw err;
-  });
-
-  return _subjectLoadPromises[subjectKey];
-}
-
-function ensureAllSubjectData() {
-  return Promise.allSettled(Object.keys(SUBJECTS).map(key => ensureSubjectData(key)));
-}
-
 function screenNeedsSubjectData(screen) {
   return ['subjectHome', 'pastpaperHome', 'paperHome', 'home', 'targetHome', 'quiz', 'examQuiz', 'results', 'allDone'].includes(screen);
 }
 
-function rootAssetPath(src) {
-  if (!src || /^(https?:|data:|blob:|file:)/i.test(src)) return src;
-  if (location.protocol === 'file:') return src;
-  return '/' + String(src).replace(/^\/+/, '');
-}
-
 function renderSubjectLoading() {
   const s = subj();
-  const message = _subjectLoadErrors[state.currentSubject]
-    ? _subjectLoadErrors[state.currentSubject]
+  const loadError = getSubjectLoadError(state.currentSubject);
+  const message = loadError
+    ? loadError
     : 'Loading questions...';
-  const retry = _subjectLoadErrors[state.currentSubject]
+  const retry = loadError
     ? `<button class="primary" onclick="ensureSubjectData('${state.currentSubject}').then(renderApp).catch(()=>renderApp())">Retry</button>`
     : '';
   return `
@@ -5167,7 +5069,6 @@ bootAuth().then(() => {
   initRouter();
   renderChatMessages();
 });
-
 
 
 
