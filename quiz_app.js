@@ -3042,6 +3042,9 @@ function updateDirectoryFilter(key, value) {
   state.directoryOpenId = '';
   const results = document.getElementById('directoryResults');
   if (results) {
+    const rows = filteredDirectoryRecords();
+    const count = document.querySelector('.directory-count');
+    if (count) count.textContent = `${rows.length} matching question${rows.length === 1 ? '' : 's'}`;
     results.innerHTML = renderDirectoryResults();
     setTimeout(renderMath, 40);
   } else {
@@ -5024,7 +5027,6 @@ bootAuth().then(() => {
   initRouter();
   renderChatMessages();
 });
-
 
 
 
