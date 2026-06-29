@@ -289,53 +289,130 @@ function stopTimer() {
   if (state.timerInterval) { clearInterval(state.timerInterval); state.timerInterval = null; }
 }
 
-function startQuiz(onlyWrong = false) {
-  // appMode is already set to 'pastpaper' or 'fullpaper' by the caller
-  const s = subj();
-  const activeMode = state.appMode; // 'pastpaper' or 'fullpaper'
+function getAnsweredQuestionIds() {
+  return Object.keys(answerHistory);
+}
+
+function getUnansweredQuestions(pool) {
+  const answered = getAnsweredQuestionIds();
+  return pool.filter(q => !answered.includes(q.id));
+}
+
+function getUnansweredOrOriginalPool(pool) {
+  const unanswered = getUnansweredQuestions(pool);
+  return unanswered.length > 0 ? unanswered : pool;
+}
+
+function getSelectedPastPaperPool(allPast = pastPool()) {
+  return state.topics.length > 0
+    ? allPast.filter(q => state.topics.includes(q.year))
+    : [...allPast];
+}
+
+function getSelectedPastUnitPool(allPast = pastPool()) {
+  const pool = allPast.filter(q => state.topics.includes(q.unit));
+  pool.sort((a, b) => a.unit - b.unit);
+  return pool;
+}
+
+function getPastUnitPoolByUnit(unitId, subjectEntry = subj()) {
+  return subjectEntry.pastUnit.filter(q => q.unit === Number(unitId));
+}
+
+function getPastPaperPoolByYear(year, subjectEntry = subj()) {
+  return subjectEntry.pastPaper.filter(q => String(q.year) === String(year));
+}
+
+function applyWeakPracticePool(pool) {
+  if (state.mode !== 'weak' || state.results.length === 0) return pool;
+  const wrong = new Set(state.results.filter(r => !r.correct).map(r => r.id));
+  const wrongQs = pool.filter(q => wrong.has(q.id));
+  return wrongQs.length > 0 ? wrongQs : pool;
+}
+
+function applySmartPracticePool(pool) {
+  return state.mode === 'smart'
+    ? buildSmartPool(pool, state.currentSubject)
+    : pool;
+}
+
+function getPracticeQuizPool(onlyWrong = false) {
+  const activeMode = state.appMode;
   const allPast = pastPool();
-  let pool = [];
 
   if (onlyWrong && state.results.length > 0) {
     const wrongIds = state.results.filter(r => !r.correct).map(r => r.id);
-    pool = allPast.filter(q => wrongIds.includes(q.id));
-  } else if (activeMode === 'fullpaper') {
-    pool = state.topics.length > 0
-      ? allPast.filter(q => state.topics.includes(q.year))
-      : [...allPast];
-    const answered = Object.keys(answerHistory);
-    const unanswered = pool.filter(q => !answered.includes(q.id));
-    pool = unanswered.length > 0 ? unanswered : pool;
-  } else {
-    if (state.topics.length === 0) { alert('Please select at least one unit.'); return; }
-    pool = allPast.filter(q => state.topics.includes(q.unit));
-    pool.sort((a, b) => a.unit - b.unit);
-    const answered = Object.keys(answerHistory);
-    const unanswered = pool.filter(q => !answered.includes(q.id));
-    pool = unanswered.length > 0 ? unanswered : pool;
-    if (state.mode === 'weak' && state.results.length > 0) {
-      const wrong = new Set(state.results.filter(r => !r.correct).map(r => r.id));
-      const wrongQs = pool.filter(q => wrong.has(q.id));
-      pool = wrongQs.length > 0 ? wrongQs : pool;
-    }
-    // Smart (spaced repetition) mode — reorder by SR weights
-    if (state.mode === 'smart') {
-      pool = buildSmartPool(pool, state.currentSubject);
-    }
+    const pool = allPast.filter(q => wrongIds.includes(q.id));
+    return { activeMode, pool, fullScope: pool };
   }
+
+  if (activeMode === 'fullpaper') {
+    const selectedPool = getSelectedPastPaperPool(allPast);
+    const pool = getUnansweredOrOriginalPool(selectedPool);
+    return { activeMode, pool, fullScope: onlyWrong ? pool : selectedPool };
+  }
+
+  if (state.topics.length === 0) {
+    return { activeMode, pool: [], fullScope: [], error: 'Please select at least one unit.' };
+  }
+
+  const selectedPool = getSelectedPastUnitPool(allPast);
+  let pool = getUnansweredOrOriginalPool(selectedPool);
+  pool = applyWeakPracticePool(pool);
+  pool = applySmartPracticePool(pool);
+  return { activeMode, pool, fullScope: onlyWrong ? pool : selectedPool };
+}
+
+function getTargetQuizPool(subjectEntry = subj()) {
+  let sourcePool = [...targetPoolForSubject(subjectEntry)];
+  if (state.topics.length > 0) {
+    sourcePool = sourcePool.filter(q => state.topics.includes(q.unit));
+  }
+  return sourcePool;
+}
+
+function limitQuestionCount(pool, count = state.count) {
+  return pool.slice(0, Math.min(count, pool.length));
+}
+
+function prepareTargetQuestionSet(pool) {
+  return limitQuestionCount(shuffle(pool).map(shuffleQuestionOptions));
+}
+
+function getExamPool() {
+  if (state.appMode === 'fullpaper') {
+    return { pool: getSelectedPastPaperPool() };
+  }
+  if (state.topics.length === 0) {
+    return { pool: [], error: 'Please select at least one unit.' };
+  }
+  return { pool: getSelectedPastUnitPool() };
+}
+
+function getViewAllPool(questions, subjectEntry = subj()) {
+  if (Array.isArray(questions)) return questions;
+  if (typeof questions === 'string') {
+    const unitMatch = questions.match(/^pastUnit_unit_(\d+)$/);
+    if (unitMatch) return getPastUnitPoolByUnit(unitMatch[1], subjectEntry);
+    const yearMatch = questions.match(/^pastPaper_year_(.+)$/);
+    if (yearMatch) return getPastPaperPoolByYear(yearMatch[1], subjectEntry);
+  }
+  return [];
+}
+
+function startQuiz(onlyWrong = false) {
+  const resolved = getPracticeQuizPool(onlyWrong);
+  const activeMode = resolved.activeMode;
+  const pool = resolved.pool;
+  const fullScope = resolved.fullScope;
+
+  if (resolved.error) { alert(resolved.error); return; }
 
   if (pool.length === 0) { alert('No questions available for the selected filter.'); return; }
 
-  // Full scope pool (including already-answered) — used for allDone check and resume offset
-  const fullScope = onlyWrong ? pool : (
-    activeMode === 'fullpaper'
-      ? (state.topics.length > 0 ? allPast.filter(q => state.topics.includes(q.year)) : allPast)
-      : allPast.filter(q => state.topics.includes(q.unit))
-  );
-
   // Check if all questions have been answered
   if (!onlyWrong) {
-    const answered = Object.keys(answerHistory);
+    const answered = getAnsweredQuestionIds();
     if (fullScope.length > 0 && fullScope.every(q => answered.includes(q.id))) {
       state.screen = 'allDone';
       state.allDoneMode = activeMode;
@@ -362,19 +439,12 @@ function startQuiz(onlyWrong = false) {
 
 function startTargetQuiz() {
   state.appMode = 'target';
-  const s = subj();
-  let sourcePool = [...targetPoolForSubject(s)];
-
-  // Filter by selected units
-  if (state.topics.length > 0) {
-    sourcePool = sourcePool.filter(q => state.topics.includes(q.unit));
-  }
+  const sourcePool = getTargetQuizPool();
 
   if (sourcePool.length === 0) { alert('No questions available for the selected units.'); return; }
 
   // Filter out already-answered questions
-  const answered = Object.keys(answerHistory);
-  const unanswered = sourcePool.filter(q => !answered.includes(q.id));
+  const unanswered = getUnansweredQuestions(sourcePool);
 
   // Check if all answered
   if (unanswered.length === 0) {
@@ -384,8 +454,8 @@ function startTargetQuiz() {
     return;
   }
 
-  let pool = shuffle(unanswered).map(shuffleQuestionOptions);
-  state.questions = pool.slice(0, Math.min(state.count, pool.length));
+  const pool = prepareTargetQuestionSet(unanswered);
+  state.questions = pool;
   state.current = 0;
   state.answered = false;
   state.selected = -1;
@@ -753,17 +823,9 @@ function showExamTransition(subjectLabel, callback) {
 }
 
 function startExamQuiz() {
-  const allPast = pastPool();
-  let pool = [];
-  if (state.appMode === 'fullpaper') {
-    pool = state.topics.length > 0
-      ? allPast.filter(q => state.topics.includes(q.year))
-      : [...allPast];
-  } else {
-    if (state.topics.length === 0) { alert('Please select at least one unit.'); return; }
-    pool = allPast.filter(q => state.topics.includes(q.unit));
-    pool.sort((a, b) => a.unit - b.unit);
-  }
+  const resolved = getExamPool();
+  const pool = resolved.pool;
+  if (resolved.error) { alert(resolved.error); return; }
   if (pool.length === 0) { alert('No questions available.'); return; }
 
   state.questions       = pool.map(q => ({...q}));
@@ -933,15 +995,7 @@ window.submitExamPaper = submitExamPaper;
 // ── View All Questions ────────────────────────────────────────────────────────
 // `questions` may be a real array OR a string token: 'pastUnit_unit_N' / 'pastPaper_year_YYYY'
 function _resolveViewAllPool(questions) {
-  if (Array.isArray(questions)) return questions;
-  const s = subj();
-  if (typeof questions === 'string') {
-    const unitMatch = questions.match(/^pastUnit_unit_(\d+)$/);
-    if (unitMatch) return s.pastUnit.filter(q => q.unit === Number(unitMatch[1]));
-    const yearMatch = questions.match(/^pastPaper_year_(.+)$/);
-    if (yearMatch) return s.pastPaper.filter(q => String(q.year) === yearMatch[1]);
-  }
-  return [];
+  return getViewAllPool(questions);
 }
 
 function showViewAllConfirm(token, title, backScreen) {
@@ -4958,6 +5012,3 @@ bootAuth().then(() => {
   initRouter();
   renderChatMessages();
 });
-
-
-
