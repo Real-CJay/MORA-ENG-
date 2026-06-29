@@ -26,7 +26,8 @@ Use `tools\pdf_image_extractor.py` only through the CS tool's image converter/cr
 12. Choose `Merge reviewed group output JSON files into one full paper JSON`.
 13. Choose `Review a merged full paper JSON`.
 14. Choose `Open image converter/cropper` only if the paper has image blocks, then provide the PDF path when asked.
-15. Preview manually before import.
+15. Convert the reviewed/cropped extraction JSON to preview/schema v2.
+16. Preview manually before import.
 
 Do not ask Claude to convert the full 80-question paper at once.
 
@@ -234,6 +235,14 @@ For image text, prefer `alt`, not legacy `imgAlt`. The simplified CS crop workfl
 Do not write actual crop output into `IMAGES/` during this tooling stage unless that specific test output has been approved.
 
 ## Preview And Import
+
+After review and image cropping, convert the extractor shape to the preview/schema v2 shape:
+
+```powershell
+python tools\cs_extractor_to_preview_schema.py reviewed-cropped.json preview-pack.json --pretty
+```
+
+The converter writes a clean JSON pack with `schemaVersion: 2`, `body`, `options`, `answer`, and `explanation` fields for the dev renderer/validator. It converts CS extractor `blocks` to `body`, `opts` to schema option objects, numeric `ans` indexes to schema answer labels, `explanationBlocks` to `explanation`, code `text` to code `value`, and image refs to schema image assets.
 
 Use the dev preview workflow to inspect rendered questions. Pay special attention to Python indentation, pseudo-code indentation, I/II/III statement grouping, shared figures, flowcharts, tables, and output blocks.
 

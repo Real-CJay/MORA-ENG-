@@ -159,7 +159,12 @@ Rules:
 - Extractor JSON is not directly live-ready.
 - Extractor JSON is not always renderer-preview-ready either.
 - An adapter or converter stage is required between extraction and preview/live
-  use.
+  use. For CS preview work, use:
+
+```powershell
+python tools\cs_extractor_to_preview_schema.py input.json output.json --pretty
+```
+
 - Image references before cropping may be filename-only.
 - Image references after cropping should be full relative paths.
 - Code blocks must stay as code blocks, not be flattened into plain text.
@@ -206,7 +211,7 @@ Safe future CS path:
 1. Extract CS with block schema.
 2. Review extraction JSON.
 3. Crop images and update paths.
-4. Convert to preview/schema v2.
+4. Convert to preview/schema v2 with `tools/cs_extractor_to_preview_schema.py`.
 5. Preview using dev renderer.
 6. Only after approval, generate live-compatible data or integrate renderer behind flag.
 7. Add CS to registry only in a separate approved stage.
