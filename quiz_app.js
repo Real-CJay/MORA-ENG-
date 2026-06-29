@@ -558,6 +558,18 @@ function goHome() {
   renderApp();
 }
 
+function savePracticeAnswer(subject, questionId, selected, correct) {
+  return dbSaveAnswer(subject, questionId, selected, correct);
+}
+
+function saveExamAnswer(subject, questionId, selected, correct) {
+  return dbSaveAnswer(subject, questionId, selected, correct);
+}
+
+function saveCompletedQuizSession(subject, appMode, score, total, timeTaken, countdownLimit) {
+  return dbSaveSession(subject, appMode, score, total, timeTaken, countdownLimit);
+}
+
 function selectAnswer(idx) {
   if (state.answered) return;
   state.answered = true;
@@ -569,7 +581,7 @@ function selectAnswer(idx) {
   // Update in-memory history
   answerHistory[q.id] = { selected: idx, correct, timestamp: Date.now() };
   // Save to Supabase (no-op for guests)
-  dbSaveAnswer(state.currentSubject, q.id, idx, correct);
+  savePracticeAnswer(state.currentSubject, q.id, idx, correct);
   renderApp();
   maybeNudgeJanuda();
 }
@@ -583,7 +595,7 @@ function next() {
     state.showReview = false;
     stopTimer();
     // Save completed session to Supabase (no-op for guests)
-    dbSaveSession(
+    saveCompletedQuizSession(
       state.currentSubject,
       state.appMode,
       state.score,
@@ -1070,9 +1082,9 @@ async function submitExamPaper() {
   // Save to DB
   for (const r of state.results) {
     if (r.selected >= 0)
-      await dbSaveAnswer(state.currentSubject, r.id, r.selected, r.correct).catch(() => {});
+      await saveExamAnswer(state.currentSubject, r.id, r.selected, r.correct).catch(() => {});
   }
-  await dbSaveSession(state.currentSubject, state.appMode, state.score,
+  await saveCompletedQuizSession(state.currentSubject, state.appMode, state.score,
                       state.questions.length, state.timerSeconds, state.countdownLimit).catch(() => {});
   renderApp();
   setTimeout(renderMath, 120);
