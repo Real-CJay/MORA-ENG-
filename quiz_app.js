@@ -12,7 +12,7 @@ function pastPool() {
 // progressKey for past modes
 let state = {
   screen: 'landing',
-  appMode: null,       // 'pastpaper' or 'target'
+  appMode: null,       // 'pastpaper', 'fullpaper', or 'target'
   currentSubject: 'materials',
   topics: [1,2,3,4,5],
   mode: 'standard',
@@ -53,12 +53,98 @@ let _isApplyingRoute = false;
 let _lastRoutePath = '';
 let _allowQuizBackOnce = false;
 
+const QUIZ_MODE_META = {
+  pastpaper: {
+    key: 'pastpaper',
+    label: 'Past Paper Quiz',
+    setupScreen: 'home',
+    backLabel: '&larr; Past Paper',
+    categoryTitle: 'Past Papers',
+    categorySubtitle: 'Choose a subject for unit-wise or full past paper practice.',
+    categoryBadge: 'PP',
+    categoryAccent: '#7fa3ff',
+    timerTitle: 'Set a Time Limit?',
+    timerAccent: '#6c8bef',
+    timerAccentBg: '#1a2040',
+    timerPresetSet: 'standard',
+    supportsExam: true,
+    adminLabel: 'Unit-wise Past Papers',
+    completionQuestionLabel: 'Past Paper'
+  },
+  fullpaper: {
+    key: 'fullpaper',
+    label: 'Past Paper Quiz',
+    setupScreen: 'paperHome',
+    backLabel: '&larr; Full Papers',
+    timerTitle: 'Set a Time Limit?',
+    timerAccent: '#6c8bef',
+    timerAccentBg: '#1a2040',
+    timerPresetSet: 'fullpaper',
+    supportsExam: true,
+    adminLabel: 'Full Papers',
+    completionQuestionLabel: 'Past Paper'
+  },
+  target: {
+    key: 'target',
+    label: 'Target Quiz',
+    setupScreen: 'targetHome',
+    backLabel: '&larr; Target Quiz',
+    categoryTitle: 'Target Quiz',
+    categorySubtitle: 'Choose a subject for curated normal and hard target questions.',
+    categoryBadge: 'TQ',
+    categoryAccent: '#43d7ff',
+    timerTitle: 'Set a Target Quiz Time Limit?',
+    timerAccent: '#e74c3c',
+    timerAccentBg: '#2b0d0d',
+    timerPresetSet: 'standard',
+    supportsExam: false,
+    adminLabel: 'Target Quiz',
+    completionQuestionLabel: 'Target',
+    isTarget: true
+  }
+};
+
+const TARGET_VARIANT_META = {
+  normal: {
+    label: 'Normal Target',
+    countLabel: 'Normal target questions',
+    accent: '#43d7ff',
+    selectedStyle: ''
+  },
+  hard: {
+    label: 'Hard Target',
+    countLabel: 'Hard target questions',
+    accent: '#f87171',
+    selectedStyle: 'background:#c0392b;border-color:#c0392b;'
+  }
+};
+
+function getQuizModeMeta(mode = state.appMode) {
+  return QUIZ_MODE_META[mode] || QUIZ_MODE_META.pastpaper;
+}
+
+function getQuizModeSetupScreen(mode = state.appMode) {
+  return getQuizModeMeta(mode).setupScreen;
+}
+
+function quizModeAdminOptions(keys) {
+  return keys.map(key => [key, getQuizModeMeta(key).adminLabel || key]);
+}
+
+function defaultExamModeKeys() {
+  return Object.keys(QUIZ_MODE_META).filter(key => getQuizModeMeta(key).supportsExam);
+}
+
+function getTargetVariantMeta(hardOnly = state.targetHardOnly) {
+  return hardOnly ? TARGET_VARIANT_META.hard : TARGET_VARIANT_META.normal;
+}
+
 function targetPoolForSubject(subjectEntry = subj()) {
   return state.targetHardOnly ? subjectEntry.targetHard : subjectEntry.targetNormal;
 }
 
 function targetModeLabel() {
-  return state.targetHardOnly ? 'Hard Target' : 'Normal Target';
+  return getTargetVariantMeta().label;
 }
 
 const MoraSubjectData = window.MoraSubjectData;
@@ -676,7 +762,7 @@ function _maybeNudgeShortcuts() {
 }
 
 function getGrade(pct) {
-  if (state.appMode === 'target') {
+  if (getQuizModeMeta().isTarget) {
     if (pct >= 75) return {label:'A', msg:'Excellent performance - outstanding mastery!', color:'#4ade80'};
     if (pct >= 65) return {label:'B', msg:'Good work - solid understanding shown.', color:'#7dd3fc'};
     if (pct >= 50) return {label:'C', msg:'Passing - review the weaker areas.', color:'#fbbf24'};
@@ -713,10 +799,11 @@ let _modePickerBypass  = false;
 
 function showModePickerModal(quizMode, bypassGuestPrompt = false) {
   const cfg = window._appSettings || {};
+  const modeMeta = getQuizModeMeta(quizMode);
   // Skip picker if: target mode, exam disabled globally, or this mode not in allowed list
   const examAllowed = cfg.exam_mode_enabled !== false
-    && (cfg.exam_mode_modes ?? ['pastpaper','fullpaper']).includes(quizMode);
-  if (quizMode === 'target' || !examAllowed) {
+    && (cfg.exam_mode_modes ?? defaultExamModeKeys()).includes(quizMode);
+  if (!modeMeta.supportsExam || !examAllowed) {
     showTimerModal(quizMode, bypassGuestPrompt);
     return;
   }
@@ -1334,7 +1421,7 @@ function confirmRouteLeaveQuiz() {
   stopTimer();
   if (canUseAppHistory()) history.back();
   else {
-    state.screen = state.appMode === 'target' ? 'targetHome' : (state.appMode === 'fullpaper' ? 'paperHome' : 'home');
+    state.screen = getQuizModeSetupScreen();
     renderApp();
   }
 }
@@ -1466,10 +1553,9 @@ function _doRenderApp() {
   } else if (state.screen === 'examQuiz') {
     back.innerHTML = `<button class="btn-home" onclick="confirmLeaveActiveQuiz()">&larr; Leave Exam</button>`;
   } else if (state.screen === 'quiz' || state.screen === 'results' || state.screen === 'allDone') {
-    const dest = state.appMode === 'target' ? 'targetHome'
-      : state.appMode === 'fullpaper' ? 'paperHome' : 'home';
-    const label = state.appMode === 'target' ? '&larr; Target Quiz'
-      : state.appMode === 'fullpaper' ? '&larr; Full Papers' : '&larr; Past Paper';
+    const modeMeta = getQuizModeMeta();
+    const dest = modeMeta.setupScreen;
+    const label = modeMeta.backLabel;
     back.innerHTML = `<button class="btn-home" onclick="stopTimer();state.screen='${dest}';renderApp()">${label}</button>`;
   }
 
@@ -1778,6 +1864,9 @@ function renderTargetHome() {
   const s = subj();
   const hardCount = s.targetHard.length;
   const normalCount = s.targetNormal.length;
+  const normalTarget = getTargetVariantMeta(false);
+  const hardTarget = getTargetVariantMeta(true);
+  const targetVariant = getTargetVariantMeta();
   const allAnswered = Object.keys(answerHistory);
   const sourcePool = targetPoolForSubject(s);
   const units = s.units;
@@ -1785,18 +1874,20 @@ function renderTargetHome() {
   const selectedPool = sourcePool.filter(q => state.topics.includes(q.unit));
   const rem = selectedPool.filter(q => !allAnswered.includes(q.id)).length;
   const maxCount = selectedPool.length;
-  const accent = state.targetHardOnly ? '#f87171' : '#43d7ff';
+  const accent = targetVariant.accent;
+  const activeCount = state.targetHardOnly ? hardCount : normalCount;
+  const countText = `${targetVariant.countLabel} - ${activeCount} total`;
 
   return `
   <div class="header" style="padding:2rem 0 1.5rem;">
     <div class="header-badge" style="background:#10252d;border-color:#43d7ff44;color:#43d7ff;">${s.icon} ${s.label} - Target Questions</div>
     <h1 style="margin-bottom:0.5rem;">${targetModeLabel()}</h1>
-    <p>${state.targetHardOnly ? `<span style="color:#f87171;font-weight:600;">Hard target questions - ${hardCount} total</span>` : `Normal target questions - ${normalCount} total`}</p>
+    <p>${state.targetHardOnly ? `<span style="color:#f87171;font-weight:600;">${countText}</span>` : countText}</p>
   </div>
 
   <div class="mode-row" style="margin:0 0 1.2rem;">
-    <button class="mode-btn ${!state.targetHardOnly?'active':''}" onclick="state.targetHardOnly=false;selectAllTargetTopics()">Normal Target</button>
-    <button class="mode-btn ${state.targetHardOnly?'active':''}" onclick="state.targetHardOnly=true;selectAllTargetTopics()" style="${state.targetHardOnly?'background:#c0392b;border-color:#c0392b;':''}">Hard Target</button>
+    <button class="mode-btn ${!state.targetHardOnly?'active':''}" onclick="state.targetHardOnly=false;selectAllTargetTopics()">${normalTarget.label}</button>
+    <button class="mode-btn ${state.targetHardOnly?'active':''}" onclick="state.targetHardOnly=true;selectAllTargetTopics()" style="${state.targetHardOnly ? hardTarget.selectedStyle : ''}">${hardTarget.label}</button>
   </div>
 
   <div class="unit-chip-panel">
@@ -1831,7 +1922,7 @@ function renderTargetHome() {
 
 function buildReviewText() {
   const pct = Math.round((state.score/state.questions.length)*100) || 0;
-  const mode = state.appMode === 'target' ? 'Target Quiz' : 'Past Paper Quiz';
+  const mode = getQuizModeMeta().label;
   const timeStr = state.countdownLimit > 0 && state.countdownRemaining === 0
     ? "Time\'s up!" : formatTime(state.timerSeconds);
   let lines = [
@@ -1853,7 +1944,7 @@ function buildReviewText() {
 function buildReviewHTML() {
   const pct = Math.round((state.score/state.questions.length)*100) || 0;
   const grade = getGrade(pct);
-  const mode = state.appMode === 'target' ? 'Target Quiz' : 'Past Paper Quiz';
+  const mode = getQuizModeMeta().label;
   const timeStr = state.countdownLimit > 0 && state.countdownRemaining === 0
     ? "Time's up!" : formatTime(state.timerSeconds);
   const wrong = state.results.filter(r => !r.correct).length;
@@ -1902,7 +1993,7 @@ function saveReviewAsHTML() {
   const blob = new Blob([html], {type:'text/html'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  const mode = state.appMode === 'target' ? 'target' : 'pastpaper';
+  const mode = getQuizModeMeta().isTarget ? 'target' : 'pastpaper';
   a.download = `quiz-review-${mode}-${new Date().toISOString().slice(0,10)}.html`;
   a.click();
   URL.revokeObjectURL(a.href);
@@ -2183,7 +2274,8 @@ function showTimerModal(mode, bypassGuestPrompt = false) {
     showGuestQuizPrompt(mode);
     return;
   }
-  if (mode !== 'target') state.appMode = mode;
+  const modeMeta = getQuizModeMeta(mode);
+  if (!modeMeta.isTarget) state.appMode = mode;
   _pendingStartMode = mode;
   _selectedTimerMins = null;
 
@@ -2197,9 +2289,8 @@ function showTimerModal(mode, bypassGuestPrompt = false) {
     return;
   }
 
-  const isTarget = mode === 'target';
-  const accent = isTarget ? '#e74c3c' : '#6c8bef';
-  const accentBg = isTarget ? '#2b0d0d' : '#1a2040';
+  const accent = modeMeta.timerAccent;
+  const accentBg = modeMeta.timerAccentBg;
   const modal = document.getElementById('timerModal');
   const box = document.getElementById('timerModalBox');
 
@@ -2208,12 +2299,12 @@ function showTimerModal(mode, bypassGuestPrompt = false) {
   box.style.setProperty('--tm-accent-bg', accentBg);
   box.style.borderTop = '3px solid ' + accent;
 
-  document.getElementById('timerModalTitle').textContent = isTarget ? 'Set a Target Quiz Time Limit?' : 'Set a Time Limit?';
+  document.getElementById('timerModalTitle').textContent = modeMeta.timerTitle;
   document.getElementById('timerModalSubtitle').textContent =
     'Pick a preset or enter a custom time. Hit "No Timer" to start without one.';
 
   // Render preset grid — fullpaper gets longer presets (30 min–3 hr)
-  const presets = (mode === 'fullpaper')
+  const presets = modeMeta.timerPresetSet === 'fullpaper'
     ? [
         { mins: 30,  label: '30 min' },
         { mins: 45,  label: '45 min' },
@@ -2408,6 +2499,8 @@ var renderTextBlock = MoraAppHelpers.renderTextBlock;
 
 function renderQuiz() {
   const q = state.questions[state.current];
+  const modeMeta = getQuizModeMeta();
+  const isTargetMode = !!modeMeta.isTarget;
   const _qOffset     = state.resumeOffset || 0;
   const _qDisplayNum = _qOffset + state.current + 1;
   const _qDisplayTot = _qOffset + state.questions.length;
@@ -2430,8 +2523,8 @@ function renderQuiz() {
   </div>
   <div class="q-card" style="--card-color:${subj().color};--card-shadow:${subj().color}22;">
     <div class="q-meta" style="position:relative;">
-      ${state.appMode === 'target' ? `<span class="q-tag ${q.unit?unitClass(q.unit):''}">Target Quiz</span>` : `<span class="q-tag ${unitClass(q.unit)}">${unitTag(q.unit)}</span>`}
-      ${state.appMode !== 'target' ? `<span class="q-tag">${q.year || 'Past Paper'}</span>` : ''}
+      ${isTargetMode ? `<span class="q-tag ${q.unit?unitClass(q.unit):''}">${modeMeta.label}</span>` : `<span class="q-tag ${unitClass(q.unit)}">${unitTag(q.unit)}</span>`}
+      ${!isTargetMode ? `<span class="q-tag">${q.year || 'Past Paper'}</span>` : ''}
       ${q.hard ? `<span class="q-tag" style="background:#2b0808;border-color:#c0392b;color:#f87171;font-weight:700;letter-spacing:0.05em;font-size:0.78rem;">Hard</span>` : ''}
       ${answerHistory[q.id] && !state.answered ? `<span class="q-tag" style="background:${answerHistory[q.id].correct?'#0d2b1a':'#2b0d0d'};border-color:${answerHistory[q.id].correct?'#1a5c35':'#5c1a1a'};color:${answerHistory[q.id].correct?'var(--correct)':'var(--wrong)'};">${answerHistory[q.id].correct?'&#10003;':'&#10007;'} prev: ${cleanDisplayText(q.opts[answerHistory[q.id].selected])}</span>` : ''}
       ${window._appSettings?.flags_enabled !== false ? `<button id="flag-${q.id}" class="flag-btn${isFlagged(state.currentSubject,q.id)?' flagged':''}" onclick="toggleFlagUI('${state.currentSubject}','${q.id}')" title="${isFlagged(state.currentSubject,q.id)?'Remove flag':'Flag for review'}">!</button>` : ''}
@@ -2473,6 +2566,8 @@ function renderResults() {
   const pct = Math.round((state.score/state.questions.length)*100) || 0;
   const grade = getGrade(pct);
   const wrong = state.results.filter(r=>!r.correct).length;
+  const modeMeta = getQuizModeMeta();
+  const isTargetMode = !!modeMeta.isTarget;
   
   let reviewHtml = '';
   if (state.showReview) {
@@ -2506,9 +2601,9 @@ function renderResults() {
       <span class="sc-num" style="color:${grade.color};">${pct}%</span>
       <span class="sc-label">${state.score}/${state.questions.length}</span>
     </div>
-    <h2 style="color:${grade.color};font-size:${state.appMode==='target'?'2.8rem':'1.8rem'};margin-bottom:0.3rem;">${grade.label}</h2>
+    <h2 style="color:${grade.color};font-size:${isTargetMode?'2.8rem':'1.8rem'};margin-bottom:0.3rem;">${grade.label}</h2>
     <p>${grade.msg}</p>
-    ${state.appMode === 'target' ? `
+    ${isTargetMode ? `
     <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:1rem 0 0.5rem;font-size:0.78rem;">
       <span style="padding:3px 10px;border-radius:100px;background:#1a0a0a;border:1px solid #5a1a1a;color:#f87171;">F &lt;35%</span>
       <span style="padding:3px 10px;border-radius:100px;background:#1a1008;border:1px solid #6b3a0a;color:#f97316;">S 35–50%</span>
@@ -2552,8 +2647,8 @@ function renderResults() {
     })()}
     ${typeof renderPostQuizInsights === 'function' ? renderPostQuizInsights() : ''}
     <div class="results-btns">
-      <button class="primary" onclick="${state.appMode==='target'?'startTargetQuiz':'startQuiz'}()">New Quiz</button>
-      ${wrong > 0 && state.appMode !== 'target' ? `<button class="warning" onclick="startQuiz(true)">Retry Incorrect</button>` : ''}
+      <button class="primary" onclick="${isTargetMode?'startTargetQuiz':'startQuiz'}()">New Quiz</button>
+      ${wrong > 0 && !isTargetMode ? `<button class="warning" onclick="startQuiz(true)">Retry Incorrect</button>` : ''}
       <button onclick="state.showReview=!state.showReview;renderApp()">${state.showReview?'Hide':'Show'} Review</button>
       <button onclick="saveReviewAsHTML()" title="Save review as HTML file">💾 Save</button>
       <button onclick="shareReview()" title="Copy results to clipboard">📋 Share</button>
@@ -2677,12 +2772,11 @@ function renderLanding() {
 
 function renderCategorySubjects() {
   const mode = state.categoryMode === 'target' ? 'target' : 'pastpaper';
-  const title = mode === 'target' ? 'Target Quiz' : 'Past Papers';
-  const subtitle = mode === 'target'
-    ? 'Choose a subject for curated normal and hard target questions.'
-    : 'Choose a subject for unit-wise or full past paper practice.';
-  const badge = mode === 'target' ? 'TQ' : 'PP';
-  const accent = mode === 'target' ? '#43d7ff' : '#7fa3ff';
+  const modeMeta = getQuizModeMeta(mode);
+  const title = modeMeta.categoryTitle;
+  const subtitle = modeMeta.categorySubtitle;
+  const badge = modeMeta.categoryBadge;
+  const accent = modeMeta.categoryAccent;
   const sorted = Object.values(SUBJECTS).map(s => ({
     ...s,
     categoryCount: subjectCategoryCount(s.key, mode)
@@ -2698,7 +2792,7 @@ function renderCategorySubjects() {
     const clickHandler = empty ? '' : `onclick="selectCategorySubject('${s.key}')"`;
     const statusLabel = empty ? 'Coming soon' : `${s.categoryCount} questions`;
     const statusClass = empty ? 'status-coming-soon' : 'status-available';
-    const statusColor = empty ? 'var(--text-muted)' : (mode === 'target' ? '#43d7ff' : s.color);
+    const statusColor = empty ? 'var(--text-muted)' : (modeMeta.isTarget ? modeMeta.categoryAccent : s.color);
     const arrow = empty ? '' : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:' + statusColor + ';opacity:0.8;flex-shrink:0;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
     return '<' + tag + href + ' ' + clickHandler + ' class="lp-tile' + (empty ? ' lp-tile-empty' : '') + '" style="--tile-color:' + statusColor + ';--tile-glow:' + statusColor + '14;">'
       + '<div class="lp-tile-top">'
@@ -2891,7 +2985,8 @@ function renderPaperHome() {
 function renderAllDone() {
   const s = subj();
   const mode = state.allDoneMode || state.appMode;
-  const isTarget = mode === 'target';
+  const modeMeta = getQuizModeMeta(mode);
+  const isTarget = !!modeMeta.isTarget;
   const totalQ = isTarget ? targetPoolForSubject(s).length : pastPool().length;
   const answered = Object.keys(answerHistory).filter(id => {
     const pool = isTarget ? targetPoolForSubject(s) : pastPool();
@@ -2921,7 +3016,7 @@ function renderAllDone() {
   <div style="text-align:center;padding:2rem 0 1rem;">
     <div style="font-size:3.5rem;margin-bottom:1rem;">🏆</div>
     <h1 style="margin-bottom:0.5rem;color:${s.color};">All Questions Completed!</h1>
-    <p style="color:var(--text-muted);margin-bottom:1.5rem;">You've answered every ${isTarget?'Target':'Past Paper'} question in <strong style="color:${s.color};">${s.label}</strong>. Here's your complete record.</p>
+    <p style="color:var(--text-muted);margin-bottom:1.5rem;">You've answered every ${modeMeta.completionQuestionLabel} question in <strong style="color:${s.color};">${s.label}</strong>. Here's your complete record.</p>
     <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:1.5rem;">
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1rem 1.5rem;min-width:100px;">
         <div style="font-size:1.8rem;font-weight:700;color:${s.color};font-family:'DM Mono',monospace;">${answered.length}</div>
@@ -2941,7 +3036,7 @@ function renderAllDone() {
       </div>
     </div>
     <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:2rem;">
-      <button onclick="state.screen=isTarget?'targetHome':(state.allDoneMode==='fullpaper'?'paperHome':'home');renderApp()" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:0.7rem 1.3rem;cursor:pointer;">← Back to Setup</button>
+      <button onclick="state.screen='${modeMeta.setupScreen}';renderApp()" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:0.7rem 1.3rem;cursor:pointer;">← Back to Setup</button>
     </div>
   </div>
   <div style="text-align:left;">
@@ -3138,8 +3233,8 @@ function renderAdminSettings() {
       ${_adminToggle('exam_mode_enabled', cfg.exam_mode_enabled ?? true,
           'Exam Mode',
           'Show the Practice / Exam mode picker before starting a past paper quiz')}
-      ${_adminCheckboxGroup('exam_mode_modes', cfg.exam_mode_modes ?? ['pastpaper','fullpaper'],
-          [['pastpaper','Unit-wise Past Papers'],['fullpaper','Full Papers']],
+      ${_adminCheckboxGroup('exam_mode_modes', cfg.exam_mode_modes ?? defaultExamModeKeys(),
+          quizModeAdminOptions(defaultExamModeKeys()),
           'Exam Mode applies to',
           'Which quiz types offer the Exam option')}
       ${_adminToggle('timer_enabled', cfg.timer_enabled ?? true,
@@ -3152,7 +3247,7 @@ function renderAdminSettings() {
           'Public Leaderboard',
           'Show leaderboard to all users (including guests)')}
       ${_adminCheckboxGroup('leaderboard_modes', cfg.leaderboard_modes ?? ['pastpaper','target'],
-          [['pastpaper','Unit-wise Past Papers'],['target','Target Quiz'],['fullpaper','Full Papers']],
+          quizModeAdminOptions(['pastpaper','target','fullpaper']),
           'Overall leaderboard counts',
           'Full Papers are excluded by default. The separate Past Paper Accuracy board always uses unit-wise past paper quizzes.')}
 
