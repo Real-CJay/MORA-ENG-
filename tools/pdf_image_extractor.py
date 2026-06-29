@@ -83,24 +83,31 @@ def ask(prompt: str, default: str = "") -> str:
 
 # ── Parsing ───────────────────────────────────────────────────────────────────
 
+MANIFEST_MARKERS = ("====IMAGES====", "====IMG====", "====IMAGE====")
+
+
+def split_manifest_text(text: str) -> tuple[str, str]:
+    upper_text = text.upper()
+    positions: list[tuple[int, str]] = []
+    for marker in MANIFEST_MARKERS:
+        index = upper_text.find(marker)
+        if index != -1:
+            positions.append((index, marker))
+    if not positions:
+        return text, ""
+    index, marker = min(positions, key=lambda item: item[0])
+    return text[:index], text[index + len(marker):]
+
+
 def parse_images_block(text: str) -> list:
     """
     Parse the ====IMAGES==== block from Claude's output.
     Returns a list of dicts:
       { filename, page, questions, unit, folder, description }
     """
-    markers = ("====IMAGES====", "====IMG====", "====IMAGE====")
-    marker = ""
-    idx = -1
-    for candidate in markers:
-        idx = text.find(candidate)
-        if idx != -1:
-            marker = candidate
-            break
-    if idx == -1:
+    _, block = split_manifest_text(text)
+    if not block.strip():
         return []
-
-    block = text[idx + len(marker):]
 
     entries = []
     # Split on separator lines (--- or ────)
@@ -136,58 +143,79 @@ def parse_images_block(text: str) -> list:
             if m:
                 unit = int(m.group())
 
+        folder = folder.strip().rstrip("/\\")
         entries.append({
             "filename":    filename,
             "page":        page,
             "questions":   questions,
             "unit":        unit,
-            "folder":      folder.rstrip("/\\") + "/",
+            "folder":      f"{folder}/" if folder else "",
             "description": description,
         })
 
     return entries
 
 
-def parse_json_block(text: str) -> list:
-    """Extract the JSON array from Claude's output text."""
-    # Find the first [ and match to its closing ]
-    start = text.find("[")
-    if start == -1:
-        return []
-
-    depth   = 0
-    in_str  = False
-    escape  = False
-    end     = -1
-
-    for i, ch in enumerate(text[start:], start):
-        if escape:
-            escape = False
-            continue
-        if ch == "\\" and in_str:
-            escape = True
-            continue
-        if ch == '"' and not escape:
-            in_str = not in_str
-            continue
-        if in_str:
-            continue
-        if ch == "[":
-            depth += 1
-        elif ch == "]":
-            depth -= 1
-            if depth == 0:
-                end = i
-                break
-
-    if end == -1:
-        return []
-
+def parse_json_payload_block(text: str):
+    """Extract the leading JSON object or array before any image manifest."""
+    json_text, _ = split_manifest_text(text)
+    stripped = json_text.lstrip("\ufeff \t\r\n")
+    if not stripped:
+        return None
     try:
-        return json.loads(text[start:end+1])
+        payload, _ = json.JSONDecoder().raw_decode(stripped)
+        return payload
     except json.JSONDecodeError as e:
         err(f"JSON parse error: {e}")
-        return []
+        return None
+
+
+def questions_from_payload(payload) -> list:
+    if isinstance(payload, dict):
+        questions = payload.get("questions", [])
+        return questions if isinstance(questions, list) else []
+    if isinstance(payload, list):
+        return payload
+    return []
+
+
+def replace_payload_questions(payload, questions: list):
+    if isinstance(payload, dict):
+        payload["questions"] = questions
+        return payload
+    if isinstance(payload, list):
+        return questions
+    return {"questions": questions, "defects": []}
+
+
+def parse_json_block(text: str) -> list:
+    """Extract questions from old array-only output or new object-shaped output."""
+    return questions_from_payload(parse_json_payload_block(text))
+
+
+def format_images_block(entries: list) -> str:
+    parts: list[str] = []
+    for index, entry in enumerate(entries):
+        if index:
+            parts.extend(["", "---", ""])
+        parts.extend([
+            f"FILENAME    : {entry.get('filename', '')}",
+            f"PAGE        : {entry.get('page', '')}",
+            f"QUESTIONS   : {entry.get('questions', '')}",
+            f"UNIT        : {entry.get('unit') if entry.get('unit') is not None else 'N/A'}",
+            f"FOLDER      : {entry.get('folder', '')}",
+            f"DESCRIPTION : {entry.get('description', '')}",
+        ])
+    return "\n".join(parts).rstrip() + ("\n" if parts else "")
+
+
+def write_updated_payload(out_path: Path, payload, questions: list, entries: list) -> None:
+    updated_payload = replace_payload_questions(payload, questions)
+    text = json.dumps(updated_payload, indent=2, ensure_ascii=False)
+    if entries:
+        text += "\n\n====IMAGES====\n"
+        text += format_images_block(entries)
+    out_path.write_text(text, encoding="utf-8")
 
 
 # ── PDF rendering ─────────────────────────────────────────────────────────────
@@ -379,9 +407,13 @@ def _update_image_block_paths(blocks: list, lookup: dict) -> None:
             continue
         if block.get("type") != "image":
             continue
-        img = block.get("img", "")
-        if img and img in lookup:
-            block["img"] = lookup[img]
+        for key in ("img", "src"):
+            img = block.get(key, "")
+            if not isinstance(img, str) or not img.strip():
+                continue
+            match = lookup.get(img) or lookup.get(Path(img.replace("\\", "/")).name)
+            if match:
+                block[key] = match
 
 
 def update_json_img_paths(questions: list, entries: list, saved: dict) -> list:
@@ -399,16 +431,15 @@ def update_json_img_paths(questions: list, entries: list, saved: dict) -> list:
 
     for q in questions:
         img = q.get("img", "")
-        if img and img in lookup:
-            q["img"] = lookup[img]
+        if isinstance(img, str) and img:
+            match = lookup.get(img) or lookup.get(Path(img.replace("\\", "/")).name)
+            if match:
+                q["img"] = match
 
-        blocks = q.get("blocks")
-        if isinstance(blocks, list):
-            _update_image_block_paths(blocks, lookup)
-
-        explanation_blocks = q.get("explanationBlocks")
-        if isinstance(explanation_blocks, list):
-            _update_image_block_paths(explanation_blocks, lookup)
+        for field in ("blocks", "body", "explanationBlocks", "explanation"):
+            blocks = q.get(field)
+            if isinstance(blocks, list):
+                _update_image_block_paths(blocks, lookup)
 
     return questions
 
@@ -473,7 +504,8 @@ def _run_extraction(txt_path: Path, pdf_path: Path, root_dir: Path):
         print("  Make sure you answered Yes to images in claude_prompt_generator.py")
         return
 
-    questions = parse_json_block(text)
+    payload = parse_json_payload_block(text)
+    questions = questions_from_payload(payload)
     if not questions:
         warn("Could not parse JSON array — output JSON will not be written.")
 
@@ -540,10 +572,7 @@ def _run_extraction(txt_path: Path, pdf_path: Path, root_dir: Path):
     if questions and saved:
         questions = update_json_img_paths(questions, entries, saved)
         out_json  = JSON_FILES_FOLDER / txt_path.name
-        out_json.write_text(
-            json.dumps(questions, indent=2, ensure_ascii=False),
-            encoding="utf-8"
-        )
+        write_updated_payload(out_json, payload, questions, entries)
         ok(f"Saved → {out_json}")
     elif not questions:
         warn("No JSON parsed — output file not written.")
@@ -677,7 +706,8 @@ def main():
         print("  and that the PDF had images (you answered Yes when asked).")
         return
 
-    questions = parse_json_block(text)
+    payload = parse_json_payload_block(text)
+    questions = questions_from_payload(payload)
     if not questions:
         warn("Could not parse JSON array from the file.")
         warn("Image files will be saved but questions_ready.json will not be written.")
@@ -754,10 +784,7 @@ def main():
     if questions and saved:
         questions = update_json_img_paths(questions, entries, saved)
         out_json  = JSON_FILES_FOLDER / txt_path.name
-        out_json.write_text(
-            json.dumps(questions, indent=2, ensure_ascii=False),
-            encoding="utf-8"
-        )
+        write_updated_payload(out_json, payload, questions, entries)
         ok(f"Saved → {out_json}")
     elif not questions:
         warn("No JSON was parsed — output file not written.")

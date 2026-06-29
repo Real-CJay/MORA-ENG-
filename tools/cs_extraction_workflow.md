@@ -20,12 +20,12 @@ Use `tools\pdf_image_extractor.py` only through the CS tool's image converter/cr
 6. Confirm the summary.
 7. The tool writes all prompt files, `PROMPT_INDEX.md`, and `prompt_plan.json` at once.
 8. Paste each prompt into Claude with only the relevant page images.
-9. Save each Claude group output JSON.
+9. Save each Claude group output: question JSON first, then `====IMAGES====` if the group needs image crops.
 10. Run `python tools\cs_block_prompt_generator.py` again.
 11. Choose `Review a Claude group output JSON`.
 12. Choose `Merge reviewed group output JSON files into one full paper JSON`.
 13. Choose `Review a merged full paper JSON`.
-14. Crop images with the image converter/cropper only if needed.
+14. Choose `Open image converter/cropper` only if the paper has image blocks, then provide the PDF path when asked.
 15. Preview manually before import.
 
 Do not ask Claude to convert the full 80-question paper at once.
@@ -118,7 +118,7 @@ Page images are the source of truth for layout, indentation, tables, flowcharts,
 
 ## Review Group Output
 
-Save each Claude response as a `.json` file with this top-level shape:
+Save each Claude response with the question JSON first:
 
 ```json
 {
@@ -127,7 +127,27 @@ Save each Claude response as a `.json` file with this top-level shape:
 }
 ```
 
-Then choose `Review a Claude group output JSON` in the CS tool. The review reports missing IDs, duplicate IDs, missing source pages, missing question numbers, option-count issues, code accidentally placed in text blocks, prose that mentions code-like terms, raw HTML-like tags in explanation blocks, flattened I/II/III statements, suspicious one-line Python code, missing image paths, and answer indexes outside the options array.
+If the group uses images, append an image manifest after the JSON:
+
+```text
+====IMAGES====
+FILENAME    : cs1033_2024_Q12_FIG1.png
+PAGE        : 7
+QUESTIONS   : Q12, Q13
+UNIT        : N/A
+FOLDER      : IMAGES/CS/Past Papers/23 Batch 2024/
+DESCRIPTION : shared flowchart used by questions 12 and 13
+```
+
+Inside question JSON before cropping, image blocks should use filenames only:
+
+```json
+{ "type": "image", "img": "cs1033_2024_Q12_FIG1.png", "alt": "shared flowchart" }
+```
+
+Do not manually put full `IMAGES/...` paths into question JSON before cropping. Reuse the same filename for shared figures and list every matching question in `QUESTIONS`.
+
+Then choose `Review a Claude group output JSON` in the CS tool. The review reports missing IDs, duplicate IDs, missing source pages, missing question numbers, option-count issues, code accidentally placed in text blocks, prose that mentions code-like terms, raw HTML-like tags in explanation blocks, flattened I/II/III statements, suspicious one-line Python code, missing image paths, image alt issues, question/image-manifest mismatches, and answer indexes outside the options array.
 
 The existing direct review command still works:
 
@@ -153,6 +173,9 @@ Typical `ERROR` findings:
 - no options
 - answer index out of range
 - image block missing an image path or asset reference
+- image filename referenced by a question without a matching manifest entry
+- manifest entry references a question that is missing from the JSON
+- duplicate manifest filename rows with conflicting page/folder/description metadata
 - raw HTML-like tags in `explanationBlocks`
 - suspicious one-line code blocks where real code may have been flattened
 - actual multi-line code or pseudocode inside a text block
@@ -163,6 +186,9 @@ Typical `WARNING` findings:
 - prose mentions of code-like terms such as `Search(A, i, k)`, `A[i][j]`, `len(A)`, `N^2`, `i`, `j`, `IF`, `FOR`, `WHILE`, or `RETURN`
 - I/II/III-looking text that may be flattened
 - image blocks using legacy `imgAlt` instead of `alt`
+- manifest filenames that are not used by any question
+- shared image manifest rows that do not list every question using the image
+- filename references that look like full paths before cropping
 
 Some warnings are expected and acceptable when prose mentions code terms. For CS extraction, do not keep correcting forever if there are zero errors and the warnings are harmless prose. Always visually check hard groups like shared flowcharts, code tables, shared code blocks, algorithm traces, and I/II/III statements.
 
@@ -181,7 +207,9 @@ The merge keeps the shape:
 }
 ```
 
-Before writing anything, the tool reports total group files, total questions, total defects, duplicate IDs, duplicate question numbers, missing question numbers when an expected range is supplied, option count issues, answer index issues, raw HTML-like tags, code-looking text inside text blocks, and suspicious one-line code blocks.
+If image manifest entries exist, the merged output keeps the JSON object first and appends a merged `====IMAGES====` block. The merge deduplicates image manifest rows by filename, combines question lists for shared images, and warns if duplicate filenames disagree on metadata.
+
+Before writing anything, the tool reports total group files, total questions, total defects, total image manifest entries, duplicate IDs, duplicate question numbers, missing question numbers when an expected range is supplied, option count issues, answer index issues, raw HTML-like tags, code-looking text inside text blocks, suspicious one-line code blocks, and image manifest consistency issues.
 
 The tool writes the merged JSON only after you confirm. It does not modify input files.
 
@@ -195,7 +223,13 @@ The CS tool launches the existing cropper:
 python tools\pdf_image_extractor.py
 ```
 
-For image text, prefer `alt`, not legacy `imgAlt`. The current block renderer/schema prefer `assetId` with a pack image registry entry that contains `alt`; direct image blocks may use `src` plus `alt`. The simplified CS crop workflow may temporarily use `img` plus `alt` placeholders before final schema conversion, but do not use `imgAlt` for typed image blocks.
+The cropper reads the JSON plus `====IMAGES====` manifest, creates each manifest `FOLDER`, saves each `FOLDER/FILENAME`, and updates matching image references from filename-only values to full relative paths such as:
+
+```json
+{ "type": "image", "img": "IMAGES/CS/Past Papers/23 Batch 2024/cs1033_2024_Q12_FIG1.png", "alt": "shared flowchart" }
+```
+
+For image text, prefer `alt`, not legacy `imgAlt`. The simplified CS crop workflow may temporarily use `img` plus `alt` placeholders before final schema conversion.
 
 Do not write actual crop output into `IMAGES/` during this tooling stage unless that specific test output has been approved.
 
@@ -203,4 +237,4 @@ Do not write actual crop output into `IMAGES/` during this tooling stage unless 
 
 Use the dev preview workflow to inspect rendered questions. Pay special attention to Python indentation, pseudo-code indentation, I/II/III statement grouping, shared figures, flowcharts, tables, and output blocks.
 
-Only import reviewed CS data after manual approval. This stage improves grouped prompt generation; it does not start Stage 4.1 and does not restore CS to the live app.
+Only import reviewed CS data after manual approval. Do not add CS to the live app, do not create live `content/question-packs/cs/`, and do not copy crop output into live `IMAGES/CS/` until a later approved import stage.

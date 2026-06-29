@@ -23,25 +23,31 @@ from typing import Any
 
 try:
     from cs_extraction_review import (
+        ImageManifestEntry,
         Review,
         find_json_files,
-        load_payload,
+        format_image_manifest,
+        load_payload_with_manifest,
         maybe_print_correction_prompt,
         normalize_payload,
         print_review,
         review_file,
+        review_image_manifest_consistency,
         review_parse_error,
         review_question,
     )
 except ImportError:  # pragma: no cover - useful only if imported as a package
     from .cs_extraction_review import (  # type: ignore
+        ImageManifestEntry,
         Review,
         find_json_files,
-        load_payload,
+        format_image_manifest,
+        load_payload_with_manifest,
         maybe_print_correction_prompt,
         normalize_payload,
         print_review,
         review_file,
+        review_image_manifest_consistency,
         review_parse_error,
         review_question,
     )
@@ -322,6 +328,18 @@ def build_parsed_text_block(parsed_text: dict[int, str]) -> str:
     return "\n\n".join(parts)
 
 
+def safe_folder_label(label: str, fallback: str) -> str:
+    raw = label.strip() or fallback
+    cleaned = re.sub(r'[<>:"|?*\x00-\x1f]+', " ", raw)
+    cleaned = re.sub(r"\s+", " ", cleaned).strip(" .")
+    return cleaned or fallback
+
+
+def default_image_folder(paper_name: str, year_tag: str) -> str:
+    label = safe_folder_label(paper_name, year_tag or "CS Paper")
+    return f"IMAGES/CS/Past Papers/{label}/"
+
+
 def build_prompt(
     *,
     group: QuestionGroup,
@@ -338,6 +356,7 @@ def build_prompt(
     parsed_text_block = build_parsed_text_block(parsed_text)
     note_line = group.note or "No extra group note provided."
     guidance_lines = "\n".join(f"- {line}" for line in GROUP_TYPE_GUIDANCE.get(group.group_type, GROUP_TYPE_GUIDANCE["mixed"]))
+    image_folder = default_image_folder(paper_name, year_tag)
 
     return textwrap.dedent(f"""\
         You are extracting a small group of Computer Science MCQ questions into typed block JSON for the Mora Quiz app.
@@ -366,9 +385,10 @@ def build_prompt(
         {guidance_lines}
 
         OUTPUT RULES
-        - Output valid JSON only.
+        - Output the question JSON first.
+        - If any figure, diagram, chart, screenshot, code layout, or table needs cropping, append a bottom image manifest starting with exactly ====IMAGES====.
         - Do not output markdown fences.
-        - Do not add comments before or after the JSON.
+        - Do not add comments before the JSON.
         - Include all questions in the requested range unless defective.
         - Put uncertain, incomplete, ambiguous, unreadable, or bad questions in the defects array.
         - Do not invent figures.
@@ -378,8 +398,10 @@ def build_prompt(
         - Keep HTML-like source text escaped/plain unless manually converted into typed blocks.
         - Answer index must be 0-based.
         - Every question must include source.page and source.questionNumber.
+        - Before cropping, question image references must be filenames only, not IMAGES/... full paths.
+        - Reuse the same filename wherever one shared figure is used by multiple questions.
 
-        REQUIRED JSON SHAPE
+        REQUIRED JSON SHAPE FIRST
         {{
           "questions": [
             {{
@@ -420,6 +442,26 @@ def build_prompt(
           "defects": []
         }}
 
+        IMAGE MANIFEST SHAPE, ONLY WHEN IMAGES ARE USED
+        Append this after the JSON object. Use the exact marker and field names.
+
+        ====IMAGES====
+        FILENAME    : {id_prefix}_Q11_FIG1.png
+        PAGE        : 6
+        QUESTIONS   : Q11
+        UNIT        : N/A
+        FOLDER      : {image_folder}
+        DESCRIPTION : short human description of the figure
+
+        ---
+
+        FILENAME    : {id_prefix}_SHARED_FLOWCHART_1.png
+        PAGE        : 7
+        QUESTIONS   : Q12, Q13, Q14
+        UNIT        : N/A
+        FOLDER      : {image_folder}
+        DESCRIPTION : shared flowchart used by questions 12 through 14
+
         BLOCK RULES
         - Python code must use {{ "type": "code", "language": "python", "text": "..." }}.
         - Pseudo-code may use {{ "type": "code", "language": "pseudocode", "text": "..." }}.
@@ -427,8 +469,10 @@ def build_prompt(
         - Preserve pseudo-code indentation.
         - Do not flatten code into one line.
         - Flowcharts and diagrams should use image blocks with alt text, not legacy imgAlt.
-        - Preferred renderer/schema shape is assetId with an image registry entry containing alt text.
-        - For this simplified CS extraction/cropping workflow, image placeholders may use {{ "type": "image", "img": "{id_prefix}_FIG1.png", "alt": "brief plain description" }}.
+        - Use image blocks as {{ "type": "image", "img": "{id_prefix}_FIG1.png", "alt": "brief plain description" }}.
+        - The img value must be only the filename before cropping; the cropper will replace it with FOLDER/FILENAME later.
+        - Every image block filename must have a matching FILENAME row in ====IMAGES====.
+        - The manifest QUESTIONS field must list every question that uses that filename.
         - If a table or code layout is too risky to transcribe, use an image block instead.
         - Tables should use {{ "type": "table", "rows": [["Header 1", "Header 2"], ["A", "B"]] }} only if they can be represented cleanly.
         - Do not flatten tables into paragraphs.
@@ -453,6 +497,10 @@ def build_prompt(
         - Code-looking content is not inside a plain text block.
         - Code blocks contain newline characters where needed.
         - No raw HTML tags exist in explanation blocks.
+        - Every image block has img and alt.
+        - Every image filename used in questions appears once in ====IMAGES====.
+        - Every shared image lists all matching questions in the manifest.
+        - Do not place full image paths in question JSON before cropping.
         - I/II/III statements are not flattened into one paragraph.
         - No markdown fences are used.
 
@@ -551,6 +599,7 @@ def write_prompt_index(
         f"- Paper name: {paper_name}",
         f"- Year: {year_tag}",
         f"- ID prefix: {id_prefix}",
+        f"- Image crop folder: {default_image_folder(paper_name, year_tag)}",
         f"- Output folder: {output_dir}",
         f"- PDF path: {pdf_path}",
         f"- Page image folder: {page_image_dir or 'not provided'}",
@@ -608,6 +657,7 @@ def write_prompt_plan(
         "year": year_tag,
         "moduleName": module_name,
         "idPrefix": id_prefix,
+        "imageCropFolder": default_image_folder(paper_name, year_tag),
         "outputPromptFolder": str(output_dir),
         "pageImageFolder": str(page_image_dir) if page_image_dir else "",
         "groups": [
@@ -740,6 +790,8 @@ def build_review_from_questions(
     label: str,
     questions: list[dict[str, Any]],
     defects: list[Any],
+    manifest_entries: list[ImageManifestEntry] | None = None,
+    manifest_warnings: list[str] | None = None,
 ) -> Review:
     review = Review(label)
     review.total_questions = len(questions)
@@ -753,7 +805,55 @@ def build_review_from_questions(
     for index, question in enumerate(questions):
         review_question(review, question, index)
 
+    review_image_manifest_consistency(review, questions, manifest_entries or [], manifest_warnings or [])
     return review
+
+
+def clone_manifest_entry(entry: ImageManifestEntry) -> ImageManifestEntry:
+    return ImageManifestEntry(
+        filename=entry.filename,
+        page=entry.page,
+        questions=list(entry.questions),
+        unit=entry.unit,
+        folder=entry.folder,
+        description=entry.description,
+        source_label=entry.source_label,
+        entry_index=entry.entry_index,
+    )
+
+
+def merge_manifest_question_lists(existing: list[str], new_items: list[str]) -> None:
+    seen = {item.strip().lower() for item in existing if item.strip()}
+    for item in new_items:
+        normalized = item.strip().lower()
+        if normalized and normalized not in seen:
+            existing.append(item)
+            seen.add(normalized)
+
+
+def merge_manifest_entries(entries: list[ImageManifestEntry]) -> tuple[list[ImageManifestEntry], list[str]]:
+    merged: list[ImageManifestEntry] = []
+    by_filename: dict[str, ImageManifestEntry] = {}
+    warnings: list[str] = []
+
+    for entry in entries:
+        key = entry.key
+        if not key:
+            continue
+        if key not in by_filename:
+            copy = clone_manifest_entry(entry)
+            by_filename[key] = copy
+            merged.append(copy)
+            continue
+
+        existing = by_filename[key]
+        if existing.metadata_without_questions() != entry.metadata_without_questions():
+            warnings.append(
+                f"{entry.filename}: duplicate manifest filename has conflicting PAGE, UNIT, FOLDER, or DESCRIPTION"
+            )
+        merge_manifest_question_lists(existing.questions, entry.questions)
+
+    return merged, warnings
 
 
 def duplicate_question_numbers(questions: list[dict[str, Any]]) -> list[str]:
@@ -775,6 +875,8 @@ def print_merge_summary(
     group_count: int,
     questions: list[dict[str, Any]],
     defects: list[Any],
+    manifest_entries: list[ImageManifestEntry],
+    manifest_warnings: list[str],
     review: Review,
     expected_numbers: set[int],
 ) -> None:
@@ -789,6 +891,7 @@ def print_merge_summary(
     print(f"  total group files: {group_count}")
     print(f"  total questions: {len(questions)}")
     print(f"  total defects: {len(defects)}")
+    print(f"  total image manifest entries: {len(manifest_entries)}")
     print_issue_list("duplicate IDs", review.issues["duplicate IDs"])
     print_issue_list("duplicate question numbers", duplicate_question_numbers(questions))
     if expected_numbers:
@@ -798,31 +901,51 @@ def print_merge_summary(
     print_issue_list("raw HTML-like tags", review.issues["raw HTML-like tags in explanation blocks"])
     print_issue_list("code-looking content inside text blocks", review.issues["code-looking text inside text blocks"])
     print_issue_list("suspicious one-line code blocks", review.issues["suspicious one-line Python code"])
+    print_issue_list("image manifest merge warnings", manifest_warnings)
+    print_issue_list("question image refs without manifest rows", review.issues["question image references missing manifest entries"])
+    print_issue_list("manifest rows referencing missing questions", review.issues["manifest entries reference missing questions"])
+    print_issue_list("unused manifest filenames", review.issues["manifest filenames unused by questions"])
+    print_issue_list("shared image question mismatches", review.issues["shared image manifest question mismatch"])
+    print_issue_list("image full-path-before-crop warnings", review.issues["image references use full paths before crop"])
 
 
-def merge_group_files(paths: list[Path]) -> tuple[list[dict[str, Any]], list[Any]]:
+def merge_group_files(paths: list[Path]) -> tuple[list[dict[str, Any]], list[Any], list[ImageManifestEntry], list[str]]:
     questions_with_order: list[tuple[int, dict[str, Any]]] = []
     defects: list[Any] = []
+    manifest_entries: list[ImageManifestEntry] = []
+    manifest_warnings: list[str] = []
     order = 0
 
     for path in paths:
-        payload = load_payload(path)
+        payload, group_manifest_entries, group_manifest_warnings = load_payload_with_manifest(path)
         questions, group_defects = normalize_payload(payload)
         for question in questions:
             questions_with_order.append((order, question))
             order += 1
         defects.extend(group_defects)
+        manifest_entries.extend(group_manifest_entries)
+        manifest_warnings.extend(group_manifest_warnings)
 
     sorted_questions = [
         question for _, question in sorted(questions_with_order, key=question_sort_key)
     ]
-    return sorted_questions, defects
+    merged_manifest_entries, merge_warnings = merge_manifest_entries(manifest_entries)
+    return sorted_questions, defects, merged_manifest_entries, manifest_warnings + merge_warnings
 
 
-def write_merged_json(output_path: Path, questions: list[dict[str, Any]], defects: list[Any]) -> None:
+def write_merged_json(
+    output_path: Path,
+    questions: list[dict[str, Any]],
+    defects: list[Any],
+    manifest_entries: list[ImageManifestEntry],
+) -> None:
     output_path.parent.mkdir(parents=True, exist_ok=True)
     payload = {"questions": questions, "defects": defects}
-    output_path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    text = json.dumps(payload, indent=2, ensure_ascii=False) + "\n"
+    if manifest_entries:
+        text += "\n====IMAGES====\n"
+        text += format_image_manifest(manifest_entries)
+    output_path.write_text(text, encoding="utf-8")
 
 
 def run_review_menu(label: str) -> bool:
@@ -863,16 +986,24 @@ def run_merge_menu() -> bool:
             return False
 
     try:
-        questions, defects = merge_group_files(paths)
+        questions, defects, manifest_entries, manifest_warnings = merge_group_files(paths)
     except Exception as exc:
         print(f"Could not merge group files: {exc}")
         return False
 
-    review = build_review_from_questions("merged candidate", questions, defects)
+    review = build_review_from_questions(
+        "merged candidate",
+        questions,
+        defects,
+        manifest_entries,
+        manifest_warnings,
+    )
     print_merge_summary(
         group_count=len(paths),
         questions=questions,
         defects=defects,
+        manifest_entries=manifest_entries,
+        manifest_warnings=manifest_warnings,
         review=review,
         expected_numbers=expected_numbers,
     )
@@ -887,7 +1018,7 @@ def run_merge_menu() -> bool:
         print("Merge output was not written.")
         return False
 
-    write_merged_json(output_path, questions, defects)
+    write_merged_json(output_path, questions, defects, manifest_entries)
     print(f"Saved merged JSON: {output_path}")
     return True
 
@@ -940,13 +1071,15 @@ def show_workflow_help() -> None:
     print("  4. Enter all groups as: range | type | pages | note")
     print("  5. Press Enter on a blank line and confirm the summary")
     print("  6. Paste each prompt into Claude with the relevant page image(s)")
-    print("  7. Save each Claude group output JSON")
+    print("  7. Save each Claude group output JSON, plus ====IMAGES==== if images are used")
     print("  8. Run this tool again")
     print("  9. Choose Review a Claude group output JSON")
     print(" 10. Choose Merge reviewed group output JSON files into one full paper JSON")
     print(" 11. Choose Review a merged full paper JSON")
     print(" 12. Choose Open image converter/cropper only if image blocks need crops")
     print(" 13. Preview manually before import")
+    print()
+    print("Image refs before cropping should be filenames only; the cropper writes IMAGES/... paths later.")
     print()
     print("Example group:")
     print("  1-4 | shared_flowchart | pages 3-4 | Fig. 1 flowchart")

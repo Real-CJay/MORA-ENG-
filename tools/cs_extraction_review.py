@@ -8,7 +8,7 @@ import json
 import re
 import sys
 from collections import Counter
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -56,6 +56,8 @@ SUPERSCRIPT_RE = re.compile(r"[A-Za-z][\u00b2\u00b3]|A\u00c2[\u00b2\u00b3]")
 PYTHON_KEYWORDS_RE = re.compile(
     r"\b(def|class|for|while|if|elif|else|return|import|from|print|range|len|append|pop|True|False|None)\b"
 )
+MANIFEST_MARKERS = ("====IMAGES====", "====IMG====", "====IMAGE====")
+QUESTION_RANGE_RE = re.compile(r"^(?:Q\s*)?(\d+)\s*[-:]\s*(?:Q\s*)?(\d+)$", re.IGNORECASE)
 
 
 ISSUE_CATEGORIES = [
@@ -73,6 +75,14 @@ ISSUE_CATEGORIES = [
     "suspicious one-line Python code",
     "image blocks missing image paths",
     "image blocks using legacy imgAlt",
+    "image blocks missing alt text",
+    "question image references missing manifest entries",
+    "manifest entries reference missing questions",
+    "manifest filenames unused by questions",
+    "shared image manifest question mismatch",
+    "image references use full paths before crop",
+    "duplicate manifest filenames with conflicting metadata",
+    "image manifest parse warnings",
     "answer index out of range",
 ]
 
@@ -85,6 +95,9 @@ CATEGORY_SEVERITY = {
     "questions with no options": ERROR,
     "answer index out of range": ERROR,
     "image blocks missing image paths": ERROR,
+    "question image references missing manifest entries": ERROR,
+    "manifest entries reference missing questions": ERROR,
+    "duplicate manifest filenames with conflicting metadata": ERROR,
     "raw HTML-like tags in explanation blocks": ERROR,
     "suspicious one-line Python code": ERROR,
     "code-looking text inside text blocks": ERROR,
@@ -92,6 +105,11 @@ CATEGORY_SEVERITY = {
     "code-looking terms inside prose text": WARNING,
     "I/II/III-looking text flattened into one block": WARNING,
     "image blocks using legacy imgAlt": WARNING,
+    "image blocks missing alt text": WARNING,
+    "manifest filenames unused by questions": WARNING,
+    "shared image manifest question mismatch": WARNING,
+    "image references use full paths before crop": WARNING,
+    "image manifest parse warnings": WARNING,
 }
 
 
@@ -101,6 +119,50 @@ class Finding:
     category: str
     path: str
     detail: str
+
+
+@dataclass
+class ImageManifestEntry:
+    filename: str
+    page: str = ""
+    questions: list[str] = field(default_factory=list)
+    unit: str = ""
+    folder: str = ""
+    description: str = ""
+    source_label: str = ""
+    entry_index: int = 0
+
+    @property
+    def key(self) -> str:
+        return self.filename.strip().lower()
+
+    @property
+    def normalized_folder(self) -> str:
+        return normalize_manifest_folder(self.folder)
+
+    @property
+    def relative_path(self) -> str:
+        folder = self.normalized_folder
+        return f"{folder}{self.filename}" if folder else self.filename
+
+    def metadata_without_questions(self) -> tuple[str, str, str, str]:
+        return (
+            self.page.strip(),
+            self.unit.strip(),
+            self.normalized_folder,
+            " ".join(self.description.split()),
+        )
+
+
+@dataclass
+class ImageReference:
+    question_label: str
+    question_index: int
+    path: str
+    raw: str
+    filename: str
+    tokens: set[str]
+    alt_present: bool
 
 
 class Review:
@@ -180,8 +242,115 @@ def format_number_range(numbers: list[int]) -> str:
     return ", ".join(ranges)
 
 
+def split_manifest_text(text: str) -> tuple[str, str]:
+    upper_text = text.upper()
+    marker_positions: list[tuple[int, str]] = []
+    for marker in MANIFEST_MARKERS:
+        index = upper_text.find(marker)
+        if index != -1:
+            marker_positions.append((index, marker))
+    if not marker_positions:
+        return text, ""
+
+    index, marker = min(marker_positions, key=lambda item: item[0])
+    return text[:index], text[index + len(marker):]
+
+
+def load_json_payload_text(text: str) -> Any:
+    json_text, _ = split_manifest_text(text)
+    stripped = json_text.lstrip("\ufeff \t\r\n")
+    if not stripped:
+        raise json.JSONDecodeError("missing JSON payload before image manifest", json_text, 0)
+    decoder = json.JSONDecoder()
+    payload, _ = decoder.raw_decode(stripped)
+    return payload
+
+
 def load_payload(path: Path) -> Any:
-    return json.loads(path.read_text(encoding="utf-8-sig"))
+    return load_json_payload_text(path.read_text(encoding="utf-8-sig"))
+
+
+def normalize_manifest_folder(folder: str) -> str:
+    normalized = folder.strip().replace("\\", "/").strip("/")
+    return f"{normalized}/" if normalized else ""
+
+
+def parse_manifest_questions(raw: str) -> list[str]:
+    questions: list[str] = []
+    for part in re.split(r"[,;]", raw):
+        token = part.strip()
+        if not token:
+            continue
+        range_match = QUESTION_RANGE_RE.fullmatch(token)
+        if range_match:
+            start = int(range_match.group(1))
+            end = int(range_match.group(2))
+            if end < start:
+                start, end = end, start
+            questions.extend(f"Q{number}" for number in range(start, end + 1))
+            continue
+        questions.append(token)
+    return questions
+
+
+def field_from_manifest_entry(raw: str, name: str) -> str:
+    match = re.search(rf"^\s*{re.escape(name)}\s*:\s*(.*?)\s*$", raw, re.MULTILINE | re.IGNORECASE)
+    return match.group(1).strip() if match else ""
+
+
+def parse_image_manifest_text(text: str, source_label: str = "") -> tuple[list[ImageManifestEntry], list[str]]:
+    _, manifest_text = split_manifest_text(text)
+    if not manifest_text.strip():
+        return [], []
+
+    entries: list[ImageManifestEntry] = []
+    warnings: list[str] = []
+    raw_entries = re.split(r"\n\s*(?:---+|─{3,})\s*\n", manifest_text)
+
+    for raw_index, raw_entry in enumerate(raw_entries, start=1):
+        raw = raw_entry.strip()
+        if not raw:
+            continue
+        filename = field_from_manifest_entry(raw, "FILENAME")
+        if not filename:
+            warnings.append(f"{source_label or 'manifest'} entry {raw_index}: missing FILENAME")
+            continue
+
+        entries.append(ImageManifestEntry(
+            filename=filename,
+            page=field_from_manifest_entry(raw, "PAGE"),
+            questions=parse_manifest_questions(field_from_manifest_entry(raw, "QUESTIONS")),
+            unit=field_from_manifest_entry(raw, "UNIT"),
+            folder=field_from_manifest_entry(raw, "FOLDER"),
+            description=field_from_manifest_entry(raw, "DESCRIPTION"),
+            source_label=source_label,
+            entry_index=raw_index,
+        ))
+
+    return entries, warnings
+
+
+def load_payload_with_manifest(path: Path) -> tuple[Any, list[ImageManifestEntry], list[str]]:
+    text = path.read_text(encoding="utf-8-sig")
+    payload = load_json_payload_text(text)
+    manifest_entries, manifest_warnings = parse_image_manifest_text(text, str(path))
+    return payload, manifest_entries, manifest_warnings
+
+
+def format_image_manifest(entries: list[ImageManifestEntry]) -> str:
+    parts: list[str] = []
+    for index, entry in enumerate(entries):
+        if index:
+            parts.extend(["", "---", ""])
+        parts.extend([
+            f"FILENAME    : {entry.filename}",
+            f"PAGE        : {entry.page}",
+            f"QUESTIONS   : {', '.join(entry.questions)}",
+            f"UNIT        : {entry.unit or 'N/A'}",
+            f"FOLDER      : {entry.normalized_folder}",
+            f"DESCRIPTION : {entry.description}",
+        ])
+    return "\n".join(parts).rstrip() + ("\n" if parts else "")
 
 
 def normalize_payload(payload: Any) -> tuple[list[dict[str, Any]], list[Any]]:
@@ -345,6 +514,238 @@ def source_int(source: dict[str, Any], key: str) -> int | None:
     return None
 
 
+def basename_from_image_ref(value: str) -> str:
+    cleaned = value.strip().replace("\\", "/")
+    return cleaned.rsplit("/", 1)[-1].lower()
+
+
+def image_ref_has_path(value: str) -> bool:
+    cleaned = value.strip()
+    return "/" in cleaned or "\\" in cleaned
+
+
+def canonical_question_token(value: Any) -> str:
+    if isinstance(value, bool) or value is None:
+        return ""
+    raw = str(value).strip()
+    if not raw:
+        return ""
+    if raw.isdigit():
+        return f"q{int(raw)}"
+    q_match = re.search(r"(?:^|[_\-\s])q(?:uestion)?\s*0*(\d+)$", raw, re.IGNORECASE)
+    if q_match:
+        return f"q{int(q_match.group(1))}"
+    return raw.lower()
+
+
+def question_id_number(question: dict[str, Any]) -> int | None:
+    qid = question.get("id")
+    if not isinstance(qid, str):
+        return None
+    q_match = re.search(r"(?:^|[_-])Q(\d+)$", qid, re.IGNORECASE)
+    if q_match:
+        return int(q_match.group(1))
+    numbers = re.findall(r"\d+", qid)
+    if numbers:
+        return int(numbers[-1])
+    return None
+
+
+def question_identity_tokens(question: dict[str, Any], index: int) -> set[str]:
+    tokens: set[str] = {canonical_question_token(index + 1)}
+    qid = question.get("id")
+    if isinstance(qid, str) and qid.strip():
+        tokens.add(qid.strip().lower())
+        canonical_id = canonical_question_token(qid)
+        if canonical_id:
+            tokens.add(canonical_id)
+    source = question.get("source")
+    if isinstance(source, dict):
+        qno = source_int(source, "questionNumber")
+        if qno is not None:
+            tokens.add(f"q{qno}")
+    id_qno = question_id_number(question)
+    if id_qno is not None:
+        tokens.add(f"q{id_qno}")
+    return {token for token in tokens if token}
+
+
+def alt_text_present(container: dict[str, Any]) -> bool:
+    for key in ("alt", "imgAlt"):
+        value = container.get(key)
+        if isinstance(value, str) and value.strip():
+            return True
+    return False
+
+
+def collect_image_references(questions: list[dict[str, Any]]) -> list[ImageReference]:
+    references: list[ImageReference] = []
+    for index, question in enumerate(questions):
+        label = question_label(question, index)
+        tokens = question_identity_tokens(question, index)
+        img = question.get("img")
+        if isinstance(img, str) and img.strip():
+            references.append(ImageReference(
+                question_label=label,
+                question_index=index,
+                path=f"questions[{index}].img",
+                raw=img.strip(),
+                filename=basename_from_image_ref(img),
+                tokens=tokens,
+                alt_present=alt_text_present(question),
+            ))
+
+        for field, block_index, block in iter_blocks(question):
+            if block.get("type") != "image":
+                continue
+            ref = image_path(block)
+            if not ref:
+                continue
+            references.append(ImageReference(
+                question_label=label,
+                question_index=index,
+                path=f"questions[{index}].{field}[{block_index}]",
+                raw=ref,
+                filename=basename_from_image_ref(ref),
+                tokens=tokens,
+                alt_present=alt_text_present(block),
+            ))
+    return references
+
+
+def manifest_question_tokens(entry: ImageManifestEntry) -> set[str]:
+    tokens: set[str] = set()
+    for raw in entry.questions:
+        canonical = canonical_question_token(raw)
+        if canonical:
+            tokens.add(canonical)
+        if isinstance(raw, str) and raw.strip():
+            tokens.add(raw.strip().lower())
+    return tokens
+
+
+def review_image_manifest_consistency(
+    review: Review,
+    questions: list[dict[str, Any]],
+    entries: list[ImageManifestEntry],
+    manifest_warnings: list[str] | None = None,
+) -> None:
+    for warning in manifest_warnings or []:
+        review.add(
+            "image manifest parse warnings",
+            warning,
+            path="====IMAGES====",
+            detail=warning,
+            severity=WARNING,
+        )
+
+    references = collect_image_references(questions)
+    manifest_by_filename: dict[str, list[ImageManifestEntry]] = {}
+    for entry in entries:
+        if entry.key:
+            manifest_by_filename.setdefault(entry.key, []).append(entry)
+
+    for filename, same_filename_entries in manifest_by_filename.items():
+        metadata = {
+            entry.metadata_without_questions()
+            for entry in same_filename_entries
+        }
+        if len(metadata) > 1:
+            review.add(
+                "duplicate manifest filenames with conflicting metadata",
+                filename,
+                path="====IMAGES====",
+                detail=f"{filename}: duplicate FILENAME rows disagree on PAGE, UNIT, FOLDER, or DESCRIPTION",
+            )
+
+    question_tokens: dict[str, str] = {}
+    for index, question in enumerate(questions):
+        label = question_label(question, index)
+        for token in question_identity_tokens(question, index):
+            question_tokens.setdefault(token, label)
+
+    refs_by_filename: dict[str, list[ImageReference]] = {}
+    for reference in references:
+        refs_by_filename.setdefault(reference.filename, []).append(reference)
+        if not reference.alt_present:
+            review.add(
+                "image blocks missing alt text",
+                reference.question_label,
+                path=reference.path,
+                detail="image reference should include alt or imgAlt text",
+            )
+
+        matching_entries = manifest_by_filename.get(reference.filename, [])
+        if not matching_entries:
+            if not entries and image_ref_has_path(reference.raw):
+                continue
+            review.add(
+                "question image references missing manifest entries",
+                reference.question_label,
+                path=reference.path,
+                detail=f"{reference.raw!r} has no matching FILENAME row in ====IMAGES====",
+            )
+            continue
+
+        for entry in matching_entries:
+            if image_ref_has_path(reference.raw) and reference.raw.replace("\\", "/").strip("/") != entry.relative_path.strip("/"):
+                review.add(
+                    "image references use full paths before crop",
+                    reference.question_label,
+                    path=reference.path,
+                    detail=f"use filename only before cropping: {entry.filename}",
+                )
+                break
+
+    for filename, same_filename_entries in manifest_by_filename.items():
+        matching_refs = refs_by_filename.get(filename, [])
+        if not matching_refs:
+            review.add(
+                "manifest filenames unused by questions",
+                filename,
+                path="====IMAGES====",
+                detail=f"{filename}: manifest FILENAME is not referenced by any question image field",
+            )
+
+        used_tokens: set[str] = set()
+        used_labels: set[str] = set()
+        for reference in matching_refs:
+            used_tokens.update(reference.tokens)
+            used_labels.add(reference.question_label)
+
+        for entry in same_filename_entries:
+            listed_tokens = manifest_question_tokens(entry)
+            if not listed_tokens and matching_refs:
+                review.add(
+                    "shared image manifest question mismatch",
+                    entry.filename,
+                    path="====IMAGES====",
+                    detail=f"{entry.filename}: QUESTIONS is blank but image is used by {', '.join(sorted(used_labels))}",
+                )
+                continue
+
+            missing_question_tokens = sorted(
+                token for token in listed_tokens
+                if token not in question_tokens
+            )
+            for token in missing_question_tokens:
+                review.add(
+                    "manifest entries reference missing questions",
+                    entry.filename,
+                    path="====IMAGES====",
+                    detail=f"{entry.filename}: QUESTIONS includes {token.upper()} but no matching question was found",
+                )
+
+            for reference in matching_refs:
+                if listed_tokens and not (reference.tokens & listed_tokens):
+                    review.add(
+                        "shared image manifest question mismatch",
+                        reference.question_label,
+                        path=reference.path,
+                        detail=f"{entry.filename}: image is used by {reference.question_label}, but QUESTIONS does not list it",
+                    )
+
+
 def review_question(review: Review, question: dict[str, Any], index: int) -> None:
     label = question_label(question, index)
     q_path = f"questions[{index}]"
@@ -465,7 +866,7 @@ def review_question(review: Review, question: dict[str, Any], index: int) -> Non
 
 def review_file(path: Path) -> Review:
     review = Review(str(path))
-    payload = load_payload(path)
+    payload, manifest_entries, manifest_warnings = load_payload_with_manifest(path)
     questions, defects = normalize_payload(payload)
     review.total_questions = len(questions)
     review.total_defects = len(defects)
@@ -487,6 +888,7 @@ def review_file(path: Path) -> Review:
     for index, question in enumerate(questions):
         review_question(review, question, index)
 
+    review_image_manifest_consistency(review, questions, manifest_entries, manifest_warnings)
     return review
 
 
@@ -560,12 +962,17 @@ def build_correction_prompt(review: Review) -> str:
         "- Move actual Python/code/pseudocode out of text blocks and into code blocks.",
         "- Keep normal prose mentions such as Search(A, i, k), A[i][j], len(A), N^2, i, j, IF, FOR, WHILE, and RETURN as text when they are ordinary sentences.",
         "- Remove raw HTML-like tags from explanationBlocks; use plain text or typed blocks instead.",
-        "- Image blocks should use assetId with an image registry entry that has alt text, or direct src/img plus alt when using the simplified CS extraction shape.",
+        "- Image blocks should use direct filename-only img values before cropping, for example {\"type\":\"image\",\"img\":\"paper_fig1.png\",\"alt\":\"short figure description\"}.",
+        "- Keep image alt text in alt or imgAlt; do not leave image blocks without image descriptions.",
+        "- If any image filename is referenced, include a matching ====IMAGES==== manifest entry with FILENAME, PAGE, QUESTIONS, UNIT, FOLDER, and DESCRIPTION.",
+        "- Reuse the same image filename for shared figures and list every matching question in the manifest QUESTIONS field.",
+        "- Do not insert full IMAGES/... paths until after the cropper has saved the image.",
         "- Make answer indexes 0-based and within the options array.",
         "- Keep every question source.page and source.questionNumber present.",
         "",
-        "Return full corrected JSON only.",
-        "First character must be `{`, last character must be `}`.",
+        "Return the full corrected JSON first.",
+        "If images are referenced, append a ====IMAGES==== manifest after the JSON.",
+        "First character must be `{`.",
         "No markdown fences.",
     ])
     return "\n".join(lines)
