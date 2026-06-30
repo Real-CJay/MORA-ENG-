@@ -52,6 +52,7 @@ let _routerReady = false;
 let _isApplyingRoute = false;
 let _lastRoutePath = '';
 let _allowQuizBackOnce = false;
+let _pendingActiveQuizLeaveAction = null;
 
 const QUIZ_MODE_META = {
   pastpaper: {
@@ -137,6 +138,10 @@ function defaultExamModeKeys() {
 
 function getTargetVariantMeta(hardOnly = state.targetHardOnly) {
   return hardOnly ? TARGET_VARIANT_META.hard : TARGET_VARIANT_META.normal;
+}
+
+function isActiveQuizScreen(screen = state.screen) {
+  return screen === 'quiz' || screen === 'examQuiz';
 }
 
 function resetActiveQuizStateForBrowse() {
@@ -574,6 +579,7 @@ function startQuiz(onlyWrong = false) {
   state.score = 0;
   state.results = [];
   state.screen = 'quiz';
+  ensureActiveQuizHistoryEntry();
   startTimer();
   renderApp();
   setTimeout(_maybeNudgeShortcuts, 800);
@@ -605,6 +611,7 @@ function startTargetQuiz() {
   state.score = 0;
   state.results = [];
   state.screen = 'quiz';
+  ensureActiveQuizHistoryEntry();
   startTimer();
   renderApp();
 }
@@ -715,21 +722,21 @@ window.showShortcutsPanel = showShortcutsPanel;
       }
       if (document.getElementById('shortcutsPanel')) { e.preventDefault(); document.getElementById('shortcutsPanel').remove(); return; }
       if (document.getElementById('routeLeaveQuizPrompt')) { e.preventDefault(); cancelRouteLeaveQuiz(); return; }
-      if (state.screen === 'quiz' || state.screen === 'examQuiz') { e.preventDefault(); confirmLeaveActiveQuiz(); return; }
+      if (isActiveQuizScreen()) { e.preventDefault(); confirmLeaveActiveQuiz(); return; }
     }
 
     // Don't fire if user is typing in an input
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
 
     if (e.key === '?') {
-      if (state.screen === 'quiz' || state.screen === 'examQuiz') { e.preventDefault(); showShortcutsPanel(); return; }
+      if (isActiveQuizScreen()) { e.preventDefault(); showShortcutsPanel(); return; }
       return;
     }
 
     // Alt+H → home from anywhere
     if (e.altKey && e.key.toUpperCase() === 'H') {
       e.preventDefault();
-      if (state.screen === 'quiz' || state.screen === 'examQuiz') {
+      if (isActiveQuizScreen()) {
         confirmLeaveActiveQuiz();
       } else {
         stopTimer();
@@ -993,6 +1000,7 @@ function startExamQuiz() {
   state.score           = 0;
   state.results         = [];
   state.screen          = 'examQuiz';
+  ensureActiveQuizHistoryEntry();
   document.body.classList.add('exam-active');
   startTimer();
   // Show dramatic transition overlay, then render the exam
@@ -1044,6 +1052,7 @@ function startFlaggedQuiz(unitId) {
   state.score    = 0;
   state.results  = [];
   state.screen   = 'quiz';
+  ensureActiveQuizHistoryEntry();
   startTimer();
   renderApp();
 }
@@ -1369,15 +1378,8 @@ function routeForState() {
   return routes[state.screen] || '/';
 }
 
-function canUseAppHistory() {
-  return location.protocol === 'http:' || location.protocol === 'https:';
-}
-
-function syncRouteFromState(replace = false) {
-  if (_isApplyingRoute || !_routerReady || !canUseAppHistory() || !history.pushState) return;
-  const path = routeForState();
-  if (path === _lastRoutePath && location.pathname === path) return;
-  const payload = {
+function routePayloadForState() {
+  return {
     screen: state.screen,
     subject: state.currentSubject,
     appMode: state.appMode,
@@ -1387,9 +1389,50 @@ function syncRouteFromState(replace = false) {
     targetHardOnly: state.targetHardOnly,
     topics: Array.isArray(state.topics) ? [...state.topics] : []
   };
+}
+
+function canUseAppHistory() {
+  return location.protocol === 'http:' || location.protocol === 'https:';
+}
+
+function syncRouteFromState(replace = false) {
+  if (_isApplyingRoute || !_routerReady || !canUseAppHistory() || !history.pushState) return;
+  const path = routeForState();
+  if (path === _lastRoutePath && location.pathname === path) return;
+  const payload = routePayloadForState();
   const method = replace || !_lastRoutePath ? 'replaceState' : 'pushState';
   history[method](payload, '', path);
   _lastRoutePath = path;
+}
+
+function writeRouteForCurrentState(replace = false) {
+  if (!_routerReady || !canUseAppHistory() || !history.pushState) return;
+  const path = routeForState();
+  const method = replace || location.pathname === path ? 'replaceState' : 'pushState';
+  history[method](routePayloadForState(), '', path);
+  _lastRoutePath = path;
+}
+
+function ensureActiveQuizHistoryEntry() {
+  _allowQuizBackOnce = false;
+  writeRouteForCurrentState(location.pathname === routeForState());
+}
+
+function protectActiveQuizBrowserBack() {
+  writeRouteForCurrentState(false);
+  confirmLeaveActiveQuiz();
+}
+
+function requestLeaveActiveQuiz(action = null) {
+  _pendingActiveQuizLeaveAction = typeof action === 'function' ? action : null;
+  confirmLeaveActiveQuiz();
+}
+
+function requestLeaveActiveQuizToScreen(screen) {
+  requestLeaveActiveQuiz(() => {
+    state.screen = screen;
+    renderApp();
+  });
 }
 
 function setupRouteDefaults(subjectKey) {
@@ -1405,6 +1448,7 @@ function applyRoute(path, routeState) {
   let subjectKey = routeState?.subject || state.currentSubject;
   let nextAppMode = routeState?.appMode ?? state.appMode;
   let nextCategoryEntry = routeState?.categoryEntry || '';
+  let enterDirectoryFromRoute = false;
 
   if (parts[0] === 'subjects' && parts[1] && SUBJECTS[parts[1]]) {
     subjectKey = parts[1];
@@ -1445,6 +1489,7 @@ function applyRoute(path, routeState) {
       admin: 'admin'
     };
     nextScreen = simpleRoutes[parts[0]] || 'landing';
+    enterDirectoryFromRoute = parts[0] === 'questions';
     if (parts[0] === 'past-papers') state.categoryMode = 'pastpaper';
     if (parts[0] === 'target-quiz') state.categoryMode = 'target';
   }
@@ -1456,7 +1501,11 @@ function applyRoute(path, routeState) {
   state.categoryEntry = nextCategoryEntry;
   if (typeof routeState?.targetHardOnly === 'boolean') state.targetHardOnly = routeState.targetHardOnly;
   state.appMode = nextAppMode;
-  state.screen = nextScreen;
+  if (enterDirectoryFromRoute) {
+    enterQuestionDirectoryBrowseState(state.directorySubject || 'all');
+  } else {
+    state.screen = nextScreen;
+  }
   _isApplyingRoute = true;
   renderApp();
   _isApplyingRoute = false;
@@ -1468,7 +1517,7 @@ function confirmLeaveActiveQuiz() {
   document.body.insertAdjacentHTML('beforeend', `
     <div id="routeLeaveQuizPrompt" class="guest-auth-overlay">
       <div class="guest-auth-card guest-confirm-card" role="dialog" aria-modal="true">
-        <button class="auth-close" onclick="document.getElementById('routeLeaveQuizPrompt')?.remove()">×</button>
+        <button class="auth-close" onclick="cancelRouteLeaveQuiz()">×</button>
         <div class="guest-auth-kicker">Active quiz</div>
         <h2>Leave this quiz?</h2>
         <p>Your current attempt will stop. Answer history already submitted will stay, but this running quiz will end.</p>
@@ -1483,9 +1532,16 @@ function confirmLeaveActiveQuiz() {
 
 function confirmRouteLeaveQuiz() {
   document.getElementById('routeLeaveQuizPrompt')?.remove();
+  const pendingLeaveAction = _pendingActiveQuizLeaveAction;
+  _pendingActiveQuizLeaveAction = null;
   document.body.classList.remove('exam-active');
-  _allowQuizBackOnce = true;
   stopTimer();
+  if (pendingLeaveAction) {
+    _allowQuizBackOnce = false;
+    pendingLeaveAction();
+    return;
+  }
+  _allowQuizBackOnce = true;
   if (canUseAppHistory()) history.back();
   else {
     state.screen = getQuizModeSetupScreen();
@@ -1495,7 +1551,10 @@ function confirmRouteLeaveQuiz() {
 
 function cancelRouteLeaveQuiz() {
   document.getElementById('routeLeaveQuizPrompt')?.remove();
-  syncRouteFromState(true);
+  _pendingActiveQuizLeaveAction = null;
+  _allowQuizBackOnce = false;
+  if (isActiveQuizScreen()) writeRouteForCurrentState(true);
+  else syncRouteFromState(true);
 }
 
 function initRouter() {
@@ -1517,10 +1576,8 @@ function initRouter() {
   applyRoute(location.pathname, history.state);
   syncRouteFromState(true);
   window.addEventListener('popstate', event => {
-    if (state.screen === 'quiz' && !_allowQuizBackOnce) {
-      history.pushState(history.state, '', routeForState());
-      _lastRoutePath = location.pathname;
-      confirmLeaveActiveQuiz();
+    if (isActiveQuizScreen() && !_allowQuizBackOnce) {
+      protectActiveQuizBrowserBack();
       return;
     }
     _allowQuizBackOnce = false;
@@ -1623,7 +1680,7 @@ function _doRenderApp() {
     const modeMeta = getQuizModeMeta();
     const dest = modeMeta.setupScreen;
     const label = modeMeta.backLabel;
-    back.innerHTML = `<button class="btn-home" onclick="stopTimer();state.screen='${dest}';renderApp()">${label}</button>`;
+    back.innerHTML = `<button class="btn-home" onclick="requestLeaveActiveQuizToScreen('${dest}')">${label}</button>`;
   }
 
   if (app && screenNeedsSubjectData(state.screen) && !isSubjectLoaded(state.currentSubject)) {
@@ -5142,6 +5199,7 @@ function exposeAppGlobals() {
     updateDirectoryFilter,
     toggleDirectoryQuestion,
     askJanudaFromDirectory,
+    requestLeaveActiveQuizToScreen,
     confirmRouteLeaveQuiz,
     cancelRouteLeaveQuiz,
     showGuestQuizPrompt,
