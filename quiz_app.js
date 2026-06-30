@@ -139,6 +139,61 @@ function getTargetVariantMeta(hardOnly = state.targetHardOnly) {
   return hardOnly ? TARGET_VARIANT_META.hard : TARGET_VARIANT_META.normal;
 }
 
+function resetActiveQuizStateForBrowse() {
+  state.questions = [];
+  state.current = 0;
+  state.answered = false;
+  state.selected = -1;
+  state.score = 0;
+  state.results = [];
+  state.showReview = false;
+  state.resumeOffset = 0;
+  state.examPages = [];
+  state.examCurrentPage = 0;
+  state.examAnswers = {};
+  state.examSubmitted = false;
+  document.body.classList.remove('exam-active');
+}
+
+function clearViewAllBrowseState() {
+  state.viewAllQuestions = [];
+  state.viewAllTitle = '';
+  state.viewAllBack = 'home';
+  state.viewAllToken = '';
+}
+
+function clearBrowseState() {
+  clearViewAllBrowseState();
+  state.directoryOpenId = '';
+}
+
+function enterViewAllBrowseState(questions, title, backScreen, token) {
+  resetActiveQuizStateForBrowse();
+  state.viewAllQuestions = questions;
+  state.viewAllTitle = title;
+  state.viewAllBack = backScreen || 'home';
+  state.viewAllToken = typeof token === 'string' ? token : '';
+  state.screen = 'viewAll';
+}
+
+function exitViewAllBrowseState() {
+  const backScreen = state.viewAllBack || 'home';
+  clearViewAllBrowseState();
+  state.screen = backScreen;
+  renderApp();
+}
+
+function enterQuestionDirectoryBrowseState(subjectKey = state.currentSubject || 'all') {
+  resetActiveQuizStateForBrowse();
+  clearViewAllBrowseState();
+  state.categoryEntry = '';
+  state.directorySubject = subjectKey;
+  state.directorySource = 'all';
+  state.directoryQuery = '';
+  state.directoryOpenId = '';
+  state.screen = 'questionDirectory';
+}
+
 function targetPoolForSubject(subjectEntry = subj()) {
   return state.targetHardOnly ? subjectEntry.targetHard : subjectEntry.targetNormal;
 }
@@ -511,6 +566,7 @@ function startQuiz(onlyWrong = false) {
     state.resumeOffset = 0;
   }
 
+  clearBrowseState();
   state.questions = pool.map(q => ({...q}));
   state.current = 0;
   state.answered = false;
@@ -541,6 +597,7 @@ function startTargetQuiz() {
   }
 
   const pool = prepareTargetQuestionSet(unanswered);
+  clearBrowseState();
   state.questions = pool;
   state.current = 0;
   state.answered = false;
@@ -927,6 +984,7 @@ function startExamQuiz() {
   if (resolved.error) { alert(resolved.error); return; }
   if (pool.length === 0) { alert('No questions available.'); return; }
 
+  clearBrowseState();
   state.questions       = pool.map(q => ({...q}));
   state.examPages       = buildExamPages(state.questions);
   state.examCurrentPage = 0;
@@ -976,6 +1034,7 @@ function startFlaggedQuiz(unitId) {
   const flagged = getFlaggedIds(s.key);
   const pool = s.pastUnit.filter(q => q.unit === unitId && flagged.has(q.id));
   if (pool.length === 0) { alert('No flagged questions in this unit.'); return; }
+  clearBrowseState();
   state.appMode  = 'pastpaper';
   state.topics   = [unitId];
   state.questions = pool.map(q => ({...q}));
@@ -1122,11 +1181,7 @@ function showViewAllConfirm(token, title, backScreen) {
 }
 
 function openViewAll(questions, title, backScreen, token) {
-  state.viewAllQuestions = questions;
-  state.viewAllTitle = title;
-  state.viewAllBack = backScreen || 'home';
-  state.viewAllToken = typeof token === 'string' ? token : '';
-  state.screen = 'viewAll';
+  enterViewAllBrowseState(questions, title, backScreen, token);
   renderApp();
 }
 window.openViewAll = openViewAll;
@@ -1554,7 +1609,7 @@ function _doRenderApp() {
   } else if (state.screen === 'subjectHome') {
     back.innerHTML = `<button class="btn-home" onclick="state.screen='categorySubjects';renderApp()">&larr; Subjects</button>`;
   } else if (state.screen === 'viewAll') {
-    back.innerHTML = `<button class="btn-home" onclick="state.screen=state.viewAllBack;renderApp()">&larr; Back</button>`;
+    back.innerHTML = `<button class="btn-home" onclick="exitViewAllBrowseState()">&larr; Back</button>`;
   } else if (state.screen === 'home' || state.screen === 'targetHome' || state.screen === 'paperHome') {
     const fromCategory = (state.screen === 'home' && state.categoryEntry === 'pastpaper')
       || (state.screen === 'paperHome' && state.categoryEntry === 'pastpaper')
@@ -1814,12 +1869,7 @@ document.addEventListener('click', event => {
     state.topics = [];
     state.screen = 'paperHome';
   } else if (action === 'questionDirectory') {
-    state.categoryEntry = '';
-    state.directorySubject = state.currentSubject || 'all';
-    state.directorySource = 'all';
-    state.directoryQuery = '';
-    state.directoryOpenId = '';
-    state.screen = 'questionDirectory';
+    enterQuestionDirectoryBrowseState();
   } else {
     return;
   }
