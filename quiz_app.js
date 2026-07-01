@@ -41,6 +41,7 @@ let state = {
   viewAllTitle: '',      // heading shown in that screen
   viewAllBack: 'home',  // screen to return to
   viewAllToken: '',     // token used to start quiz from browse screen
+  devBlockFixture: false,
   resumeOffset: 0,      // questions already answered before this session (for display)
   // ── Exam mode ──
   examPages: [],        // array of question arrays (one per page)
@@ -159,6 +160,8 @@ function resetQuizAttemptState() {
   state.examCurrentPage = 0;
   state.examAnswers = {};
   state.examSubmitted = false;
+  state.devBlockFixture = false;
+  window.MoraDevBlockFixtureActive = false;
   document.body.classList.remove('exam-active');
 }
 
@@ -553,6 +556,88 @@ function getViewAllPool(questions, subjectEntry = subj()) {
   return [];
 }
 
+function isLocalDevHost() {
+  return ['', 'localhost', '127.0.0.1', '::1', '[::1]'].includes(location.hostname);
+}
+
+function shouldOpenDevBlockFixture() {
+  if (!isLocalDevHost()) return false;
+  return new URLSearchParams(location.search).get('devBlockFixture') === '1';
+}
+
+function createDevBlockFixtureQuestion() {
+  return {
+    id: '__dev_block_renderer_fixture_q1',
+    unit: 1,
+    year: 'Dev fixture',
+    hard: false,
+    text: 'Dev-only block renderer fixture. If blocks fail, this flat fallback text appears.',
+    body: [
+      { type: 'text', text: 'This dev-only question is rendered through the live renderQuiz() body bridge.' },
+      { type: 'math', latex: 'N \\times N' },
+      {
+        type: 'code',
+        language: 'pseudocode',
+        code: 'for i <- 1 to N\n  for j <- 1 to i\n    A[i][j] <- i + j'
+      },
+      {
+        type: 'table',
+        header: true,
+        rows: [
+          ['Block type', 'Expected render'],
+          ['text', 'paragraph'],
+          ['math', 'KaTeX block'],
+          ['code', 'pre/code block']
+        ]
+      },
+      {
+        type: 'image',
+        img: 'assets/icons/icon-192.png',
+        alt: 'Mora Quiz icon used as a local dev-only image fixture'
+      }
+    ],
+    opts: [
+      'Legacy option button A',
+      'Legacy option button B - correct',
+      'Legacy option button C',
+      'Legacy option button D'
+    ],
+    ans: 1,
+    exp: 'Dev-only flat fallback explanation. The block explanation should replace this when the bridge is enabled.',
+    explanation: [
+      { type: 'text', text: 'The explanation is also rendered through the block bridge after selecting an answer.' },
+      { type: 'math', latex: 'j \\le i' },
+      {
+        type: 'code',
+        language: 'pseudocode',
+        code: 'if bridgeRendered = true\n  keep existing option buttons'
+      }
+    ]
+  };
+}
+
+function startDevBlockRendererFixture() {
+  window._appSettings = window._appSettings || {};
+  window._appSettings.block_renderer_enabled = true;
+  stopTimer();
+  clearBrowseState();
+  resetQuizAttemptState();
+  window.MoraDevBlockFixtureActive = true;
+  state.currentSubject = 'materials';
+  state.appMode = 'pastpaper';
+  state.categoryMode = 'pastpaper';
+  state.categoryEntry = '';
+  state.topics = [1];
+  state.mode = 'standard';
+  state.count = 1;
+  state.resumeOffset = 0;
+  state.devBlockFixture = true;
+  state.questions = [createDevBlockFixtureQuestion()];
+  state.screen = 'quiz';
+  ensureActiveQuizHistoryEntry();
+  renderApp();
+}
+
 function startQuiz(onlyWrong = false) {
   const resolved = getPracticeQuizPool(onlyWrong);
   const activeMode = resolved.activeMode;
@@ -642,12 +727,14 @@ function selectAnswer(idx) {
   const correct = idx === q.ans;
   if (correct) state.score++;
   state.results.push({ id: q.id, correct, selected: idx, question: q });
-  // Update in-memory history
-  answerHistory[q.id] = { selected: idx, correct, timestamp: Date.now() };
-  // Save to Supabase (no-op for guests)
-  savePracticeAnswer(state.currentSubject, q.id, idx, correct);
+  if (!state.devBlockFixture) {
+    // Update in-memory history
+    answerHistory[q.id] = { selected: idx, correct, timestamp: Date.now() };
+    // Save to Supabase (no-op for guests)
+    savePracticeAnswer(state.currentSubject, q.id, idx, correct);
+  }
   renderApp();
-  maybeNudgeJanuda();
+  if (!state.devBlockFixture) maybeNudgeJanuda();
 }
 
 function next() {
@@ -655,6 +742,13 @@ function next() {
   state.answered = false;
   state.selected = -1;
   if (state.current >= state.questions.length) {
+    if (state.devBlockFixture) {
+      stopTimer();
+      resetQuizAttemptState();
+      state.screen = 'landing';
+      renderApp();
+      return;
+    }
     state.screen = 'results';
     state.showReview = false;
     stopTimer();
@@ -1553,6 +1647,11 @@ function cancelRouteLeaveQuiz() {
 
 function initRouter() {
   if (_routerReady) return;
+  if (shouldOpenDevBlockFixture()) {
+    _routerReady = canUseAppHistory();
+    startDevBlockRendererFixture();
+    return;
+  }
   if (!canUseAppHistory()) {
     _routerReady = false;
     renderApp();
@@ -2628,6 +2727,11 @@ function renderQuiz() {
   const pct = (_qOffset + state.current) / (_qDisplayTot) * 100;
   const answeredInSession = state.results.length;
   const formattedText = formatQuestionText(q.text);
+  if (state.devBlockFixture) {
+    window._appSettings = window._appSettings || {};
+    window._appSettings.block_renderer_enabled = true;
+    window.MoraDevBlockFixtureActive = true;
+  }
   const blockRenderPlan = window.MoraQuestionRenderBridge?.prepareActiveQuestion?.(q) || {};
   const blockRenderKey = escapeHTML(blockRenderPlan.key || '');
   const flatQuestionBodyHtml = `
