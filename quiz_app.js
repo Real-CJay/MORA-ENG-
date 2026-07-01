@@ -1753,6 +1753,9 @@ function _doRenderApp() {
   }
   else if (state.screen === 'examQuiz') app.innerHTML = renderExamQuiz();
   else if (state.screen === 'viewAll') app.innerHTML = renderViewAll();
+  const blockRenderHydration = state.screen === 'quiz' && window.MoraQuestionRenderBridge?.hydrateActiveQuestion
+    ? window.MoraQuestionRenderBridge.hydrateActiveQuestion(app)
+    : null;
   // Re-apply body overflow setting after any render (survives innerHTML swap since zoom is on #app)
   if (typeof window._applyAppZoom === 'function' && typeof window._getAppScaler === 'function') {
     if (!window._getAppScaler()) window._applyAppZoom();
@@ -1763,6 +1766,11 @@ function _doRenderApp() {
   }
   applyScrollReveal();
   setTimeout(renderMath, 120);
+  if (blockRenderHydration?.then) {
+    blockRenderHydration.then(rendered => {
+      if (rendered) setTimeout(renderMath, 0);
+    });
+  }
   if (state.screen === 'landing') setTimeout(maybeShowAppTutorial, 450);
 }
 
@@ -2620,6 +2628,26 @@ function renderQuiz() {
   const pct = (_qOffset + state.current) / (_qDisplayTot) * 100;
   const answeredInSession = state.results.length;
   const formattedText = formatQuestionText(q.text);
+  const blockRenderPlan = window.MoraQuestionRenderBridge?.prepareActiveQuestion?.(q) || {};
+  const blockRenderKey = escapeHTML(blockRenderPlan.key || '');
+  const flatQuestionBodyHtml = `
+    ${q.context ? `<div class="q-context"><pre>${cleanDisplayText(q.context)}</pre></div>` : ''}
+    ${q.img ? `<div style="margin:0.8rem 0 1rem;text-align:center;">
+      <img src="${rootAssetPath(q.img)}" alt="${q.imgAlt||'Figure'}"
+        style="max-width:100%;max-height:260px;border-radius:8px;border:1px solid var(--border);background:#fff;padding:6px;cursor:zoom-in;"
+        onclick="openImgViewer(this.src, this.alt, document.querySelector('.q-text')?.innerHTML || '')"
+        title="Click to enlarge">
+      <div style="font-size:0.7rem;color:var(--text-muted);margin-top:4px;opacity:0.7;">Click image to enlarge</div>
+    </div>` : ''}
+    <div class="q-text">${formattedText}</div>
+  `;
+  const questionBodyHtml = blockRenderPlan.hasBody
+    ? `<div data-mora-block-render="body" data-mora-block-key="${blockRenderKey}">${flatQuestionBodyHtml}</div>`
+    : flatQuestionBodyHtml;
+  const flatExplanationHtml = cleanDisplayText(q.exp);
+  const explanationHtml = blockRenderPlan.hasExplanation
+    ? `<div data-mora-block-render="explanation" data-mora-block-key="${blockRenderKey}">${flatExplanationHtml}</div>`
+    : flatExplanationHtml;
   return `
   <div class="progress-meta">
     <span>Question ${_qDisplayNum} of ${_qDisplayTot}${_qOffset > 0 ? ` <span style="font-size:0.78rem;color:var(--text-muted);margin-left:4px;">(${_qOffset} answered)</span>` : ''}</span>
@@ -2643,15 +2671,7 @@ function renderQuiz() {
       ${answerHistory[q.id] && !state.answered ? `<span class="q-tag" style="background:${answerHistory[q.id].correct?'#0d2b1a':'#2b0d0d'};border-color:${answerHistory[q.id].correct?'#1a5c35':'#5c1a1a'};color:${answerHistory[q.id].correct?'var(--correct)':'var(--wrong)'};">${answerHistory[q.id].correct?'&#10003;':'&#10007;'} prev: ${cleanDisplayText(q.opts[answerHistory[q.id].selected])}</span>` : ''}
       ${window._appSettings?.flags_enabled !== false ? `<button id="flag-${q.id}" class="flag-btn${isFlagged(state.currentSubject,q.id)?' flagged':''}" onclick="toggleFlagUI('${state.currentSubject}','${q.id}')" title="${isFlagged(state.currentSubject,q.id)?'Remove flag':'Flag for review'}">!</button>` : ''}
     </div>
-    ${q.context ? `<div class="q-context"><pre>${cleanDisplayText(q.context)}</pre></div>` : ''}
-    ${q.img ? `<div style="margin:0.8rem 0 1rem;text-align:center;">
-      <img src="${rootAssetPath(q.img)}" alt="${q.imgAlt||'Figure'}"
-        style="max-width:100%;max-height:260px;border-radius:8px;border:1px solid var(--border);background:#fff;padding:6px;cursor:zoom-in;"
-        onclick="openImgViewer(this.src, this.alt, document.querySelector('.q-text')?.innerHTML || '')"
-        title="Click to enlarge">
-      <div style="font-size:0.7rem;color:var(--text-muted);margin-top:4px;opacity:0.7;">Click image to enlarge</div>
-    </div>` : ''}
-    <div class="q-text">${formattedText}</div>
+    ${questionBodyHtml}
     <div class="options">
       ${q.opts.map((opt,i)=>{
         let cls = '';
@@ -2667,7 +2687,7 @@ function renderQuiz() {
     ${state.answered ? `
     <div class="explanation">
       <strong>${state.selected === q.ans ? '&#10003; Correct!' : '&#10007; Incorrect.'}</strong>
-      ${cleanDisplayText(q.exp)}
+      ${explanationHtml}
     </div>
     <button class="next-btn" onclick="next()">${state.current + 1 < state.questions.length ? 'Next →' : 'View Results →'}</button>
     <div style="clear:both"></div>
