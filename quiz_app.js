@@ -26,8 +26,10 @@ let state = {
   showReview: false,
   timerSeconds: 0,
   timerInterval: null,
+  timerPaused: false,
   countdownLimit: 0,
   countdownRemaining: 0,
+  allDoneMode: '',
   targetHardOnly: false,
   categoryMode: 'pastpaper',
   categoryEntry: '',
@@ -144,7 +146,7 @@ function isActiveQuizScreen(screen = state.screen) {
   return screen === 'quiz' || screen === 'examQuiz';
 }
 
-function resetActiveQuizStateForBrowse() {
+function resetQuizAttemptState() {
   state.questions = [];
   state.current = 0;
   state.answered = false;
@@ -152,12 +154,17 @@ function resetActiveQuizStateForBrowse() {
   state.score = 0;
   state.results = [];
   state.showReview = false;
-  state.resumeOffset = 0;
+  state.allDoneMode = '';
   state.examPages = [];
   state.examCurrentPage = 0;
   state.examAnswers = {};
   state.examSubmitted = false;
   document.body.classList.remove('exam-active');
+}
+
+function resetActiveQuizStateForBrowse() {
+  resetQuizAttemptState();
+  state.resumeOffset = 0;
 }
 
 function clearViewAllBrowseState() {
@@ -572,12 +579,8 @@ function startQuiz(onlyWrong = false) {
   }
 
   clearBrowseState();
+  resetQuizAttemptState();
   state.questions = pool.map(q => ({...q}));
-  state.current = 0;
-  state.answered = false;
-  state.selected = -1;
-  state.score = 0;
-  state.results = [];
   state.screen = 'quiz';
   ensureActiveQuizHistoryEntry();
   startTimer();
@@ -604,12 +607,9 @@ function startTargetQuiz() {
 
   const pool = prepareTargetQuestionSet(unanswered);
   clearBrowseState();
+  resetQuizAttemptState();
+  state.resumeOffset = 0;
   state.questions = pool;
-  state.current = 0;
-  state.answered = false;
-  state.selected = -1;
-  state.score = 0;
-  state.results = [];
   state.screen = 'quiz';
   ensureActiveQuizHistoryEntry();
   startTimer();
@@ -992,13 +992,10 @@ function startExamQuiz() {
   if (pool.length === 0) { alert('No questions available.'); return; }
 
   clearBrowseState();
+  resetQuizAttemptState();
+  state.resumeOffset = 0;
   state.questions       = pool.map(q => ({...q}));
   state.examPages       = buildExamPages(state.questions);
-  state.examCurrentPage = 0;
-  state.examAnswers     = {};
-  state.examSubmitted   = false;
-  state.score           = 0;
-  state.results         = [];
   state.screen          = 'examQuiz';
   ensureActiveQuizHistoryEntry();
   document.body.classList.add('exam-active');
@@ -1043,14 +1040,11 @@ function startFlaggedQuiz(unitId) {
   const pool = s.pastUnit.filter(q => q.unit === unitId && flagged.has(q.id));
   if (pool.length === 0) { alert('No flagged questions in this unit.'); return; }
   clearBrowseState();
+  resetQuizAttemptState();
+  state.resumeOffset = 0;
   state.appMode  = 'pastpaper';
   state.topics   = [unitId];
   state.questions = pool.map(q => ({...q}));
-  state.current  = 0;
-  state.answered = false;
-  state.selected = -1;
-  state.score    = 0;
-  state.results  = [];
   state.screen   = 'quiz';
   ensureActiveQuizHistoryEntry();
   startTimer();
@@ -2624,6 +2618,7 @@ function renderQuiz() {
   const _qDisplayNum = _qOffset + state.current + 1;
   const _qDisplayTot = _qOffset + state.questions.length;
   const pct = (_qOffset + state.current) / (_qDisplayTot) * 100;
+  const answeredInSession = state.results.length;
   const formattedText = formatQuestionText(q.text);
   return `
   <div class="progress-meta">
@@ -2634,7 +2629,7 @@ function renderQuiz() {
         <span id="quiz-timer" style="font-family:'DM Mono',monospace;font-size:1rem;font-weight:700;letter-spacing:0.04em;${state.countdownLimit>0&&state.countdownRemaining<=30?'color:#f87171;':'color:var(--accent-light);'}">${state.countdownLimit>0?formatTime(state.countdownRemaining):formatTime(state.timerSeconds)}</span>
         <button id="pauseTimerBtn" onclick="togglePauseTimer()" title="${state.timerPaused?'Resume timer':'Pause timer'}" style="background:${state.timerPaused?'#1e2a5e':'var(--surface)'};border:1px solid ${state.timerPaused?'var(--accent)':'var(--border-hover)'};border-radius:6px;color:${state.timerPaused?'var(--accent-light)':'var(--text-muted)'};cursor:pointer;font-size:0.75rem;padding:3px 10px;line-height:1.5;transition:border-color 0.15s,background 0.15s,color 0.15s,opacity 0.15s;font-weight:600;white-space:nowrap;">${state.timerPaused?'Resume':'Pause'}</button>
       </span>
-      <span style="display:inline-flex;align-items:center;gap:5px;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:5px 12px;"><span style="color:var(--correct);font-weight:700;font-family:'DM Mono',monospace;font-size:0.95rem;">${state.score}</span><span style="color:var(--accent-light);font-weight:600;font-family:'DM Mono',monospace;font-size:0.95rem;">/ ${state.current}</span></span>
+      <span style="display:inline-flex;align-items:center;gap:5px;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:5px 12px;"><span style="color:var(--correct);font-weight:700;font-family:'DM Mono',monospace;font-size:0.95rem;">${state.score}</span><span style="color:var(--accent-light);font-weight:600;font-family:'DM Mono',monospace;font-size:0.95rem;">/ ${answeredInSession}</span></span>
     </span>
   </div>
   <div class="progress-bar-wrap">
