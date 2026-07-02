@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Validate the Mora Quiz semester/department subject registry.
+"""Validate the Mora Quiz curriculum registry and subject metadata.
 
-This is a small static checker for quiz_data.js. It intentionally avoids
-executing the app JavaScript so it can run in a plain Python environment.
+This is a small static checker for js/curriculum_registry.js and quiz_data.js.
+It intentionally avoids executing app JavaScript so it can run in a plain
+Python environment.
 """
 
 from __future__ import annotations
@@ -18,6 +19,7 @@ from typing import Iterable
 STRING_RE = re.compile(r"\b{prop}\s*:\s*(['\"])(.*?)\1", re.DOTALL)
 BOOL_RE = re.compile(r"\b{prop}\s*:\s*(true|false)\b")
 ARRAY_RE = re.compile(r"\b{prop}\s*:\s*\[(.*?)\]", re.DOTALL)
+REQUIRED_LIVE_MODULES = ("materials", "mechanics", "fluid", "math")
 
 
 @dataclass
@@ -37,7 +39,7 @@ class Semester:
     key: str
     id: str | None
     active: bool | None
-    has_departments: bool | None
+    semester_type: str | None
     department_ids: set[str]
 
 
@@ -231,13 +233,17 @@ def parse_semesters(object_text: str, reporter: Reporter) -> dict[str, Semester]
             seen_ids.add(semester_id)
 
         active = bool_prop(value, "active")
-        has_departments = bool_prop(value, "hasDepartments")
+        semester_type = string_prop(value, "type")
         departments_raw = prop_value(value, "departments")
         department_ids: set[str] = set()
 
-        if has_departments is True and departments_raw == "null":
-            reporter.error(f"SEMESTERS.{key}.departments", "hasDepartments=true but departments is null")
-        if has_departments is True and departments_raw and departments_raw != "null":
+        if semester_type not in {"common", "departmental"}:
+            reporter.error(f"SEMESTERS.{key}.type", "must be 'common' or 'departmental'")
+        if semester_type == "common" and departments_raw != "null":
+            reporter.error(f"SEMESTERS.{key}.departments", "common semester departments must be null")
+        if semester_type == "departmental" and departments_raw == "null":
+            reporter.error(f"SEMESTERS.{key}.departments", "departmental semester departments must not be null")
+        if departments_raw and departments_raw != "null":
             seen_department_keys: set[str] = set()
             seen_department_ids: set[str] = set()
             for department_key, department_value in iter_top_level_entries(departments_raw):
@@ -261,7 +267,7 @@ def parse_semesters(object_text: str, reporter: Reporter) -> dict[str, Semester]
             key=key,
             id=semester_id,
             active=active,
-            has_departments=has_departments,
+            semester_type=semester_type,
             department_ids=department_ids,
         )
 
@@ -304,7 +310,7 @@ def validate_subjects(subjects: list[Subject], semesters: dict[str, Semester], r
         for index, department_id in enumerate(subject.department_ids):
             if department_id == "all":
                 continue
-            if semester.has_departments is not True:
+            if semester.semester_type != "departmental":
                 reporter.error(
                     f"{path}.departmentIds[{index}]",
                     f"department {department_id!r} is not valid because semester {subject.semester_id!r} has no departments",
@@ -316,6 +322,28 @@ def validate_subjects(subjects: list[Subject], semesters: dict[str, Semester], r
                     f"department {department_id!r} does not exist in semester {subject.semester_id!r}",
                 )
 
+    subjects_by_key = {subject.key: subject for subject in subjects}
+    sem1 = next((semester for semester in semesters.values() if semester.id == "sem1"), None)
+    if not sem1:
+        reporter.error("SEMESTERS.sem1", "missing Semester 1")
+    else:
+        if sem1.semester_type != "common":
+            reporter.error("SEMESTERS.sem1.type", "Semester 1 must be common")
+        if sem1.department_ids:
+            reporter.error("SEMESTERS.sem1.departments", "Semester 1 must not define departments")
+        if sem1.active is not True:
+            reporter.error("SEMESTERS.sem1.active", "Semester 1 must be active")
+
+    for module_key in REQUIRED_LIVE_MODULES:
+        subject = subjects_by_key.get(module_key)
+        if not subject:
+            reporter.error(f"SUBJECTS.{module_key}", "required live module missing")
+            continue
+        if subject.semester_id != "sem1":
+            reporter.error(f"SUBJECTS.{module_key}.semesterId", "required live module must belong to sem1")
+        if not subject.department_ids or "all" not in subject.department_ids:
+            reporter.error(f"SUBJECTS.{module_key}.departmentIds", "required live module must include 'all'")
+
     for semester in semesters.values():
         if semester.id and semester.active is False:
             for subject in subjects:
@@ -326,8 +354,14 @@ def validate_subjects(subjects: list[Subject], semesters: dict[str, Semester], r
                     )
 
 
-def print_report(registry_path: Path, reporter: Reporter, semester_count: int, subject_count: int) -> None:
-    print(f"== {registry_path} ==")
+def print_report(
+    curriculum_path: Path,
+    subjects_path: Path,
+    reporter: Reporter,
+    semester_count: int,
+    subject_count: int,
+) -> None:
+    print(f"== {curriculum_path} + {subjects_path} ==")
     print(f"Semesters: {semester_count}")
     print(f"Subjects: {subject_count}")
 
@@ -349,26 +383,29 @@ def print_report(registry_path: Path, reporter: Reporter, semester_count: int, s
 
 
 def main(argv: list[str]) -> int:
-    parser = argparse.ArgumentParser(description="Validate Mora Quiz SEMESTERS/SUBJECTS registry metadata.")
-    parser.add_argument("registry", nargs="?", default="quiz_data.js", help="Path to quiz_data.js")
+    parser = argparse.ArgumentParser(description="Validate Mora Quiz curriculum registry metadata.")
+    parser.add_argument("--curriculum", default="js/curriculum_registry.js", help="Path to js/curriculum_registry.js")
+    parser.add_argument("--subjects", default="quiz_data.js", help="Path to quiz_data.js")
     args = parser.parse_args(argv)
 
-    registry_path = Path(args.registry)
-    source = registry_path.read_text(encoding="utf-8")
+    curriculum_path = Path(args.curriculum)
+    subjects_path = Path(args.subjects)
+    curriculum_source = curriculum_path.read_text(encoding="utf-8")
+    subjects_source = subjects_path.read_text(encoding="utf-8")
     reporter = Reporter()
 
     try:
-        semesters_text = extract_const_object(source, "SEMESTERS")
-        subjects_text = extract_const_object(source, "SUBJECTS")
+        semesters_text = extract_const_object(curriculum_source, "SEMESTERS")
+        subjects_text = extract_const_object(subjects_source, "SUBJECTS")
         semesters = parse_semesters(semesters_text, reporter)
         subjects = parse_subjects(subjects_text)
         validate_subjects(subjects, semesters, reporter)
     except (OSError, ValueError) as exc:
-        reporter.error(str(registry_path), str(exc))
-        print_report(registry_path, reporter, 0, 0)
+        reporter.error("registry_check", str(exc))
+        print_report(curriculum_path, subjects_path, reporter, 0, 0)
         return 1
 
-    print_report(registry_path, reporter, len(semesters), len(subjects))
+    print_report(curriculum_path, subjects_path, reporter, len(semesters), len(subjects))
     return 1 if reporter.errors else 0
 
 

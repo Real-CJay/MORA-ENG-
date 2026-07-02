@@ -1,31 +1,22 @@
 # Mora Quiz Programme Registry Schema
 
-Stage 1.5 adds a semester and department layer above the existing subject registry. It does not change question data, rendering, routes, storage keys, or the lazy-loaded `subject_data/*.js` chunks.
+Stage 6.0I moves the semester and department layer into `js/curriculum_registry.js`. It does not change question data, rendering, routes, storage keys, or the lazy-loaded `subject_data/*.js` chunks.
 
 ## Semesters
 
-`SEMESTERS` lives in `quiz_data.js`.
+`SEMESTERS` lives in `js/curriculum_registry.js`.
 
 ```js
 const SEMESTERS = {
   sem1: {
     id: 'sem1',
     label: 'Semester 1',
+    type: 'common',
     active: true,
-    hasDepartments: false,
     departments: null,
   },
-  sem2: {
-    id: 'sem2',
-    label: 'Semester 2',
-    active: true,
-    hasDepartments: true,
-    departments: {
-      civil: { id: 'civil', label: 'Civil Engineering' },
-      mechanical: { id: 'mechanical', label: 'Mechanical Engineering' },
-      eee: { id: 'eee', label: 'Electrical & Electronic Engineering' },
-    },
-  },
+
+  // Semester 2 and beyond are added later, once real department names are confirmed.
 };
 ```
 
@@ -33,9 +24,9 @@ Fields:
 
 - `id`: stable semester id. It should match the object key.
 - `label`: user-facing semester label.
+- `type`: `common` for shared-module semesters, `departmental` for future semesters with department/stream selection.
 - `active`: `true` for current semesters, `false` for archived semesters that remain browsable.
-- `hasDepartments`: whether the semester needs a department picker.
-- `departments`: `null` when `hasDepartments` is `false`; otherwise an object of department entries.
+- `departments`: `null` when `type` is `common`; otherwise an object of confirmed department entries.
 
 ## Subjects
 
@@ -56,7 +47,7 @@ Rules:
 
 ## Helper Functions
 
-`quiz_data.js` exposes pure helper functions:
+`js/curriculum_registry.js` exposes pure helper functions:
 
 - `getSemesters()` returns semesters with active semesters first.
 - `getDepartments(semesterId)` returns department entries, or `null` when the semester has no department layer.
@@ -65,7 +56,7 @@ Rules:
 
 ## Navigation Sketch
 
-Stage 4 should wire navigation to this registry without changing the subject-card renderer itself:
+Future Stage 6.0J should wire navigation to this registry without changing the subject-card renderer itself:
 
 1. Home opens a semester picker.
 2. If there is only one semester, skip the semester picker automatically.
@@ -88,7 +79,9 @@ The checker reports:
 
 - missing or duplicate semester ids
 - duplicate department ids
-- `hasDepartments: true` with `departments: null`
+- invalid semester `type`
+- `type: common` with non-null `departments`
+- `type: departmental` with `departments: null`
 - subject `semesterId` values that reference missing semesters
 - subject `departmentIds` that reference missing departments
 - empty `departmentIds` lists
@@ -100,13 +93,13 @@ Example failing case:
 badModule: {
   key: 'badModule',
   label: 'Bad Module',
-  semesterId: 'sem2',
-  departmentIds: ['aerospace'],
+  semesterId: 'future_semester',
+  departmentIds: ['unconfirmed_department'],
 }
 ```
 
-Because `aerospace` is not a department in `SEMESTERS.sem2.departments`, `registry_check.py` reports:
+Because `unconfirmed_department` is not a department in the matching semester, `registry_check.py` reports an error:
 
 ```text
-ERROR: SUBJECTS.badModule.departmentIds[0]: department 'aerospace' does not exist in semester 'sem2'
+ERROR: SUBJECTS.badModule.departmentIds[0]: department 'unconfirmed_department' does not exist in semester 'future_semester'
 ```

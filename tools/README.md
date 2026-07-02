@@ -7,7 +7,7 @@ Stage 1 adds a schema foundation and validator for future question packs. These 
 - `tools/validate_questions.py` validates schemaVersion 2 JSON packs and accepts legacy flat questions with migration warnings.
 - `tools/export_legacy_subjects.py` exports existing lazy-loaded `subject_data/*.js` chunks into legacy JSON question packs.
 - `tools/question_schema.md` documents the block-based schema.
-- `tools/registry_check.py` validates the semester/department subject registry in `quiz_data.js`.
+- `tools/registry_check.py` validates `js/curriculum_registry.js` against subject metadata in `quiz_data.js`.
 - `tools/registry_schema.md` documents the programme registry shape for semesters, departments, and shared modules.
 - `examples/sample_questions.json` is a clean mixed-content demo pack.
 - `examples/sample_with_errors.json` is an intentionally broken demo pack.
@@ -85,7 +85,7 @@ Run from the app root:
 python tools/registry_check.py
 ```
 
-This checks that every subject points at a real semester, department-specific modules point at real departments, and archived/shared-module cases are visible in the report.
+This checks that every subject points at a real semester, required Semester 1 modules are common, department-specific modules point at real departments, and archived/shared-module cases are visible in the report.
 
 ## Schema Notes
 

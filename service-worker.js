@@ -16,6 +16,7 @@ const REQUIRED_APP_SHELL = [
   versionedAppAsset('/manifest.json'),
   versionedAppAsset('/quiz_style.css'),
   versionedAppAsset('/quiz_data.js'),
+  versionedAppAsset('/js/curriculum_registry.js'),
   versionedAppAsset('/auth.js'),
   versionedAppAsset('/js/app_helpers.js'),
   versionedAppAsset('/js/app_subject_loader.js'),
@@ -305,7 +306,6 @@ self.addEventListener('fetch', event => {
     );
   }
 });
-
 
 
 
