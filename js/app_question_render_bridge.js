@@ -6,6 +6,7 @@
   const bridgeScriptUrl = document.currentScript?.src || '';
   let rendererModulePromise = null;
   let activeQuestionPlan = null;
+  const viewAllQuestionPlans = new Map();
 
   function isEnabled() {
     return window._appSettings?.block_renderer_enabled === true;
@@ -97,48 +98,75 @@
     return registry;
   }
 
-  function prepareActiveQuestion(question) {
-    activeQuestionPlan = null;
-    if (!isEnabled() || !question || !hasBlockContent(question)) {
-      return { enabled: false, hasBody: false, hasExplanation: false, key: '' };
-    }
+  function emptyPlan() {
+    return { enabled: false, hasBody: false, hasExplanation: false, key: '' };
+  }
 
+  function buildQuestionPlan(question, key) {
+    if (!question || !hasBlockContent(question)) return null;
     const bodyBlocks = bodyBlocksFor(question);
     const explanationBlocks = explanationBlocksFor(question);
-    const key = String(question.id || 'active-question');
-    activeQuestionPlan = {
+    const images = imageRegistryFor(question);
+    return {
       key,
       question,
       bodyBlocks,
       explanationBlocks,
       context: {
         question,
-        images: imageRegistryFor(question),
-        imageRegistry: imageRegistryFor(question)
+        images,
+        imageRegistry: images
       }
-    };
-
-    return {
-      enabled: true,
-      key,
-      hasBody: bodyBlocks.length > 0,
-      hasExplanation: explanationBlocks.length > 0
     };
   }
 
-  function mountFor(root, role) {
-    if (!activeQuestionPlan) return null;
-    const candidates = root?.querySelectorAll(`[data-mora-block-render="${role}"]`) || [];
+  function planSummary(plan) {
+    if (!plan) return emptyPlan();
+    return {
+      enabled: true,
+      key: plan.key,
+      hasBody: plan.bodyBlocks.length > 0,
+      hasExplanation: plan.explanationBlocks.length > 0
+    };
+  }
+
+  function prepareActiveQuestion(question) {
+    activeQuestionPlan = null;
+    if (!isEnabled()) return emptyPlan();
+    activeQuestionPlan = buildQuestionPlan(question, String(question?.id || 'active-question'));
+    return planSummary(activeQuestionPlan);
+  }
+
+  function clearViewAllQuestions() {
+    viewAllQuestionPlans.clear();
+  }
+
+  function prepareViewAllQuestion(question, key) {
+    if (!isEnabled()) return emptyPlan();
+    const plan = buildQuestionPlan(question, String(key || question?.id || 'view-all-question'));
+    if (!plan) return emptyPlan();
+    viewAllQuestionPlans.set(plan.key, plan);
+    return planSummary(plan);
+  }
+
+  function mountForPlan(root, plan, role, scope = '') {
+    if (!plan) return null;
+    const scopeSelector = scope ? `[data-mora-block-scope="${scope}"]` : '';
+    const candidates = root?.querySelectorAll(`[data-mora-block-render="${role}"]${scopeSelector}`) || [];
     for (const candidate of candidates) {
-      if (candidate.dataset.moraBlockKey === activeQuestionPlan.key) return candidate;
+      if (candidate.dataset.moraBlockKey === plan.key) return candidate;
     }
     return null;
   }
 
-  async function renderIntoMount(mount, blocks, role, rendererModule) {
-    if (!mount || !blocks.length || typeof rendererModule?.renderBlocks !== 'function') return false;
+  function mountFor(root, role) {
+    return mountForPlan(root, activeQuestionPlan, role);
+  }
+
+  async function renderIntoMount(mount, blocks, role, rendererModule, plan = activeQuestionPlan) {
+    if (!mount || !blocks.length || !plan || typeof rendererModule?.renderBlocks !== 'function') return false;
     const temp = document.createElement('div');
-    rendererModule.renderBlocks(blocks, temp, activeQuestionPlan.context, { role });
+    rendererModule.renderBlocks(blocks, temp, plan.context, { role });
     mount.replaceChildren(...Array.from(temp.childNodes));
     mount.dataset.moraBlockRendered = 'true';
     return true;
@@ -148,8 +176,8 @@
     if (!isEnabled() || !activeQuestionPlan) return false;
     try {
       const rendererModule = await loadRendererModule();
-      const renderedBody = await renderIntoMount(mountFor(root, 'body'), activeQuestionPlan.bodyBlocks, 'body', rendererModule);
-      const renderedExplanation = await renderIntoMount(mountFor(root, 'explanation'), activeQuestionPlan.explanationBlocks, 'explanation', rendererModule);
+      const renderedBody = await renderIntoMount(mountFor(root, 'body'), activeQuestionPlan.bodyBlocks, 'body', rendererModule, activeQuestionPlan);
+      const renderedExplanation = await renderIntoMount(mountFor(root, 'explanation'), activeQuestionPlan.explanationBlocks, 'explanation', rendererModule, activeQuestionPlan);
       return renderedBody || renderedExplanation;
     } catch (error) {
       if (window._appSettings?.debug_renderer_bridge === true) {
@@ -159,10 +187,44 @@
     }
   }
 
+  async function hydrateViewAll(root = document) {
+    if (!isEnabled() || !viewAllQuestionPlans.size) return false;
+    try {
+      const rendererModule = await loadRendererModule();
+      let rendered = false;
+      for (const plan of viewAllQuestionPlans.values()) {
+        const renderedBody = await renderIntoMount(
+          mountForPlan(root, plan, 'body', 'view-all'),
+          plan.bodyBlocks,
+          'body',
+          rendererModule,
+          plan
+        );
+        const renderedExplanation = await renderIntoMount(
+          mountForPlan(root, plan, 'explanation', 'view-all'),
+          plan.explanationBlocks,
+          'explanation',
+          rendererModule,
+          plan
+        );
+        rendered = rendered || renderedBody || renderedExplanation;
+      }
+      return rendered;
+    } catch (error) {
+      if (window._appSettings?.debug_renderer_bridge === true) {
+        console.warn('Mora View All block renderer bridge fell back to flat rendering.', error);
+      }
+      return false;
+    }
+  }
+
   Object.assign(bridge, {
     isEnabled,
     hasBlockContent,
     prepareActiveQuestion,
-    hydrateActiveQuestion
+    hydrateActiveQuestion,
+    clearViewAllQuestions,
+    prepareViewAllQuestion,
+    hydrateViewAll
   });
 })();

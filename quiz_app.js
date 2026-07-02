@@ -1852,9 +1852,12 @@ function _doRenderApp() {
   }
   else if (state.screen === 'examQuiz') app.innerHTML = renderExamQuiz();
   else if (state.screen === 'viewAll') app.innerHTML = renderViewAll();
-  const blockRenderHydration = state.screen === 'quiz' && window.MoraQuestionRenderBridge?.hydrateActiveQuestion
-    ? window.MoraQuestionRenderBridge.hydrateActiveQuestion(app)
-    : null;
+  let blockRenderHydration = null;
+  if (state.screen === 'quiz' && window.MoraQuestionRenderBridge?.hydrateActiveQuestion) {
+    blockRenderHydration = window.MoraQuestionRenderBridge.hydrateActiveQuestion(app);
+  } else if (state.screen === 'viewAll' && window.MoraQuestionRenderBridge?.hydrateViewAll) {
+    blockRenderHydration = window.MoraQuestionRenderBridge.hydrateViewAll(app);
+  }
   // Re-apply body overflow setting after any render (survives innerHTML swap since zoom is on #app)
   if (typeof window._applyAppZoom === 'function' && typeof window._getAppScaler === 'function') {
     if (!window._getAppScaler()) window._applyAppZoom();
@@ -3853,9 +3856,25 @@ function renderViewAll() {
   const title = state.viewAllTitle;
 
   const eyeIcon = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px;"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6z"/><circle cx="12" cy="12" r="3"/></svg>`;
+  const blockBridge = window.MoraQuestionRenderBridge;
+  blockBridge?.clearViewAllQuestions?.();
 
   const items = qs.map((q, i) => {
     const prevAns = answerHistory[q.id];
+    const blockRenderPlan = blockBridge?.prepareViewAllQuestion?.(q, `view-all-${i}-${q.id || 'question'}`) || {};
+    const blockRenderKey = escapeHTML(blockRenderPlan.key || '');
+    const flatQuestionBodyHtml = `
+      ${q.context ? `<div class="q-context" style="margin-bottom:0.7rem;"><pre>${cleanDisplayText(q.context)}</pre></div>` : ''}
+      ${q.img ? `<div style="margin-bottom:0.8rem;text-align:center;">
+        <img src="${rootAssetPath(q.img)}" alt="${q.imgAlt||'Figure'}"
+          style="max-width:100%;max-height:220px;border-radius:8px;border:1px solid var(--border);background:#fff;padding:6px;cursor:zoom-in;"
+          onclick="openImgViewer(this.src,this.alt,'')" title="Click to enlarge">
+      </div>` : ''}
+      <div class="q-text" style="margin-bottom:0.9rem;font-size:0.9rem;line-height:1.6;">${formatQuestionText(q.text)}</div>
+    `;
+    const questionBodyHtml = blockRenderPlan.hasBody
+      ? `<div data-mora-block-render="body" data-mora-block-scope="view-all" data-mora-block-key="${blockRenderKey}">${flatQuestionBodyHtml}</div>`
+      : flatQuestionBodyHtml;
 
     // Plain options — no highlighting (answers hidden until revealed)
     const optRows = q.opts.map((opt, oi) =>
@@ -3880,6 +3899,14 @@ function renderViewAll() {
         ${wasPicked && !isCorrect ? `<span style="margin-left:auto;font-size:0.75rem;color:var(--wrong);font-weight:700;flex-shrink:0;white-space:nowrap;">Your answer</span>` : ''}
       </div>`;
     }).join('');
+
+    const flatExplanationHtml = cleanDisplayText(q.exp || '');
+    const explanationBodyHtml = blockRenderPlan.hasExplanation
+      ? `<div data-mora-block-render="explanation" data-mora-block-scope="view-all" data-mora-block-key="${blockRenderKey}">${flatExplanationHtml}</div>`
+      : flatExplanationHtml;
+    const explanationHtml = (q.exp || blockRenderPlan.hasExplanation)
+      ? `<div class="explanation" style="margin-top:8px;"><strong>Explanation</strong> ${explanationBodyHtml}</div>`
+      : '';
 
     const seenBadge = prevAns
       ? `<span style="background:${prevAns.correct?'#0d2b1a':'#2b0d0d'};border:1px solid ${prevAns.correct?'#1a5c35':'#5c1a1a'};color:${prevAns.correct?'var(--correct)':'var(--wrong)'};border-radius:100px;font-size:0.7rem;font-weight:700;padding:2px 9px;">${prevAns.correct?'✓ Answered correctly':'✗ Answered incorrectly'}</span>`
@@ -3909,7 +3936,7 @@ function renderViewAll() {
       >${eyeIcon}Reveal Answer</button>
       <div id="va-ans-${i}" style="display:none;margin-top:10px;">
         ${revealRows}
-        ${q.exp ? `<div class="explanation" style="margin-top:8px;"><strong>Explanation</strong> ${cleanDisplayText(q.exp)}</div>` : ''}
+        ${explanationHtml}
       </div>
     </div>`;
   }).join('');
