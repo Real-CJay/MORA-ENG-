@@ -272,6 +272,7 @@ if (!MoraSubjectHelpers) {
 var subjectCategoryCount = MoraSubjectHelpers.subjectCategoryCount;
 
 async function downloadForOffline(type, subjectKey, id) {
+  if (isSyntheticDevSubject(subjectKey)) return;
   const safeId = String(id).replace(/[\s'"]/g, '-');
   const btn = document.getElementById(`ol-btn-${type}-${subjectKey}-${safeId}`);
   if (btn) { btn.disabled = true; btn.innerHTML = '<span style="opacity:0.6;font-size:0.79rem;">Saving...</span>'; }
@@ -289,6 +290,7 @@ async function downloadForOffline(type, subjectKey, id) {
 }
 
 async function removeFromOffline(type, subjectKey, id) {
+  if (isSyntheticDevSubject(subjectKey)) return;
   _markOfflineItem(type, subjectKey, id, false);
   if (!_hasAnyOffline(subjectKey)) {
     const src = rootAssetPath(`subject_data/${subjectKey}.js?v=${MoraSubjectData.SUBJECT_DATA_VERSION}`);
@@ -300,6 +302,7 @@ async function removeFromOffline(type, subjectKey, id) {
 }
 
 function _offlineBtn(type, subjectKey, id) {
+  if (isSyntheticDevSubject(subjectKey)) return '';
   const saved  = type === 'unit' ? isUnitOffline(subjectKey, id) : isPaperOffline(subjectKey, id);
   const safeId = String(id).replace(/[\s'"]/g, '-');
   const idArg  = type === 'unit' ? id : `'${String(id).replace(/'/g, "\\'")}'`;
@@ -565,6 +568,165 @@ function shouldOpenDevBlockFixture() {
   return new URLSearchParams(location.search).get('devBlockFixture') === '1';
 }
 
+function shouldEnableDevSyntheticSubjects() {
+  if (!isLocalDevHost()) return false;
+  return new URLSearchParams(location.search).get('devSyntheticSubjects') === '1';
+}
+
+function isSyntheticDevSubject(subjectKey = state.currentSubject) {
+  return !!(subjectKey && SUBJECTS[subjectKey]?._devSynthetic);
+}
+
+function isSyntheticDevQuestion(question) {
+  return !!(question?._devSynthetic || String(question?.id || '').startsWith('__dev_synthetic_'));
+}
+
+function enableDevBlockRendering() {
+  window._appSettings = window._appSettings || {};
+  window._appSettings.block_renderer_enabled = true;
+}
+
+function createSyntheticDevBlockQuestion(id, { unit = 1, year = 'Future Semester 2027 Pilot' } = {}) {
+  return {
+    id,
+    unit,
+    year,
+    hard: false,
+    _devSynthetic: true,
+    text: 'DEV synthetic block question. This flat text is the fallback if block rendering is unavailable.',
+    body: [
+      { type: 'text', text: 'DEV-only synthetic block body for future subject/semester renderer testing.' },
+      { type: 'math', latex: 'N \\times N' },
+      {
+        type: 'code',
+        language: 'pseudocode',
+        code: 'for i <- 1 to N\n  for j <- 1 to i\n    A[i][j] <- i + j'
+      },
+      {
+        type: 'table',
+        header: true,
+        rows: [
+          ['Schema', 'Purpose'],
+          ['flat', 'legacy fallback'],
+          ['block', 'future rich content']
+        ]
+      },
+      {
+        type: 'image',
+        img: 'assets/icons/icon-192.png',
+        alt: 'Mora Quiz icon used as a local dev-only synthetic image fixture'
+      }
+    ],
+    opts: [
+      'A[i][j] stores only the row number',
+      'The nested loop fills the lower-triangular part of an N x N table',
+      'The algorithm cannot use arrays',
+      'The code runs only when j > i'
+    ],
+    ans: 1,
+    exp: 'DEV synthetic fallback explanation. The block explanation should render when the bridge is enabled.',
+    explanation: [
+      { type: 'text', text: 'The correct answer is B because j runs from 1 to i for each row i.' },
+      { type: 'math', latex: 'j \\le i' },
+      {
+        type: 'code',
+        language: 'pseudocode',
+        code: 'if j <= i\n  write A[i][j]\nelse\n  leave the cell unchanged'
+      }
+    ]
+  };
+}
+
+function createSyntheticDevFlatQuestion(id, { unit = 1, year = 'Future Semester 2027 Pilot' } = {}) {
+  return {
+    id,
+    unit,
+    year,
+    hard: false,
+    _devSynthetic: true,
+    text: 'DEV synthetic flat legacy question for mixed-schema testing.',
+    opts: [
+      'Legacy flat questions still render through quiz_app.js',
+      'Legacy flat questions must use renderer-owned check buttons',
+      'Legacy flat questions must be saved as production progress',
+      'Legacy flat questions require a production subject file'
+    ],
+    ans: 0,
+    exp: 'The synthetic harness keeps legacy flat rendering available beside block-shaped questions.'
+  };
+}
+
+function buildSyntheticDevSubjects() {
+  const unitSubjectQuestions = [
+    createSyntheticDevBlockQuestion('__dev_synthetic_unit_block_q1', { unit: 1, year: 'Future Semester A' }),
+    createSyntheticDevFlatQuestion('__dev_synthetic_unit_flat_q2', { unit: 1, year: 'Future Semester A' })
+  ];
+  const paperSubjectQuestions = [
+    createSyntheticDevBlockQuestion('__dev_synthetic_paper_block_q1', { unit: 1, year: 'Future Semester 2027 Pilot' }),
+    createSyntheticDevFlatQuestion('__dev_synthetic_paper_flat_q2', { unit: 2, year: 'Future Semester 2027 Pilot' })
+  ];
+
+  return {
+    dev_future_unit: {
+      key: 'dev_future_unit',
+      label: 'DEV Synthetic Unit Lab',
+      semesterId: 'sem2',
+      departmentIds: ['all'],
+      icon: 'DEV',
+      color: '#f59e0b',
+      colorBg: '#2b1a05',
+      desc: 'Localhost-only fixture for future unit-wise subjects and mixed schemas.',
+      pastUnit: unitSubjectQuestions,
+      pastPaper: [],
+      targetHard: [],
+      targetNormal: [],
+      allTarget: [],
+      units: { 1: 'Future Semester A - Mixed Schema', 2: 'Future Semester B - Empty Unit' },
+      unitColors: ['unit1', 'unit2'],
+      hideEmptyPastUnits: true,
+      historyKey: '__dev_synthetic_unit_history',
+      progressKeyPastUnit: '__dev_synthetic_unit_progress',
+      progressKeyPastPaper: '__dev_synthetic_unit_paper',
+      progressKeyTarget: '__dev_synthetic_unit_target',
+      _questionsLoaded: true,
+      _devSynthetic: true
+    },
+    dev_future_paper: {
+      key: 'dev_future_paper',
+      label: 'DEV Synthetic Semester Pack',
+      semesterId: 'sem2',
+      departmentIds: ['all'],
+      icon: 'DEV',
+      color: '#22c55e',
+      colorBg: '#082412',
+      desc: 'Localhost-only fixture for future full-paper and View All block rendering.',
+      pastUnit: [],
+      pastPaper: paperSubjectQuestions,
+      targetHard: [],
+      targetNormal: [],
+      allTarget: [],
+      units: { 1: 'Future Paper Section A', 2: 'Future Paper Section B' },
+      unitColors: ['unit1', 'unit2'],
+      historyKey: '__dev_synthetic_paper_history',
+      progressKeyPastUnit: '__dev_synthetic_paper_unit',
+      progressKeyPastPaper: '__dev_synthetic_paper_progress',
+      progressKeyTarget: '__dev_synthetic_paper_target',
+      _questionsLoaded: true,
+      _devSynthetic: true
+    }
+  };
+}
+
+function injectSyntheticDevSubjects() {
+  if (!shouldEnableDevSyntheticSubjects()) return false;
+  enableDevBlockRendering();
+  if (!window.MoraDevSyntheticSubjectsActive) {
+    Object.assign(SUBJECTS, buildSyntheticDevSubjects());
+    window.MoraDevSyntheticSubjectsActive = true;
+  }
+  return true;
+}
+
 function createDevBlockFixtureQuestion() {
   return {
     id: '__dev_block_renderer_fixture_q1',
@@ -617,8 +779,7 @@ function createDevBlockFixtureQuestion() {
 }
 
 function startDevBlockRendererFixture() {
-  window._appSettings = window._appSettings || {};
-  window._appSettings.block_renderer_enabled = true;
+  enableDevBlockRendering();
   stopTimer();
   clearBrowseState();
   resetQuizAttemptState();
@@ -647,6 +808,7 @@ function startQuiz(onlyWrong = false) {
   if (resolved.error) { alert(resolved.error); return; }
 
   if (pool.length === 0) { alert('No questions available for the selected filter.'); return; }
+  const devSyntheticAttempt = isSyntheticDevSubject() || pool.some(isSyntheticDevQuestion);
 
   // Check if all questions have been answered
   if (!onlyWrong) {
@@ -665,6 +827,8 @@ function startQuiz(onlyWrong = false) {
 
   clearBrowseState();
   resetQuizAttemptState();
+  state.devBlockFixture = devSyntheticAttempt;
+  if (devSyntheticAttempt) enableDevBlockRendering();
   state.questions = pool.map(q => ({...q}));
   state.screen = 'quiz';
   ensureActiveQuizHistoryEntry();
@@ -878,7 +1042,7 @@ window.showShortcutsPanel = showShortcutsPanel;
     }
 
     // F → flag
-    if (e.key.toUpperCase() === 'F' && state.questions[state.current]) {
+    if (e.key.toUpperCase() === 'F' && state.questions[state.current] && !state.devBlockFixture) {
       e.preventDefault();
       toggleFlagUI(state.currentSubject, state.questions[state.current].id);
       return;
@@ -1084,9 +1248,12 @@ function startExamQuiz() {
   const pool = resolved.pool;
   if (resolved.error) { alert(resolved.error); return; }
   if (pool.length === 0) { alert('No questions available.'); return; }
+  const devSyntheticAttempt = isSyntheticDevSubject() || pool.some(isSyntheticDevQuestion);
 
   clearBrowseState();
   resetQuizAttemptState();
+  state.devBlockFixture = devSyntheticAttempt;
+  if (devSyntheticAttempt) enableDevBlockRendering();
   state.resumeOffset = 0;
   state.questions       = pool.map(q => ({...q}));
   state.examPages       = buildExamPages(state.questions);
@@ -1235,13 +1402,15 @@ async function submitExamPaper() {
   state.score      = state.results.filter(r => r.correct).length;
   state.showReview = true;
   state.screen     = 'results';
-  // Save to DB
-  for (const r of state.results) {
-    if (r.selected >= 0)
-      await saveExamAnswer(state.currentSubject, r.id, r.selected, r.correct).catch(() => {});
+  if (!state.devBlockFixture) {
+    // Save to DB
+    for (const r of state.results) {
+      if (r.selected >= 0)
+        await saveExamAnswer(state.currentSubject, r.id, r.selected, r.correct).catch(() => {});
+    }
+    await saveCompletedQuizSession(state.currentSubject, state.appMode, state.score,
+                        state.questions.length, state.timerSeconds, state.countdownLimit).catch(() => {});
   }
-  await saveCompletedQuizSession(state.currentSubject, state.appMode, state.score,
-                      state.questions.length, state.timerSeconds, state.countdownLimit).catch(() => {});
   renderApp();
   setTimeout(renderMath, 120);
 }
@@ -1647,6 +1816,7 @@ function cancelRouteLeaveQuiz() {
 
 function initRouter() {
   if (_routerReady) return;
+  injectSyntheticDevSubjects();
   if (shouldOpenDevBlockFixture()) {
     _routerReady = canUseAppHistory();
     startDevBlockRendererFixture();
@@ -1958,6 +2128,11 @@ function enterSubjectMode(subjectKey, destination = 'subjectHome') {
     }
     renderApp();
   };
+  if (isSyntheticDevSubject(subjectKey)) {
+    answerHistory = {};
+    finish();
+    return;
+  }
   const loadData = ensureSubjectData(subjectKey);
   const loadHistory = dbLoadAnswerHistory(subjectKey)
     .then(h => { answerHistory = h; })
@@ -2776,7 +2951,7 @@ function renderQuiz() {
       ${!isTargetMode ? `<span class="q-tag">${q.year || 'Past Paper'}</span>` : ''}
       ${q.hard ? `<span class="q-tag" style="background:#2b0808;border-color:#c0392b;color:#f87171;font-weight:700;letter-spacing:0.05em;font-size:0.78rem;">Hard</span>` : ''}
       ${answerHistory[q.id] && !state.answered ? `<span class="q-tag" style="background:${answerHistory[q.id].correct?'#0d2b1a':'#2b0d0d'};border-color:${answerHistory[q.id].correct?'#1a5c35':'#5c1a1a'};color:${answerHistory[q.id].correct?'var(--correct)':'var(--wrong)'};">${answerHistory[q.id].correct?'&#10003;':'&#10007;'} prev: ${cleanDisplayText(q.opts[answerHistory[q.id].selected])}</span>` : ''}
-      ${window._appSettings?.flags_enabled !== false ? `<button id="flag-${q.id}" class="flag-btn${isFlagged(state.currentSubject,q.id)?' flagged':''}" onclick="toggleFlagUI('${state.currentSubject}','${q.id}')" title="${isFlagged(state.currentSubject,q.id)?'Remove flag':'Flag for review'}">!</button>` : ''}
+      ${window._appSettings?.flags_enabled !== false && !state.devBlockFixture ? `<button id="flag-${q.id}" class="flag-btn${isFlagged(state.currentSubject,q.id)?' flagged':''}" onclick="toggleFlagUI('${state.currentSubject}','${q.id}')" title="${isFlagged(state.currentSubject,q.id)?'Remove flag':'Flag for review'}">!</button>` : ''}
     </div>
     ${questionBodyHtml}
     <div class="options">
@@ -3801,7 +3976,7 @@ function renderExamQuiz() {
         ${q.year ? `<span class="q-tag" style="font-size:0.7rem;">${q.year}</span>` : ''}
         ${q.hard ? `<span class="q-tag" style="background:#1a0808;border-color:#5c1a1a;color:#f87171;font-size:0.7rem;">Hard</span>` : ''}
         ${selectedOpt >= 0 ? `<span style="margin-left:auto;background:#10152a;border:1px solid #304080;color:#8090c8;border-radius:6px;font-size:0.7rem;padding:2px 8px;font-family:'DM Mono',monospace;">✓ ${letters[selectedOpt]}</span>` : ''}
-        ${window._appSettings?.flags_enabled !== false ? `<button id="eflag-${q.id}" class="flag-btn${isFlagged(state.currentSubject,q.id)?' flagged':''}" onclick="toggleFlagUI('${state.currentSubject}','${q.id}')" title="Flag for review" style="margin-left:${selectedOpt>=0?'4px':'auto'};">!</button>` : ''}
+        ${window._appSettings?.flags_enabled !== false && !state.devBlockFixture ? `<button id="eflag-${q.id}" class="flag-btn${isFlagged(state.currentSubject,q.id)?' flagged':''}" onclick="toggleFlagUI('${state.currentSubject}','${q.id}')" title="Flag for review" style="margin-left:${selectedOpt>=0?'4px':'auto'};">!</button>` : ''}
       </div>
       ${q.context ? `<div class="q-context" style="margin-bottom:0.6rem;"><pre>${cleanDisplayText(q.context)}</pre></div>` : ''}
       ${q.img ? `<div style="margin:0.5rem 0;text-align:center;"><img src="${rootAssetPath(q.img)}" alt="${q.imgAlt||'Figure'}" style="max-width:100%;max-height:220px;border-radius:8px;border:1px solid var(--border);background:#fff;padding:4px;cursor:zoom-in;" onclick="openImgViewer(this.src,this.alt,'')"></div>` : ''}
@@ -3856,6 +4031,7 @@ function renderViewAll() {
   const title = state.viewAllTitle;
 
   const eyeIcon = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px;"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6z"/><circle cx="12" cy="12" r="3"/></svg>`;
+  if (qs.some(isSyntheticDevQuestion)) enableDevBlockRendering();
   const blockBridge = window.MoraQuestionRenderBridge;
   blockBridge?.clearViewAllQuestions?.();
 
@@ -3921,13 +4097,7 @@ function renderViewAll() {
         ${q.hard ? `<span class="q-tag" style="background:#2b0808;border-color:#c0392b;color:#f87171;font-size:0.7rem;">Hard</span>` : ''}
         ${seenBadge}
       </div>
-      ${q.context ? `<div class="q-context" style="margin-bottom:0.7rem;"><pre>${cleanDisplayText(q.context)}</pre></div>` : ''}
-      ${q.img ? `<div style="margin-bottom:0.8rem;text-align:center;">
-        <img src="${rootAssetPath(q.img)}" alt="${q.imgAlt||'Figure'}"
-          style="max-width:100%;max-height:220px;border-radius:8px;border:1px solid var(--border);background:#fff;padding:6px;cursor:zoom-in;"
-          onclick="openImgViewer(this.src,this.alt,'')" title="Click to enlarge">
-      </div>` : ''}
-      <div class="q-text" style="margin-bottom:0.9rem;font-size:0.9rem;line-height:1.6;">${formatQuestionText(q.text)}</div>
+      ${questionBodyHtml}
       ${optRows}
       <button id="va-btn-${i}" onclick="_vaReveal(${i})"
         style="margin-top:10px;display:inline-flex;align-items:center;background:var(--surface2);border:1px solid var(--border);border-radius:9px;color:var(--text-muted);font-size:0.78rem;padding:6px 14px;cursor:pointer;font-family:inherit;transition:border-color 0.15s,color 0.15s;"
@@ -4024,7 +4194,7 @@ function renderHome() {
       ${_offlineBtn('unit', s.key, selectedActionUnit)}
       ${(() => {
         const uQs = s.pastUnit.filter(q => q.unit === selectedActionUnit);
-        const flagCount = window._appSettings?.flags_enabled !== false
+        const flagCount = window._appSettings?.flags_enabled !== false && !isSyntheticDevSubject(s.key)
           ? [...getFlaggedIds(s.key)].filter(fid => uQs.some(q => q.id === fid)).length
           : 0;
         return flagCount ? `<button onclick="startFlaggedQuiz(${selectedActionUnit})">Practice ${flagCount} Flagged</button>` : '';
