@@ -42,6 +42,8 @@ let state = {
   viewAllBack: 'home',  // screen to return to
   viewAllToken: '',     // token used to start quiz from browse screen
   devBlockFixture: false,
+  devCurriculumSemester: '',
+  devCurriculumDepartment: '',
   resumeOffset: 0,      // questions already answered before this session (for display)
   // ── Exam mode ──
   examPages: [],        // array of question arrays (one per page)
@@ -571,6 +573,10 @@ function shouldOpenDevBlockFixture() {
 function shouldEnableDevSyntheticSubjects() {
   if (!isLocalDevHost()) return false;
   return new URLSearchParams(location.search).get('devSyntheticSubjects') === '1';
+}
+
+function shouldShowDevCurriculumNav() {
+  return new URLSearchParams(location.search).get('devCurriculumNav') === '1';
 }
 
 function isSyntheticDevSubject(subjectKey = state.currentSubject) {
@@ -2170,6 +2176,35 @@ window.openCategorySubjectPicker = openCategorySubjectPicker;
 window.selectCategorySubject = selectCategorySubject;
 
 document.addEventListener('click', event => {
+  const nav = event.target.closest?.('#devCurriculumNav');
+  if (!nav) return;
+
+  const semesterBtn = event.target.closest?.('[data-dev-curriculum-semester]');
+  if (semesterBtn) {
+    event.preventDefault();
+    state.devCurriculumSemester = semesterBtn.getAttribute('data-dev-curriculum-semester') || '';
+    state.devCurriculumDepartment = '';
+    renderApp();
+    return;
+  }
+
+  const departmentBtn = event.target.closest?.('[data-dev-curriculum-department]');
+  if (departmentBtn) {
+    event.preventDefault();
+    state.devCurriculumDepartment = departmentBtn.getAttribute('data-dev-curriculum-department') || '';
+    renderApp();
+    return;
+  }
+
+  const moduleBtn = event.target.closest?.('[data-dev-curriculum-module]');
+  if (moduleBtn) {
+    event.preventDefault();
+    const subjectKey = moduleBtn.getAttribute('data-dev-curriculum-module');
+    if (subjectKey) enterSubject(subjectKey);
+  }
+});
+
+document.addEventListener('click', event => {
   const tile = event.target.closest?.('[data-subject-key]');
   if (!tile || tile.classList.contains('lp-tile-empty')) return;
   const subjectKey = tile.getAttribute('data-subject-key');
@@ -3075,6 +3110,99 @@ function renderResults() {
   `;
 }
 
+function getDevCurriculumSelection(semesters) {
+  const selectedSemesterExists = semesters.some(semester => semester.id === state.devCurriculumSemester);
+  if (!selectedSemesterExists) {
+    const firstActive = semesters.find(semester => !isArchived(semester.id));
+    state.devCurriculumSemester = (firstActive || semesters[0] || {}).id || '';
+  }
+
+  const departments = state.devCurriculumSemester ? getDepartments(state.devCurriculumSemester) : null;
+  if (departments === null) {
+    state.devCurriculumDepartment = '';
+  } else if (Array.isArray(departments)) {
+    const selectedDepartmentExists = departments.some(department => department.id === state.devCurriculumDepartment);
+    if (!selectedDepartmentExists) {
+      state.devCurriculumDepartment = (departments[0] || {}).id || '';
+    }
+  }
+
+  return {
+    semesterId: state.devCurriculumSemester,
+    departmentId: state.devCurriculumDepartment,
+    departments
+  };
+}
+
+function renderDevCurriculumNav() {
+  if (!shouldShowDevCurriculumNav()) return '';
+  if (
+    typeof getSemesters !== 'function'
+    || typeof getDepartments !== 'function'
+    || typeof getModules !== 'function'
+    || typeof isArchived !== 'function'
+  ) {
+    return '<div id="devCurriculumNav" data-dev-curriculum-nav="1" style="max-width:1120px;margin:0 auto 1rem;padding:12px;border:1px dashed #f59e0b;border-radius:8px;background:rgba(245,158,11,0.08);color:var(--text);">'
+      + '<strong>DEV Curriculum Navigation Prototype</strong>'
+      + '<div style="margin-top:6px;color:var(--text-muted);font-size:0.85rem;">Registry helpers unavailable.</div>'
+      + '</div>';
+  }
+
+  const semesters = getSemesters();
+  const selection = getDevCurriculumSelection(semesters);
+  const selectedSemester = semesters.find(semester => semester.id === selection.semesterId);
+  const modules = selection.semesterId ? getModules(selection.semesterId, selection.departmentId || undefined) : [];
+
+  const semesterButtons = semesters.map(semester => {
+    const active = semester.id === selection.semesterId;
+    const archived = isArchived(semester.id);
+    return '<button type="button" data-dev-curriculum-semester="' + escapeHTML(semester.id) + '" '
+      + (archived ? 'disabled ' : '')
+      + 'style="padding:7px 10px;border-radius:6px;border:1px solid ' + (active ? '#f59e0b' : 'var(--border)') + ';background:' + (active ? 'rgba(245,158,11,0.16)' : 'var(--surface2)') + ';color:var(--text);cursor:' + (archived ? 'not-allowed' : 'pointer') + ';font:inherit;font-size:0.84rem;">'
+      + escapeHTML(semester.label || semester.id)
+      + (archived ? ' archived' : '')
+      + '</button>';
+  }).join('');
+
+  const departmentHtml = selection.departments === null
+    ? '<div style="margin-top:10px;padding:8px 10px;border:1px solid var(--border);border-radius:6px;color:var(--text-muted);font-size:0.84rem;">Department picker skipped: ' + escapeHTML(selectedSemester?.label || selection.semesterId || 'Selected semester') + ' is common.</div>'
+    : '<div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:8px;">'
+      + selection.departments.map(department => {
+        const active = department.id === selection.departmentId;
+        return '<button type="button" data-dev-curriculum-department="' + escapeHTML(department.id) + '" '
+          + 'style="padding:7px 10px;border-radius:6px;border:1px solid ' + (active ? '#f59e0b' : 'var(--border)') + ';background:' + (active ? 'rgba(245,158,11,0.16)' : 'var(--surface2)') + ';color:var(--text);cursor:pointer;font:inherit;font-size:0.84rem;">'
+          + escapeHTML(department.label || department.id)
+          + '</button>';
+      }).join('')
+      + '</div>';
+
+  const moduleHtml = modules.length
+    ? modules.map(module => {
+      const total = subjectTotalCount(module.key);
+      const empty = total === 0;
+      return '<button type="button" data-dev-curriculum-module="' + escapeHTML(module.key) + '" '
+        + (empty ? 'disabled ' : '')
+        + 'style="text-align:left;padding:10px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:' + (empty ? 'not-allowed' : 'pointer') + ';font:inherit;">'
+        + '<strong style="display:block;color:' + escapeHTML(module.color || 'var(--text)') + ';">' + escapeHTML(module.label || module.key) + '</strong>'
+        + '<span style="display:block;margin-top:4px;color:var(--text-muted);font-size:0.78rem;">' + total + ' questions</span>'
+        + '</button>';
+    }).join('')
+    : '<div style="color:var(--text-muted);font-size:0.84rem;">No modules returned by the registry for this selection.</div>';
+
+  return '<div id="devCurriculumNav" data-dev-curriculum-nav="1" style="max-width:1120px;margin:0 auto 1rem;padding:12px;border:1px dashed #f59e0b;border-radius:8px;background:rgba(245,158,11,0.08);color:var(--text);">'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">'
+    + '<strong style="font-size:0.88rem;letter-spacing:0.03em;">DEV Curriculum Navigation Prototype</strong>'
+    + '<span style="color:var(--text-muted);font-size:0.78rem;">Flag: devCurriculumNav=1</span>'
+    + '</div>'
+    + '<div style="margin-top:10px;color:var(--text-muted);font-size:0.78rem;text-transform:uppercase;letter-spacing:0.06em;">Semester picker</div>'
+    + '<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:8px;">' + semesterButtons + '</div>'
+    + '<div style="margin-top:10px;color:var(--text-muted);font-size:0.78rem;text-transform:uppercase;letter-spacing:0.06em;">Department picker</div>'
+    + departmentHtml
+    + '<div style="margin-top:10px;color:var(--text-muted);font-size:0.78rem;text-transform:uppercase;letter-spacing:0.06em;">Module list from registry</div>'
+    + '<div style="margin-top:6px;display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;">' + moduleHtml + '</div>'
+    + '</div>';
+}
+
 function renderLanding() {
   const allSubjects = Object.values(SUBJECTS);
   const totalQuestions = allSubjects.reduce((sum, s) => sum + subjectTotalCount(s.key), 0);
@@ -3175,6 +3303,7 @@ function renderLanding() {
     +   '<div class="lp-feature-div"></div>'
     +   '<div class="lp-feature" onclick="openJanudaChat()" style="--feature-color:#b989ff;--feature-glow:rgba(185,137,255,0.23);cursor:pointer;"><div class="lp-feature-icon">JA</div><div class="lp-feature-text"><strong>Januda Ayya</strong><span>Instant AI explanations for any question</span></div></div>'
     + '</div>'
+    + renderDevCurriculumNav()
     + '<div class="lp-section" id="subjectCards">'
     +   '<div class="lp-section-header"><h2 class="lp-section-title">Choose a Subject</h2><span class="lp-section-sub">' + allSubjects.filter(s => subjectTotalCount(s.key) > 0).length + ' active</span></div>'
     +   '<div class="lp-tile-grid">' + subjectCards + '</div>'
