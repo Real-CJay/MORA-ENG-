@@ -7,6 +7,9 @@
   let rendererModulePromise = null;
   let activeQuestionPlan = null;
   const viewAllQuestionPlans = new Map();
+  const resultReviewQuestionPlans = new Map();
+  const directoryQuestionPlans = new Map();
+  const examQuestionPlans = new Map();
 
   function isEnabled() {
     return window._appSettings?.block_renderer_enabled === true;
@@ -149,6 +152,38 @@
     return planSummary(plan);
   }
 
+  function prepareQuestionPlan(planMap, question, key, fallbackKey) {
+    if (!isEnabled()) return emptyPlan();
+    const plan = buildQuestionPlan(question, String(key || question?.id || fallbackKey));
+    if (!plan) return emptyPlan();
+    planMap.set(plan.key, plan);
+    return planSummary(plan);
+  }
+
+  function clearResultReviewQuestions() {
+    resultReviewQuestionPlans.clear();
+  }
+
+  function prepareResultReviewQuestion(question, key) {
+    return prepareQuestionPlan(resultReviewQuestionPlans, question, key, 'result-review-question');
+  }
+
+  function clearDirectoryQuestions() {
+    directoryQuestionPlans.clear();
+  }
+
+  function prepareDirectoryQuestion(question, key) {
+    return prepareQuestionPlan(directoryQuestionPlans, question, key, 'directory-question');
+  }
+
+  function clearExamQuestions() {
+    examQuestionPlans.clear();
+  }
+
+  function prepareExamQuestion(question, key) {
+    return prepareQuestionPlan(examQuestionPlans, question, key, 'exam-question');
+  }
+
   function mountForPlan(root, plan, role, scope = '') {
     if (!plan) return null;
     const scopeSelector = scope ? `[data-mora-block-scope="${scope}"]` : '';
@@ -218,6 +253,49 @@
     }
   }
 
+  async function hydrateQuestionPlans(root, planMap, scope, label) {
+    if (!isEnabled() || !planMap.size) return false;
+    try {
+      const rendererModule = await loadRendererModule();
+      let rendered = false;
+      for (const plan of planMap.values()) {
+        const renderedBody = await renderIntoMount(
+          mountForPlan(root, plan, 'body', scope),
+          plan.bodyBlocks,
+          'body',
+          rendererModule,
+          plan
+        );
+        const renderedExplanation = await renderIntoMount(
+          mountForPlan(root, plan, 'explanation', scope),
+          plan.explanationBlocks,
+          'explanation',
+          rendererModule,
+          plan
+        );
+        rendered = rendered || renderedBody || renderedExplanation;
+      }
+      return rendered;
+    } catch (error) {
+      if (window._appSettings?.debug_renderer_bridge === true) {
+        console.warn(`Mora ${label} block renderer bridge fell back to flat rendering.`, error);
+      }
+      return false;
+    }
+  }
+
+  function hydrateResultReview(root = document) {
+    return hydrateQuestionPlans(root, resultReviewQuestionPlans, 'results-review', 'results review');
+  }
+
+  function hydrateDirectory(root = document) {
+    return hydrateQuestionPlans(root, directoryQuestionPlans, 'directory', 'Question Directory');
+  }
+
+  function hydrateExam(root = document) {
+    return hydrateQuestionPlans(root, examQuestionPlans, 'exam', 'exam');
+  }
+
   Object.assign(bridge, {
     isEnabled,
     hasBlockContent,
@@ -225,6 +303,15 @@
     hydrateActiveQuestion,
     clearViewAllQuestions,
     prepareViewAllQuestion,
-    hydrateViewAll
+    hydrateViewAll,
+    clearResultReviewQuestions,
+    prepareResultReviewQuestion,
+    hydrateResultReview,
+    clearDirectoryQuestions,
+    prepareDirectoryQuestion,
+    hydrateDirectory,
+    clearExamQuestions,
+    prepareExamQuestion,
+    hydrateExam
   });
 })();

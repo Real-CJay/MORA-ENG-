@@ -1999,6 +1999,23 @@ function applyScrollReveal() {
 }
 
 let _renderScheduled = false;
+
+function settleBlockRenderHydration(hydration) {
+  if (hydration?.then) {
+    hydration.then(rendered => {
+      if (rendered) setTimeout(renderMath, 0);
+    });
+  }
+}
+
+function hydrateBlockRenderSurface(methodName, root = document.getElementById('app')) {
+  const hydrate = window.MoraQuestionRenderBridge?.[methodName];
+  if (typeof hydrate !== 'function') return null;
+  const hydration = hydrate(root || document);
+  settleBlockRenderHydration(hydration);
+  return hydration;
+}
+
 function renderApp() {
   // Debounce: if a render is already queued for this animation frame, skip.
   // This collapses multiple synchronous or near-simultaneous renderApp() calls
@@ -2113,7 +2130,12 @@ function _doRenderApp() {
   }
   else if (state.screen === 'questionDirectory') {
     app.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text-muted);">Loading question directory...</div>';
-    renderQuestionDirectoryPage().then(html => { app.innerHTML = html; applyScrollReveal(); setTimeout(renderMath, 60); });
+    renderQuestionDirectoryPage().then(html => {
+      app.innerHTML = html;
+      applyScrollReveal();
+      hydrateBlockRenderSurface('hydrateDirectory', app);
+      setTimeout(renderMath, 60);
+    });
   }
   else if (state.screen === 'admin') {
     app.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text-muted);">Loading admin data...</div>';
@@ -2126,6 +2148,12 @@ function _doRenderApp() {
     blockRenderHydration = window.MoraQuestionRenderBridge.hydrateActiveQuestion(app);
   } else if (state.screen === 'viewAll' && window.MoraQuestionRenderBridge?.hydrateViewAll) {
     blockRenderHydration = window.MoraQuestionRenderBridge.hydrateViewAll(app);
+  } else if (state.screen === 'results' && window.MoraQuestionRenderBridge?.hydrateResultReview) {
+    blockRenderHydration = window.MoraQuestionRenderBridge.hydrateResultReview(app);
+  } else if (state.screen === 'questionDirectory' && window.MoraQuestionRenderBridge?.hydrateDirectory) {
+    blockRenderHydration = window.MoraQuestionRenderBridge.hydrateDirectory(app);
+  } else if (state.screen === 'examQuiz' && window.MoraQuestionRenderBridge?.hydrateExam) {
+    blockRenderHydration = window.MoraQuestionRenderBridge.hydrateExam(app);
   }
   // Re-apply body overflow setting after any render (survives innerHTML swap since zoom is on #app)
   if (typeof window._applyAppZoom === 'function' && typeof window._getAppScaler === 'function') {
@@ -2137,11 +2165,7 @@ function _doRenderApp() {
   }
   applyScrollReveal();
   setTimeout(renderMath, 120);
-  if (blockRenderHydration?.then) {
-    blockRenderHydration.then(rendered => {
-      if (rendered) setTimeout(renderMath, 0);
-    });
-  }
+  settleBlockRenderHydration(blockRenderHydration);
   if (state.screen === 'landing') setTimeout(maybeShowAppTutorial, 450);
 }
 
@@ -3303,30 +3327,55 @@ function renderResults() {
   const wrong = state.results.filter(r=>!r.correct).length;
   const modeMeta = getQuizModeMeta();
   const isTargetMode = !!modeMeta.isTarget;
+  const blockBridge = window.MoraQuestionRenderBridge;
+  blockBridge?.clearResultReviewQuestions?.();
   
   let reviewHtml = '';
   if (state.showReview) {
+    if (state.results.some(r => isSyntheticDevQuestion(r.question))) enableDevBlockRendering();
     reviewHtml = `
     <div class="review-list">
       <h3>Review (${state.results.length} questions)</h3>
-      ${state.results.map(r=>`
-        <div class="review-item ${r.correct?'correct-item':'wrong-item'}">
-          ${r.question.img ? `<div style="margin-bottom:0.5rem;text-align:center;">
-            <img src="${rootAssetPath(r.question.img)}" alt="${r.question.imgAlt||'Figure'}"
+      ${state.results.map((r, i) => {
+        const q = r.question || {};
+        const opts = Array.isArray(q.opts) ? q.opts : [];
+        const blockRenderPlan = blockBridge?.prepareResultReviewQuestion?.(q, `results-review-${i}-${q.id || 'question'}`) || {};
+        const blockRenderKey = escapeHTML(blockRenderPlan.key || '');
+        const imageHtml = q.img ? `<div style="margin-bottom:0.5rem;text-align:center;">
+            <img src="${rootAssetPath(q.img)}" alt="${q.imgAlt||'Figure'}"
               style="max-width:100%;max-height:180px;border-radius:6px;border:1px solid var(--border);background:#fff;padding:4px;cursor:zoom-in;"
-              onclick="openImgViewer(this.src, this.alt, ${JSON.stringify(cleanDisplayText(r.question.text).replace(/\n/g,' '))})"
+              onclick="openImgViewer(this.src, this.alt, ${JSON.stringify(cleanDisplayText(q.text).replace(/\n/g,' '))})"
               title="Click to enlarge">
-          </div>` : ''}
-          <div class="ri-q">${cleanDisplayText(r.question.text).replace(/\n/g,' ')}</div>
+          </div>` : '';
+        const flatQuestionBodyHtml = `
+          ${q.context ? `<div class="q-context" style="margin-bottom:0.6rem;"><pre>${cleanDisplayText(q.context)}</pre></div>` : ''}
+          ${imageHtml}
+          <div>${cleanDisplayText(q.text).replace(/\n/g,' ')}</div>
+        `;
+        const questionBodyHtml = blockRenderPlan.hasBody
+          ? `<div class="ri-q" data-mora-block-render="body" data-mora-block-scope="results-review" data-mora-block-key="${blockRenderKey}">${flatQuestionBodyHtml}</div>`
+          : `${imageHtml}<div class="ri-q">${cleanDisplayText(q.text).replace(/\n/g,' ')}</div>`;
+        const flatExplanationHtml = cleanDisplayText(q.exp || '');
+        const explanationBodyHtml = blockRenderPlan.hasExplanation
+          ? `<div data-mora-block-render="explanation" data-mora-block-scope="results-review" data-mora-block-key="${blockRenderKey}">${flatExplanationHtml}</div>`
+          : flatExplanationHtml;
+        const explanationHtml = (q.exp || blockRenderPlan.hasExplanation)
+          ? `<div class="ri-exp" style="margin-top:0.55rem;color:var(--text-muted);font-size:0.84rem;line-height:1.55;"><strong style="color:var(--text);">Explanation</strong><br>${explanationBodyHtml}</div>`
+          : '';
+        return `
+        <div class="review-item ${r.correct?'correct-item':'wrong-item'}">
+          ${questionBodyHtml}
           <div class="ri-ans">
             ${r.correct
-              ? `<span class="c">&#10003; ${normalizePlainMathText(r.question.opts[r.question.ans])}</span>`
-              : `<span class="w">&#10007; You chose: ${normalizePlainMathText(r.question.opts[r.selected])}</span>
-                 <span class="c">&#10003; Correct: ${normalizePlainMathText(r.question.opts[r.question.ans])}</span>`
+              ? `<span class="c">&#10003; ${normalizePlainMathText(opts[q.ans])}</span>`
+              : `<span class="w">&#10007; You chose: ${normalizePlainMathText(opts[r.selected])}</span>
+                 <span class="c">&#10003; Correct: ${normalizePlainMathText(opts[q.ans])}</span>`
             }
           </div>
+          ${explanationHtml}
         </div>
-      `).join('')}
+      `;
+      }).join('')}
     </div>`;
   }
 
@@ -3973,30 +4022,55 @@ function filteredDirectoryRecords() {
 }
 
 function renderDirectoryResults() {
-  const rows = filteredDirectoryRecords().slice(0, 120);
-  const total = filteredDirectoryRecords().length;
+  const allRows = filteredDirectoryRecords();
+  const rows = allRows.slice(0, 120);
+  const total = allRows.length;
+  const blockBridge = window.MoraQuestionRenderBridge;
+  blockBridge?.clearDirectoryQuestions?.();
+  if (rows.some(row => isSyntheticDevQuestion(row.q))) enableDevBlockRendering();
   if (!rows.length) return '<div class="directory-empty">No matching questions found.</div>';
-  return rows.map(row => {
+  return rows.map((row, rowIndex) => {
     const q = row.q;
     const open = state.directoryOpenId === row.id;
+    const blockRenderPlan = open
+      ? (blockBridge?.prepareDirectoryQuestion?.(q, `directory-${rowIndex}-${row.id}`) || {})
+      : {};
+    const blockRenderKey = escapeHTML(blockRenderPlan.key || '');
     const meta = [
       row.subjectLabel,
       row.sourceLabel,
       row.unit ? `Unit ${String(row.unit).padStart(2, '0')}` : '',
       row.year || ''
     ].filter(Boolean).join(' · ');
+    const imageButtonHtml = q.img
+      ? `<button class="directory-image-btn" onclick="openImgViewer('${rootAssetPath(q.img).replace(/'/g, "\\'")}')">Open image</button>`
+      : '';
+    const flatQuestionBodyHtml = `
+      ${q.context ? `<div class="q-context" style="margin-bottom:0.6rem;"><pre>${cleanDisplayText(q.context)}</pre></div>` : ''}
+      ${imageButtonHtml}
+      <div>${renderTextBlock(q.text)}</div>
+    `;
+    const questionBodyHtml = blockRenderPlan.hasBody
+      ? `<div class="directory-question" data-mora-block-render="body" data-mora-block-scope="directory" data-mora-block-key="${blockRenderKey}">${flatQuestionBodyHtml}</div>`
+      : `${imageButtonHtml}<div class="directory-question">${renderTextBlock(q.text)}</div>`;
+    const flatExplanationHtml = renderTextBlock(q.exp || '');
+    const explanationBodyHtml = blockRenderPlan.hasExplanation
+      ? `<div data-mora-block-render="explanation" data-mora-block-scope="directory" data-mora-block-key="${blockRenderKey}">${flatExplanationHtml}</div>`
+      : flatExplanationHtml;
+    const explanationHtml = (q.exp || blockRenderPlan.hasExplanation)
+      ? `<div class="directory-exp"><strong>Explanation</strong><br>${explanationBodyHtml}</div>`
+      : '';
     return `<article class="directory-row ${open ? 'open' : ''}" style="--row-accent:${row.color};">
       <button class="directory-row-head" onclick="toggleDirectoryQuestion('${row.id.replace(/'/g, "\\'")}')">
         <span class="directory-meta">${escapeHTML(meta)}</span>
         <strong>${renderTextBlock(q.text).slice(0, 260)}${String(q.text || '').length > 260 ? '...' : ''}</strong>
       </button>
       ${open ? `<div class="directory-detail">
-        ${q.img ? `<button class="directory-image-btn" onclick="openImgViewer('${rootAssetPath(q.img).replace(/'/g, "\\'")}')">Open image</button>` : ''}
-        <div class="directory-question">${renderTextBlock(q.text)}</div>
+        ${questionBodyHtml}
         ${Array.isArray(q.opts) ? `<div class="directory-options">${q.opts.map((opt, i) =>
           `<div class="${i === q.ans ? 'correct' : ''}"><span>${String.fromCharCode(65+i)}</span>${renderTextBlock(opt)}</div>`
         ).join('')}</div>` : ''}
-        ${q.exp ? `<div class="directory-exp"><strong>Explanation</strong><br>${renderTextBlock(q.exp)}</div>` : ''}
+        ${explanationHtml}
         <button class="directory-ask" onclick="askJanudaFromDirectory('${row.id.replace(/'/g, "\\'")}')">Ask Januda Ayya</button>
       </div>` : ''}
     </article>`;
@@ -4029,6 +4103,7 @@ function updateDirectoryFilter(key, value) {
     const count = document.querySelector('.directory-count');
     if (count) count.textContent = `${rows.length} matching question${rows.length === 1 ? '' : 's'}`;
     results.innerHTML = renderDirectoryResults();
+    hydrateBlockRenderSurface('hydrateDirectory', results);
     setTimeout(renderMath, 40);
   } else {
     renderApp();
@@ -4426,6 +4501,9 @@ function renderExamQuiz() {
   const pages    = state.examPages;
   const pageIdx  = state.examCurrentPage;
   const page     = pages[pageIdx] || [];
+  if (page.some(isSyntheticDevQuestion)) enableDevBlockRendering();
+  const blockBridge = window.MoraQuestionRenderBridge;
+  blockBridge?.clearExamQuestions?.();
 
   // Global index of first question on this page
   let globalStart = 0;
@@ -4447,6 +4525,20 @@ function renderExamQuiz() {
   const qCards = page.map((q, pIdx) => {
     const globalNum  = globalStart + pIdx + 1;
     const selectedOpt = state.examAnswers[q.id] ?? -1;
+    const blockRenderPlan = blockBridge?.prepareExamQuestion?.(q, `exam-${globalNum}-${q.id || 'question'}`) || {};
+    const blockRenderKey = escapeHTML(blockRenderPlan.key || '');
+    const flatQuestionBodyHtml = `
+      ${q.context ? `<div class="q-context" style="margin-bottom:0.6rem;"><pre>${cleanDisplayText(q.context)}</pre></div>` : ''}
+      ${q.img ? `<div style="margin:0.5rem 0;text-align:center;"><img src="${rootAssetPath(q.img)}" alt="${q.imgAlt||'Figure'}" style="max-width:100%;max-height:220px;border-radius:8px;border:1px solid var(--border);background:#fff;padding:4px;cursor:zoom-in;" onclick="openImgViewer(this.src,this.alt,'')"></div>` : ''}
+      <div>${formatQuestionText(q.text)}</div>
+    `;
+    const questionBodyHtml = blockRenderPlan.hasBody
+      ? `<div class="q-text" data-mora-block-render="body" data-mora-block-scope="exam" data-mora-block-key="${blockRenderKey}" style="margin:0.6rem 0 0.9rem;font-size:0.9rem;line-height:1.6;">${flatQuestionBodyHtml}</div>`
+      : `
+      ${q.context ? `<div class="q-context" style="margin-bottom:0.6rem;"><pre>${cleanDisplayText(q.context)}</pre></div>` : ''}
+      ${q.img ? `<div style="margin:0.5rem 0;text-align:center;"><img src="${rootAssetPath(q.img)}" alt="${q.imgAlt||'Figure'}" style="max-width:100%;max-height:220px;border-radius:8px;border:1px solid var(--border);background:#fff;padding:4px;cursor:zoom-in;" onclick="openImgViewer(this.src,this.alt,'')"></div>` : ''}
+      <div class="q-text" style="margin:0.6rem 0 0.9rem;font-size:0.9rem;line-height:1.6;">${formatQuestionText(q.text)}</div>
+    `;
     const opts = q.opts.map((opt, oi) => {
       const sel = oi === selectedOpt;
       return `<button class="exam-opt${sel?' exam-selected':''}" onclick="examSelectAnswer('${q.id}',${oi})">
@@ -4465,9 +4557,7 @@ function renderExamQuiz() {
         ${selectedOpt >= 0 ? `<span style="margin-left:auto;background:#10152a;border:1px solid #304080;color:#8090c8;border-radius:6px;font-size:0.7rem;padding:2px 8px;font-family:'DM Mono',monospace;">✓ ${letters[selectedOpt]}</span>` : ''}
         ${window._appSettings?.flags_enabled !== false && !state.devBlockFixture ? `<button id="eflag-${q.id}" class="flag-btn${isFlagged(state.currentSubject,q.id)?' flagged':''}" onclick="toggleFlagUI('${state.currentSubject}','${q.id}')" title="Flag for review" style="margin-left:${selectedOpt>=0?'4px':'auto'};">!</button>` : ''}
       </div>
-      ${q.context ? `<div class="q-context" style="margin-bottom:0.6rem;"><pre>${cleanDisplayText(q.context)}</pre></div>` : ''}
-      ${q.img ? `<div style="margin:0.5rem 0;text-align:center;"><img src="${rootAssetPath(q.img)}" alt="${q.imgAlt||'Figure'}" style="max-width:100%;max-height:220px;border-radius:8px;border:1px solid var(--border);background:#fff;padding:4px;cursor:zoom-in;" onclick="openImgViewer(this.src,this.alt,'')"></div>` : ''}
-      <div class="q-text" style="margin:0.6rem 0 0.9rem;font-size:0.9rem;line-height:1.6;">${formatQuestionText(q.text)}</div>
+      ${questionBodyHtml}
       <div class="exam-opts">${opts}</div>
     </div>`;
   }).join('');
