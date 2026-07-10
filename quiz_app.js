@@ -44,6 +44,7 @@ let state = {
   devBlockFixture: false,
   devCurriculumSemester: '',
   devCurriculumDepartment: '',
+  devCurriculumError: '',
   resumeOffset: 0,      // questions already answered before this session (for display)
   // ── Exam mode ──
   examPages: [],        // array of question arrays (one per page)
@@ -2184,6 +2185,7 @@ document.addEventListener('click', event => {
     event.preventDefault();
     state.devCurriculumSemester = semesterBtn.getAttribute('data-dev-curriculum-semester') || '';
     state.devCurriculumDepartment = '';
+    state.devCurriculumError = '';
     renderApp();
     return;
   }
@@ -2192,6 +2194,7 @@ document.addEventListener('click', event => {
   if (departmentBtn) {
     event.preventDefault();
     state.devCurriculumDepartment = departmentBtn.getAttribute('data-dev-curriculum-department') || '';
+    state.devCurriculumError = '';
     renderApp();
     return;
   }
@@ -2199,8 +2202,25 @@ document.addEventListener('click', event => {
   const moduleBtn = event.target.closest?.('[data-dev-curriculum-module]');
   if (moduleBtn) {
     event.preventDefault();
-    const subjectKey = moduleBtn.getAttribute('data-dev-curriculum-module');
-    if (subjectKey) enterSubject(subjectKey);
+    const moduleKey = moduleBtn.getAttribute('data-dev-curriculum-module');
+    const resolved = typeof resolveModuleSelection === 'function'
+      ? resolveModuleSelection({
+        semesterId: state.devCurriculumSemester,
+        departmentId: state.devCurriculumDepartment || null,
+        moduleKey
+      })
+      : null;
+    if (!resolved) {
+      const error = (typeof resolveModuleSelection === 'function' && resolveModuleSelection.lastError)
+        ? resolveModuleSelection.lastError
+        : 'Curriculum module adapter is unavailable.';
+      state.devCurriculumError = error;
+      console.warn('[Mora Quiz] DEV curriculum navigation refused module selection:', error);
+      renderApp();
+      return;
+    }
+    state.devCurriculumError = '';
+    enterSubject(resolved.dataKey);
   }
 });
 
@@ -3141,10 +3161,11 @@ function renderDevCurriculumNav() {
     || typeof getDepartments !== 'function'
     || typeof getModules !== 'function'
     || typeof isArchived !== 'function'
+    || typeof resolveModuleSelection !== 'function'
   ) {
     return '<div id="devCurriculumNav" data-dev-curriculum-nav="1" style="max-width:1120px;margin:0 auto 1rem;padding:12px;border:1px dashed #f59e0b;border-radius:8px;background:rgba(245,158,11,0.08);color:var(--text);">'
       + '<strong>DEV Curriculum Navigation Prototype</strong>'
-      + '<div style="margin-top:6px;color:var(--text-muted);font-size:0.85rem;">Registry helpers unavailable.</div>'
+      + '<div style="margin-top:6px;color:var(--text-muted);font-size:0.85rem;">Registry helpers or module adapter unavailable.</div>'
       + '</div>';
   }
 
@@ -3188,6 +3209,9 @@ function renderDevCurriculumNav() {
         + '</button>';
     }).join('')
     : '<div style="color:var(--text-muted);font-size:0.84rem;">No modules returned by the registry for this selection.</div>';
+  const errorHtml = state.devCurriculumError
+    ? '<div style="margin-top:10px;padding:8px 10px;border:1px solid #7f1d1d;border-radius:6px;background:rgba(127,29,29,0.18);color:#fca5a5;font-size:0.82rem;">Adapter refused selection: ' + escapeHTML(state.devCurriculumError) + '</div>'
+    : '';
 
   return '<div id="devCurriculumNav" data-dev-curriculum-nav="1" style="max-width:1120px;margin:0 auto 1rem;padding:12px;border:1px dashed #f59e0b;border-radius:8px;background:rgba(245,158,11,0.08);color:var(--text);">'
     + '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">'
@@ -3200,6 +3224,7 @@ function renderDevCurriculumNav() {
     + departmentHtml
     + '<div style="margin-top:10px;color:var(--text-muted);font-size:0.78rem;text-transform:uppercase;letter-spacing:0.06em;">Module list from registry</div>'
     + '<div style="margin-top:6px;display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;">' + moduleHtml + '</div>'
+    + errorHtml
     + '</div>';
 }
 
