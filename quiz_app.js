@@ -45,6 +45,10 @@ let state = {
   devCurriculumSemester: '',
   devCurriculumDepartment: '',
   devCurriculumError: '',
+  curriculumSemester: '',
+  curriculumDepartment: '',
+  curriculumError: '',
+  curriculumRoute: null,
   resumeOffset: 0,      // questions already answered before this session (for display)
   // ── Exam mode ──
   examPages: [],        // array of question arrays (one per page)
@@ -1614,12 +1618,32 @@ function routeSubjectKey() {
   return SUBJECTS[state.currentSubject]?.key || state.currentSubject || 'materials';
 }
 
+function curriculumPathForSelection(semesterId, departmentId, moduleKey) {
+  const safeSemester = String(semesterId || '').trim();
+  const safeDepartment = String(departmentId || '').trim();
+  const safeModule = String(moduleKey || '').trim();
+  if (!safeSemester || !safeModule) return '';
+  return safeDepartment
+    ? `/semester/${encodeURIComponent(safeSemester)}/${encodeURIComponent(safeDepartment)}/${encodeURIComponent(safeModule)}`
+    : `/semester/${encodeURIComponent(safeSemester)}/${encodeURIComponent(safeModule)}`;
+}
+
+function curriculumRouteForSubject(subjectKey) {
+  const route = state.curriculumRoute;
+  if (!route || route.dataKey !== subjectKey || route.moduleKey !== subjectKey) return '';
+  return curriculumPathForSelection(route.semesterId, route.departmentId, route.moduleKey);
+}
+
 function routeForState() {
   const subject = routeSubjectKey();
+  const curriculumSubjectHomeRoute = state.screen === 'subjectHome'
+    ? curriculumRouteForSubject(subject)
+    : '';
   const routes = {
     landing: '/',
+    curriculumModules: '/',
     categorySubjects: state.categoryMode === 'target' ? '/target-quiz' : '/past-papers',
-    subjectHome: `/subjects/${subject}`,
+    subjectHome: curriculumSubjectHomeRoute || `/subjects/${subject}`,
     pastpaperHome: `/subjects/${subject}/past-papers`,
     home: `/subjects/${subject}/past-papers/units`,
     paperHome: `/subjects/${subject}/past-papers/full`,
@@ -1651,6 +1675,9 @@ function routePayloadForState() {
     categoryEntry: state.categoryEntry,
     mode: state.mode,
     targetHardOnly: state.targetHardOnly,
+    curriculumSemester: state.curriculumSemester,
+    curriculumDepartment: state.curriculumDepartment,
+    curriculumRoute: state.curriculumRoute,
     topics: Array.isArray(state.topics) ? [...state.topics] : []
   };
 }
@@ -1733,7 +1760,7 @@ function resolveCurriculumRoute(parts) {
       error: resolveModuleSelection.lastError || 'Curriculum route could not be resolved.'
     };
   }
-  return { ok: true, dataKey: resolved.dataKey };
+  return { ok: true, semesterId, departmentId: departmentId || '', moduleKey, dataKey: resolved.dataKey };
 }
 
 function applyRoute(path, routeState) {
@@ -1743,6 +1770,7 @@ function applyRoute(path, routeState) {
   let nextAppMode = routeState?.appMode ?? state.appMode;
   let nextCategoryEntry = routeState?.categoryEntry || '';
   let enterDirectoryFromRoute = false;
+  let nextCurriculumRoute = null;
 
   if (parts[0] === 'semester') {
     const curriculumRoute = resolveCurriculumRoute(parts);
@@ -1750,6 +1778,12 @@ function applyRoute(path, routeState) {
       subjectKey = curriculumRoute.dataKey;
       setupRouteDefaults(subjectKey);
       nextScreen = 'subjectHome';
+      nextCurriculumRoute = {
+        semesterId: curriculumRoute.semesterId,
+        departmentId: curriculumRoute.departmentId || '',
+        moduleKey: curriculumRoute.moduleKey,
+        dataKey: curriculumRoute.dataKey
+      };
     } else {
       console.warn('[Mora Quiz] Refused curriculum route:', curriculumRoute?.error || path);
     }
@@ -1792,6 +1826,13 @@ function applyRoute(path, routeState) {
       admin: 'admin'
     };
     nextScreen = simpleRoutes[parts[0]] || 'landing';
+    if (parts.length === 0 && routeState?.screen === 'curriculumModules' && typeof routeState.curriculumSemester === 'string') {
+      const canRestoreCurriculumModules = typeof getSemesters === 'function'
+        && typeof isArchived === 'function'
+        && getSemesters().some(semester => semester && semester.id === routeState.curriculumSemester)
+        && !isArchived(routeState.curriculumSemester);
+      if (canRestoreCurriculumModules) nextScreen = 'curriculumModules';
+    }
     enterDirectoryFromRoute = parts[0] === 'questions';
     if (parts[0] === 'past-papers') state.categoryMode = 'pastpaper';
     if (parts[0] === 'target-quiz') state.categoryMode = 'target';
@@ -1803,6 +1844,13 @@ function applyRoute(path, routeState) {
   if (routeState?.categoryMode) state.categoryMode = routeState.categoryMode;
   state.categoryEntry = nextCategoryEntry;
   if (typeof routeState?.targetHardOnly === 'boolean') state.targetHardOnly = routeState.targetHardOnly;
+  if (typeof routeState?.curriculumSemester === 'string') state.curriculumSemester = routeState.curriculumSemester;
+  if (typeof routeState?.curriculumDepartment === 'string') state.curriculumDepartment = routeState.curriculumDepartment;
+  state.curriculumRoute = nextCurriculumRoute;
+  if (nextCurriculumRoute) {
+    state.curriculumSemester = nextCurriculumRoute.semesterId;
+    state.curriculumDepartment = nextCurriculumRoute.departmentId || '';
+  }
   state.appMode = nextAppMode;
   if (enterDirectoryFromRoute) {
     enterQuestionDirectoryBrowseState(state.directorySubject || 'all');
@@ -1970,10 +2018,14 @@ function _doRenderApp() {
   if (app) app.classList.remove('app-view-enter');
   if (state.screen === 'landing') {
     back.innerHTML = '';
+  } else if (state.screen === 'curriculumModules') {
+    back.innerHTML = `<button class="btn-home" onclick="backToCurriculumSemesters()">&larr; Semesters</button>`;
   } else if (['history','stats','dashboard','profile','analytics','weakAreas','achievements','leaderboards','questionDirectory','admin','categorySubjects'].includes(state.screen)) {
     back.innerHTML = `<button class="btn-home" onclick="state.screen='landing';renderApp()">&larr; Home</button>`;
   } else if (state.screen === 'subjectHome') {
-    back.innerHTML = `<button class="btn-home" onclick="state.screen='categorySubjects';renderApp()">&larr; Subjects</button>`;
+    back.innerHTML = state.curriculumRoute
+      ? `<button class="btn-home" onclick="backToCurriculumModules()">&larr; Common Modules</button>`
+      : `<button class="btn-home" onclick="state.screen='landing';renderApp()">&larr; Curriculum</button>`;
   } else if (state.screen === 'viewAll') {
     back.innerHTML = `<button class="btn-home" onclick="exitViewAllBrowseState()">&larr; Back</button>`;
   } else if (state.screen === 'home' || state.screen === 'targetHome' || state.screen === 'paperHome') {
@@ -2013,6 +2065,7 @@ function _doRenderApp() {
       app.classList.remove('landing-no-anim');
     }
   }
+  else if (state.screen === 'curriculumModules') app.innerHTML = renderCurriculumModules();
   else if (state.screen === 'subjectHome') app.innerHTML = renderSubjectHome();
   else if (state.screen === 'categorySubjects') app.innerHTML = renderCategorySubjects();
   else if (state.screen === 'pastpaperHome') app.innerHTML = renderPastpaperHome();
@@ -2154,11 +2207,12 @@ function enterSubject(subjectKey) {
   return enterSubjectMode(subjectKey, 'subjectHome');
 }
 
-function enterSubjectMode(subjectKey, destination = 'subjectHome') {
+function enterSubjectMode(subjectKey, destination = 'subjectHome', options = {}) {
   const s = SUBJECTS[subjectKey];
   if (!s || subjectTotalCount(subjectKey) === 0) return;
   const finish = () => {
     state.currentSubject = subjectKey;
+    state.curriculumRoute = options.curriculumRoute || null;
     state.topics = Object.keys(SUBJECTS[subjectKey].units).map(Number);
     state.categoryEntry = destination === 'pastpaper' || destination === 'target' ? destination : '';
     if (destination === 'pastpaper') {
@@ -2214,6 +2268,177 @@ function selectCategorySubject(subjectKey) {
 
 window.openCategorySubjectPicker = openCategorySubjectPicker;
 window.selectCategorySubject = selectCategorySubject;
+
+function curriculumHelpersReady() {
+  return typeof getSemesters === 'function'
+    && typeof getDepartments === 'function'
+    && typeof getModules === 'function'
+    && typeof isArchived === 'function'
+    && typeof resolveModuleSelection === 'function';
+}
+
+function activeCurriculumSemesters() {
+  if (!curriculumHelpersReady()) return [];
+  return getSemesters().filter(semester => semester && !isArchived(semester.id));
+}
+
+function ensureCurriculumHomeSelection() {
+  const semesters = activeCurriculumSemesters();
+  const selectedSemesterExists = semesters.some(semester => semester.id === state.curriculumSemester);
+  if (!selectedSemesterExists) {
+    state.curriculumSemester = (semesters[0] || {}).id || '';
+  }
+
+  const departments = state.curriculumSemester ? getDepartments(state.curriculumSemester) : null;
+  if (departments === null) {
+    state.curriculumDepartment = '';
+  } else if (Array.isArray(departments)) {
+    const selectedDepartmentExists = departments.some(department => department.id === state.curriculumDepartment);
+    if (!selectedDepartmentExists) {
+      state.curriculumDepartment = (departments[0] || {}).id || '';
+    }
+  }
+
+  return {
+    semesters,
+    semesterId: state.curriculumSemester,
+    departmentId: state.curriculumDepartment,
+    departments
+  };
+}
+
+function writeCurriculumRootState(replace = false) {
+  if (!_routerReady || !canUseAppHistory() || !history.pushState) return;
+  const method = replace ? 'replaceState' : 'pushState';
+  history[method](routePayloadForState(), '', '/');
+  _lastRoutePath = '/';
+}
+
+function pushCurriculumHomeState() {
+  writeCurriculumRootState(false);
+}
+
+function selectCurriculumSemester(semesterId) {
+  if (!curriculumHelpersReady()) return;
+  const semester = getSemesters().find(item => item && item.id === semesterId);
+  if (!semester || isArchived(semesterId)) return;
+  state.curriculumSemester = semesterId;
+  state.curriculumDepartment = '';
+  state.curriculumError = '';
+  state.curriculumRoute = null;
+  state.screen = 'curriculumModules';
+  pushCurriculumHomeState();
+  renderApp();
+}
+
+function selectCurriculumDepartment(departmentId) {
+  if (!curriculumHelpersReady()) return;
+  const departments = getDepartments(state.curriculumSemester);
+  if (!Array.isArray(departments) || !departments.some(department => department.id === departmentId)) return;
+  state.curriculumDepartment = departmentId;
+  state.curriculumError = '';
+  state.curriculumRoute = null;
+  state.screen = 'curriculumModules';
+  pushCurriculumHomeState();
+  renderApp();
+}
+
+function backToCurriculumSemesters() {
+  state.curriculumError = '';
+  state.curriculumRoute = null;
+  state.screen = 'landing';
+  writeCurriculumRootState(true);
+  renderApp();
+}
+
+function backToCurriculumModules() {
+  if (state.curriculumRoute) {
+    state.curriculumSemester = state.curriculumRoute.semesterId || state.curriculumSemester;
+    state.curriculumDepartment = state.curriculumRoute.departmentId || '';
+  }
+  state.curriculumError = '';
+  state.curriculumRoute = null;
+  state.screen = 'curriculumModules';
+  writeCurriculumRootState(true);
+  renderApp();
+}
+
+function openCurriculumModule(semesterId, departmentId, moduleKey) {
+  if (!curriculumHelpersReady()) {
+    state.curriculumError = 'Curriculum registry helpers or module adapter unavailable.';
+    renderApp();
+    return;
+  }
+  const selectedDepartment = departmentId || null;
+  const resolved = resolveModuleSelection({ semesterId, departmentId: selectedDepartment, moduleKey });
+  if (!resolved) {
+    state.curriculumError = resolveModuleSelection.lastError || 'Curriculum module selection was refused.';
+    console.warn('[Mora Quiz] Curriculum navigation refused module selection:', state.curriculumError);
+    renderApp();
+    return;
+  }
+
+  const curriculumRoute = {
+    semesterId,
+    departmentId: selectedDepartment || '',
+    moduleKey,
+    dataKey: resolved.dataKey
+  };
+  const path = curriculumPathForSelection(semesterId, selectedDepartment, moduleKey);
+  state.curriculumSemester = semesterId;
+  state.curriculumDepartment = selectedDepartment || '';
+  state.curriculumError = '';
+  state.curriculumRoute = curriculumRoute;
+
+  if (path && _routerReady && canUseAppHistory() && history.pushState) {
+    const payload = {
+      ...routePayloadForState(),
+      screen: 'subjectHome',
+      subject: resolved.dataKey,
+      curriculumRoute
+    };
+    history.pushState(payload, '', path);
+    _lastRoutePath = path;
+  }
+
+  enterSubjectMode(resolved.dataKey, 'subjectHome', { curriculumRoute });
+}
+
+window.selectCurriculumSemester = selectCurriculumSemester;
+window.selectCurriculumDepartment = selectCurriculumDepartment;
+window.openCurriculumModule = openCurriculumModule;
+window.backToCurriculumSemesters = backToCurriculumSemesters;
+window.backToCurriculumModules = backToCurriculumModules;
+
+document.addEventListener('click', event => {
+  const moduleCard = event.target.closest?.('[data-curriculum-module]');
+  if (moduleCard) {
+    event.preventDefault();
+    if (moduleCard.classList.contains('lp-tile-empty') || moduleCard.getAttribute('aria-disabled') === 'true') return;
+    openCurriculumModule(
+      moduleCard.getAttribute('data-curriculum-semester') || '',
+      moduleCard.getAttribute('data-curriculum-department') || '',
+      moduleCard.getAttribute('data-curriculum-module') || ''
+    );
+    return;
+  }
+
+  const semesterBtn = event.target.closest?.('[data-curriculum-semester]');
+  if (semesterBtn) {
+    event.preventDefault();
+    if (semesterBtn.hasAttribute('disabled') || semesterBtn.getAttribute('aria-disabled') === 'true') return;
+    selectCurriculumSemester(semesterBtn.getAttribute('data-curriculum-semester') || '');
+    return;
+  }
+
+  const departmentBtn = event.target.closest?.('[data-curriculum-department]');
+  if (departmentBtn) {
+    event.preventDefault();
+    if (departmentBtn.hasAttribute('disabled') || departmentBtn.getAttribute('aria-disabled') === 'true') return;
+    selectCurriculumDepartment(departmentBtn.getAttribute('data-curriculum-department') || '');
+    return;
+  }
+});
 
 document.addEventListener('click', event => {
   const nav = event.target.closest?.('#devCurriculumNav');
@@ -3298,44 +3523,36 @@ function renderLanding() {
   const globalPct     = learningSnapshot?.totals?.accuracy ?? (totalAnswered > 0 ? Math.round((totalCorrect / totalAnswered) * 100) : 0);
   const streak        = learningSnapshot?.totals?.currentStreak ?? parseInt(localStorage.getItem('eq_streak') || '0');
 
-  function ring(pct, color, size, stroke) {
-    const r = (size - stroke * 2) / 2;
-    const circ = 2 * Math.PI * r;
-    const dash  = (pct / 100) * circ;
-    const cx = size / 2, cy = size / 2;
-    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 ' + size + ' ' + size + '" style="transform:rotate(-90deg);">'
-      + '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="' + stroke + '"/>'
-      + '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="' + color + '" stroke-width="' + stroke + '" stroke-dasharray="' + dash + ' ' + circ + '" stroke-linecap="round" style="transition:stroke-dasharray 1s cubic-bezier(0.4,0,0.2,1);"/>'
-      + '</svg>';
-  }
+  const curriculumReady = curriculumHelpersReady();
+  const curriculumSelection = curriculumReady
+    ? ensureCurriculumHomeSelection()
+    : { semesters: [], semesterId: '', departmentId: '', departments: null };
 
-  const sortedSubjects = [...subjectStats].sort((a, b) => (a.total === 0) - (b.total === 0));
+  const semesterCards = curriculumReady
+    ? curriculumSelection.semesters.map(semester => {
+      const active = semester.id === curriculumSelection.semesterId;
+      const isUnavailable = isArchived(semester.id);
+      const tag = isUnavailable ? 'div' : 'button';
+      const disabledAttr = isUnavailable ? ' aria-disabled="true"' : ' type="button" data-curriculum-semester="' + escapeHTML(semester.id) + '"';
+      const status = isUnavailable ? 'Unavailable' : (active ? 'Active' : 'Available');
+      const statusClass = isUnavailable ? 'status-coming-soon' : (active ? 'status-progress' : 'status-available');
+      const statusColor = isUnavailable ? 'var(--text-muted)' : (active ? 'var(--accent-light)' : '#4ade80');
+      return '<' + tag + disabledAttr + ' class="lp-tile' + (isUnavailable ? ' lp-tile-empty' : '') + '" style="--tile-color:var(--accent);--tile-glow:rgba(127,163,255,0.14);text-align:left;font-family:inherit;">'
+        + '<div class="lp-tile-top">'
+        +   '<div class="lp-tile-icon-wrap" style="background:rgba(127,163,255,0.14);border:1.5px solid rgba(127,163,255,0.32);">S' + escapeHTML(String(semester.id || '').replace(/^sem/i, '') || '1') + '</div>'
+        + '</div>'
+        + '<h3 class="lp-tile-title">' + escapeHTML(semester.label || semester.id) + '</h3>'
+        + '<p class="lp-tile-desc">' + (semester.type === 'common' ? 'Common modules for all students.' : 'Department or stream modules.') + '</p>'
+        + '<div class="lp-tile-footer">'
+        +   '<span class="lp-tile-status ' + statusClass + '" style="color:' + statusColor + ';">' + status + '</span>'
+        + '</div>'
+        + '</' + tag + '>';
+    }).join('')
+    : '<div class="lp-empty" style="padding:1.5rem;text-align:left;">Curriculum registry helpers are unavailable.</div>';
 
-  const subjectCards = sortedSubjects.map(s => {
-    const empty = s.total === 0;
-    const clickHandler = empty ? '' : ('onclick="enterSubject(\'' + s.key + '\')" data-subject-key="' + s.key + '"');
-    const progressW = s.total > 0 ? Math.round((s.answered / s.total) * 100) : 0;
-    const statusLabel = empty ? 'Coming soon' : (s.answered > 0 ? s.answered + ' answered - ' + progressW + '%' : 'Available');
-    const statusColor = empty ? 'var(--text-muted)' : (s.answered > 0 ? s.color : '#4ade80');
-    const statusClass = empty ? 'status-coming-soon' : (s.answered > 0 ? 'status-progress' : 'status-available');
-    const arrow = !empty ? ('<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:' + s.color + ';opacity:0.7;flex-shrink:0;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>') : '';
-    const iconBg = s.color + '20';
-    const iconBorder = s.color + '40';
-    const tag = empty ? 'div' : 'a';
-    const href = empty ? '' : (' href="#subject-' + s.key + '"');
-    return '<' + tag + href + ' ' + clickHandler + ' class="lp-tile' + (empty ? ' lp-tile-empty' : '') + '" style="--tile-color:' + s.color + ';--tile-glow:' + s.color + '14;">'
-      + '<div class="lp-tile-top">'
-      +   '<div class="lp-tile-icon-wrap" style="background:' + iconBg + ';border:1.5px solid ' + iconBorder + ';">' + s.icon + '</div>'
-      + '</div>'
-      + '<h3 class="lp-tile-title">' + s.label + '</h3>'
-      + '<p class="lp-tile-desc">' + s.desc + '</p>'
-      + '<div class="lp-tile-footer">'
-      +   '<span class="lp-tile-status ' + statusClass + '" style="color:' + statusColor + ';">' + statusLabel + '</span>'
-      +   arrow
-      + '</div>'
-      + (!empty && s.answered > 0 ? '<div class="lp-tile-prog"><div class="lp-tile-prog-fill" style="transform:scaleX(' + (progressW/100) + ');background:' + s.color + ';box-shadow:0 0 8px ' + s.color + '55;"></div></div>' : '')
-      + '</' + tag + '>';
-  }).join('');
+  const curriculumErrorHtml = state.curriculumError
+    ? '<div style="margin:0 auto 1rem;max-width:1120px;padding:10px 12px;border:1px solid #7f1d1d;border-radius:8px;background:rgba(127,29,29,0.18);color:#fca5a5;font-size:0.85rem;">' + escapeHTML(state.curriculumError) + '</div>'
+    : '';
 
   return '<div class="lp-hero">'
     + '<div class="lp-hero-glow"></div>'
@@ -3361,22 +3578,99 @@ function renderLanding() {
     + '</div>'
     + '</div>'
     + '<div class="lp-feature-strip lp-feature-showcase">'
-    +   '<div class="lp-feature" onclick="openCategorySubjectPicker(\'pastpaper\')" style="--feature-color:#7fa3ff;--feature-glow:rgba(127,163,255,0.24);cursor:pointer;"><div class="lp-feature-icon">PP</div><div class="lp-feature-text"><strong>Past Papers</strong><span>Real exam questions by unit or year</span></div></div>'
+    +   '<div class="lp-feature" onclick="appScrollToElement(\'subjectCards\', 620)" style="--feature-color:#7fa3ff;--feature-glow:rgba(127,163,255,0.24);cursor:pointer;"><div class="lp-feature-icon">PP</div><div class="lp-feature-text"><strong>Past Papers</strong><span>Choose your semester and module first</span></div></div>'
     +   '<div class="lp-feature-div"></div>'
-    +   '<div class="lp-feature" onclick="openCategorySubjectPicker(\'target\')" style="--feature-color:#43d7ff;--feature-glow:rgba(67,215,255,0.22);cursor:pointer;"><div class="lp-feature-icon">TQ</div><div class="lp-feature-text"><strong>Target Quiz</strong><span>Curated hard questions for top grades</span></div></div>'
+    +   '<div class="lp-feature" onclick="appScrollToElement(\'subjectCards\', 620)" style="--feature-color:#43d7ff;--feature-glow:rgba(67,215,255,0.22);cursor:pointer;"><div class="lp-feature-icon">TQ</div><div class="lp-feature-text"><strong>Target Quiz</strong><span>Open a module to choose quiz modes</span></div></div>'
     +   '<div class="lp-feature-div"></div>'
     +   '<div class="lp-feature" onclick="openJanudaChat()" style="--feature-color:#b989ff;--feature-glow:rgba(185,137,255,0.23);cursor:pointer;"><div class="lp-feature-icon">JA</div><div class="lp-feature-text"><strong>Januda Ayya</strong><span>Instant AI explanations for any question</span></div></div>'
     + '</div>'
-    + renderDevCurriculumNav()
+    + curriculumErrorHtml
     + '<div class="lp-section" id="subjectCards">'
-    +   '<div class="lp-section-header"><h2 class="lp-section-title">Choose a Subject</h2><span class="lp-section-sub">' + allSubjects.filter(s => subjectTotalCount(s.key) > 0).length + ' active</span></div>'
-    +   '<div class="lp-tile-grid">' + subjectCards + '</div>'
+    +   '<div class="lp-section-header"><h2 class="lp-section-title">Choose a Semester</h2><span class="lp-section-sub">' + (curriculumSelection.semesters.length || 0) + ' active</span></div>'
+    +   '<div class="lp-tile-grid">' + semesterCards + '</div>'
     + '</div>'
     + (typeof isAdmin === 'function' && isAdmin()
         ? '<div style="text-align:center;padding:1.5rem 0 2.5rem;">'
           + '<button onclick="state.screen=\'admin\';renderApp()" style="background:transparent;border:1px solid #2e3348;border-radius:10px;color:var(--text-muted);padding:7px 20px;font-size:0.78rem;cursor:pointer;font-family:inherit;transition:border-color 0.2s,color 0.2s;" onmouseover="this.style.borderColor=\'#5a6ef0\';this.style.color=\'#a0a8d0\'" onmouseout="this.style.borderColor=\'#2e3348\';this.style.color=\'var(--text-muted)\'">Admin Dashboard</button>'
           + '</div>'
         : '');
+}
+
+function renderCurriculumModules() {
+  const curriculumReady = curriculumHelpersReady();
+  if (!curriculumReady) {
+    return '<div class="header" style="padding:2rem 0 1.5rem;">'
+      + '<h1>Curriculum</h1>'
+      + '<p>Curriculum registry helpers are unavailable.</p>'
+      + '</div>';
+  }
+
+  const selection = ensureCurriculumHomeSelection();
+  const selectedSemester = selection.semesters.find(semester => semester.id === selection.semesterId);
+  const moduleList = selection.semesterId
+    ? getModules(selection.semesterId, selection.departmentId || undefined)
+    : [];
+  const isCommonSemester = selection.departments === null;
+  const title = isCommonSemester ? 'Common Modules' : 'Modules';
+  const subtitle = selectedSemester
+    ? escapeHTML(selectedSemester.label || selectedSemester.id)
+    : 'No semester selected';
+
+  const departmentHtml = Array.isArray(selection.departments)
+    ? '<div class="lp-section" style="padding-top:0;">'
+      + '<div class="lp-section-header"><h2 class="lp-section-title">Department / Stream</h2><span class="lp-section-sub">' + selection.departments.length + ' available</span></div>'
+      + '<div class="lp-tile-grid">' + selection.departments.map(department => {
+        const active = department.id === selection.departmentId;
+        return '<button type="button" data-curriculum-department="' + escapeHTML(department.id) + '" class="lp-tile" style="--tile-color:var(--accent);--tile-glow:rgba(127,163,255,0.14);text-align:left;font-family:inherit;">'
+          + '<h3 class="lp-tile-title">' + escapeHTML(department.label || department.id) + '</h3>'
+          + '<div class="lp-tile-footer"><span class="lp-tile-status ' + (active ? 'status-progress' : 'status-available') + '">' + (active ? 'Active' : 'Available') + '</span></div>'
+          + '</button>';
+      }).join('') + '</div></div>'
+    : '';
+
+  const moduleCards = moduleList.map(module => {
+    const total = subjectTotalCount(module.key);
+    const empty = total === 0;
+    const statusLabel = empty ? 'Unavailable' : total + ' questions';
+    const statusColor = empty ? 'var(--text-muted)' : '#4ade80';
+    const statusClass = empty ? 'status-coming-soon' : 'status-available';
+    const arrow = !empty ? ('<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:' + module.color + ';opacity:0.7;flex-shrink:0;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>') : '';
+    const iconBg = module.color + '20';
+    const iconBorder = module.color + '40';
+    const routeHref = curriculumPathForSelection(selection.semesterId, selection.departmentId, module.key);
+    const tag = empty ? 'div' : 'a';
+    const href = empty ? '' : (' href="' + routeHref + '"');
+    const moduleAttrs = empty
+      ? ' aria-disabled="true"'
+      : ' data-curriculum-module="' + escapeHTML(module.key) + '" data-curriculum-semester="' + escapeHTML(selection.semesterId) + '" data-curriculum-department="' + escapeHTML(selection.departmentId || '') + '"';
+    return '<' + tag + href + moduleAttrs + ' class="lp-tile' + (empty ? ' lp-tile-empty' : '') + '" style="--tile-color:' + module.color + ';--tile-glow:' + module.color + '14;">'
+      + '<div class="lp-tile-top">'
+      +   '<div class="lp-tile-icon-wrap" style="background:' + iconBg + ';border:1.5px solid ' + iconBorder + ';">' + module.icon + '</div>'
+      + '</div>'
+      + '<h3 class="lp-tile-title">' + escapeHTML(module.label || module.key) + '</h3>'
+      + '<p class="lp-tile-desc">' + escapeHTML(module.desc || '') + '</p>'
+      + '<div class="lp-tile-footer">'
+      +   '<span class="lp-tile-status ' + statusClass + '" style="color:' + statusColor + ';">' + statusLabel + '</span>'
+      +   arrow
+      + '</div>'
+      + '</' + tag + '>';
+  }).join('');
+
+  const curriculumErrorHtml = state.curriculumError
+    ? '<div style="margin:0 auto 1rem;max-width:1120px;padding:10px 12px;border:1px solid #7f1d1d;border-radius:8px;background:rgba(127,29,29,0.18);color:#fca5a5;font-size:0.85rem;">' + escapeHTML(state.curriculumError) + '</div>'
+    : '';
+
+  return '<div class="header" style="padding:2rem 0 1.5rem;">'
+    + '<div class="header-badge" style="background:rgba(127,163,255,0.14);border-color:var(--accent);color:var(--accent-light);">' + subtitle + '</div>'
+    + '<h1 style="margin-bottom:0.5rem;">' + title + '</h1>'
+    + '<p>Select a module to open the existing quiz modes.</p>'
+    + '</div>'
+    + curriculumErrorHtml
+    + departmentHtml
+    + '<div class="lp-section" style="padding-top:0;">'
+    +   '<div class="lp-section-header"><h2 class="lp-section-title">' + title + '</h2><span class="lp-section-sub">' + subtitle + '</span></div>'
+    +   '<div class="lp-tile-grid">' + (moduleCards || '<div class="lp-empty" style="padding:1.5rem;text-align:left;">No modules are available for this selection.</div>') + '</div>'
+    + '</div>';
 }
 
 function renderCategorySubjects() {
