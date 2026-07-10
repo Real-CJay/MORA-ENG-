@@ -1706,6 +1706,36 @@ function setupRouteDefaults(subjectKey) {
   state.topics = Object.keys(s.units).map(Number);
 }
 
+function resolveCurriculumRoute(parts) {
+  if (parts[0] !== 'semester') return null;
+  if (parts.length !== 3 && parts.length !== 4) {
+    return { ok: false, error: 'Malformed curriculum route.' };
+  }
+  if (typeof resolveModuleSelection !== 'function') {
+    return { ok: false, error: 'Curriculum module adapter is unavailable.' };
+  }
+
+  const semesterId = parts[1] || '';
+  const departmentId = parts.length === 4 ? parts[2] : null;
+  const moduleKey = parts.length === 4 ? parts[3] : parts[2];
+
+  if (departmentId && typeof getSemesters === 'function' && typeof getDepartments === 'function') {
+    const semesterExists = getSemesters().some(semester => semester && semester.id === semesterId);
+    if (semesterExists && getDepartments(semesterId) === null) {
+      return { ok: false, error: `Department route is not valid for common semester ${semesterId}.` };
+    }
+  }
+
+  const resolved = resolveModuleSelection({ semesterId, departmentId, moduleKey });
+  if (!resolved) {
+    return {
+      ok: false,
+      error: resolveModuleSelection.lastError || 'Curriculum route could not be resolved.'
+    };
+  }
+  return { ok: true, dataKey: resolved.dataKey };
+}
+
 function applyRoute(path, routeState) {
   const parts = path.replace(/^\/+|\/+$/g, '').split('/').filter(Boolean);
   let nextScreen = 'landing';
@@ -1714,7 +1744,16 @@ function applyRoute(path, routeState) {
   let nextCategoryEntry = routeState?.categoryEntry || '';
   let enterDirectoryFromRoute = false;
 
-  if (parts[0] === 'subjects' && parts[1] && SUBJECTS[parts[1]]) {
+  if (parts[0] === 'semester') {
+    const curriculumRoute = resolveCurriculumRoute(parts);
+    if (curriculumRoute?.ok && SUBJECTS[curriculumRoute.dataKey]) {
+      subjectKey = curriculumRoute.dataKey;
+      setupRouteDefaults(subjectKey);
+      nextScreen = 'subjectHome';
+    } else {
+      console.warn('[Mora Quiz] Refused curriculum route:', curriculumRoute?.error || path);
+    }
+  } else if (parts[0] === 'subjects' && parts[1] && SUBJECTS[parts[1]]) {
     subjectKey = parts[1];
     setupRouteDefaults(subjectKey);
     if (parts[2] === 'past-papers' && parts[3] === 'units') {
