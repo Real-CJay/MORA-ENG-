@@ -5,6 +5,7 @@ Stage 1 adds a schema foundation and validator for future question packs. These 
 ## Files
 
 - `tools/validate_questions.py` validates schemaVersion 2 JSON packs and accepts legacy flat questions with migration warnings.
+- `tools/quiz_manager.py` is the interactive content manager and validator-first JSON import preview/apply tool.
 - `tools/export_legacy_subjects.py` exports existing lazy-loaded `subject_data/*.js` chunks into legacy JSON question packs.
 - `tools/question_schema.md` documents the block-based schema.
 - `tools/registry_check.py` validates `js/curriculum_registry.js` against subject metadata in `quiz_data.js`.
@@ -98,3 +99,255 @@ Only these block types are allowed for new schemaVersion 2 content:
 - `table`
 
 There is no `html` block type. Legacy HTML-like content must be handled by a future adapter as escaped plain text, not promoted into the schema.
+
+## Quiz Manager
+
+Start the interactive manager from the app root:
+
+```powershell
+python tools/quiz_manager.py
+```
+
+The no-argument flow keeps the existing subject, unit, question, short-note, and legacy question management menus. It reads and writes the current lazy chunk layout:
+
+- `subject_data/<module>.js`
+- `window.MORA_SUBJECT_CHUNKS["<module>"]`
+- `pastUnit`
+- `pastPaper`
+- `targetHard`
+- `targetNormal`
+
+### Validator-first JSON import
+
+JSON import uses `tools/validate_questions.py` before previewing anything. Validation errors refuse the import. Validation warnings are printed and included in the preview; warnings do not block a dry run or apply by themselves. If the official validator is missing or fails unexpectedly, the manager refuses the import.
+
+The import flow is:
+
+```text
+load -> validate -> inspect -> collision checks -> preview -> explicit apply
+```
+
+Dry-run preview is the default. In interactive mode, no import is applied until the preview is shown and you confirm it. For repeatable command-line use:
+
+```powershell
+python tools/quiz_manager.py --import-json examples/sample_questions.json --subject materials --bucket pastPaper
+```
+
+That command is a dry run. To apply after the same preview checks:
+
+```powershell
+python tools/quiz_manager.py --import-json path\to\pack.json --subject materials --bucket pastPaper --apply
+```
+
+Supported `--bucket` values:
+
+- `pastUnit`
+- `pastPaper`
+- `targetHard`
+- `targetNormal`
+
+Optional explicit overlays are available and are shown in the preview before apply:
+
+```powershell
+python tools/quiz_manager.py --import-json path\to\pack.json --subject materials --bucket targetNormal --unit 2 --year 2027 --apply
+```
+
+### Preservation and refusals
+
+Imported question IDs are preserved exactly. Missing IDs, duplicate IDs inside a pack, and IDs that collide anywhere in the live dataset refuse apply. The manager does not silently rename or repair IDs.
+
+Current-schema question objects are preserved recursively, including block `body`, `explanation`, `options`, `answer`, `matchMode`, tolerance fields, `orderedMatch`, `extraAllowed`, `self_mark`/`manual` answers with `value: null`, unknown fields, Unicode, multiline strings, booleans, numbers, lists, and dictionaries. Legacy flat questions remain supported when wrapped in a valid schemaVersion 2 pack; the validator reports migration warnings.
+
+The live chunk format stores bucket arrays of questions, not pack-level context. Packs with non-empty pack-level `stimuli` or `images` can be validated and previewed, but live apply is refused so that shared context is not silently discarded or inventively flattened. Resolve that storage/integration decision in a later approved stage.
+
+Stage 7.0 upgrades tooling only. It does not import CS, create `subject_data/cs.js`, change curriculum data, or edit the web app.
+
+## Python Tools Inventory
+
+Python tools found: 10
+
+The inventory below covers every `.py` file currently under `tools/`, including tests. Status and safety are based on the actual code paths, entry points, arguments, and file writes.
+
+### claude_prompt_generator.py
+
+Status: Legacy but usable
+Purpose: Builds an interactive prompt for Claude to answer MCQ-style questions and return legacy quiz JSON arrays.
+When to use: Use only for older flat MCQ workflows where a human will review, wrap, convert, or otherwise adapt the result before current validator-first import.
+Inputs: Interactive answers about module name, bank, year, unit/topic layout, ID prefix, whether answers/marking scheme/images are present, and optionally pasted questions.
+Outputs: Prints the generated prompt, attempts to copy it to the clipboard, and optionally saves the prompt to a `.txt` file.
+Files it may modify: Optional user-chosen prompt text file; it can also launch `pdf_image_extractor.py` if the user chooses that path.
+Safety: Writes files after confirmation
+Command: `python tools\claude_prompt_generator.py`
+Important options: None; this is an interactive script.
+Dependencies: Python standard library; optional `pyperclip`; Windows clipboard helpers if available.
+Related/overlapping tools: Superseded for CS/block-schema extraction by `cs_block_prompt_generator.py`; overlaps with `pdf_image_extractor.py` for old image follow-up.
+Current compatibility: Produces older flat JSON-array prompt output, not schemaVersion 2 packs by itself. Direct use with the upgraded validator-first `quiz_manager.py` may require wrapping or conversion.
+
+### cs_block_prompt_generator.py
+
+Status: Active
+Purpose: Main CS block-schema extraction workflow menu: generate grouped Claude prompts, review group JSON, merge group JSON, show workflow help, and launch image cropping.
+When to use: Use for CS source extraction before any live import, especially when a paper should be split into small reviewed question groups.
+Inputs: Interactive PDF path, paper/year/module/id prefix, optional page image folder, question group definitions, reviewed group JSON files, expected ranges, and output paths.
+Outputs: Prompt `.md` files, prompt index, prompt plan JSON, merged JSON with optional image manifest, console review summaries.
+Files it may modify: Prompt output folder, prompt index/plan files, user-selected merged JSON output. It can launch `pdf_image_extractor.py`, which writes images and updated JSON.
+Safety: Writes files after confirmation
+Command: `python tools\cs_block_prompt_generator.py`
+Important options: None; this is an interactive menu with choices 0-6.
+Dependencies: Python standard library; optional `fitz`/PyMuPDF for best-effort PDF text extraction; imports `cs_extraction_review.py`.
+Related/overlapping tools: Wraps review behavior from `cs_extraction_review.py`; launches `pdf_image_extractor.py`; output can later be converted by `cs_extractor_to_preview_schema.py`.
+Current compatibility: Produces and reviews CS extractor-style block JSON, not live `subject_data`. Safe for pre-import tooling; does not add CS to the app.
+
+### cs_extraction_review.py
+
+Status: Active
+Purpose: Reviews generated CS extraction JSON and optional `====IMAGES====` manifest for likely structural, code-block, image-manifest, answer-index, and source metadata problems.
+When to use: Use after Claude group output, after merged CS output, or on a folder of JSON files before conversion/import planning.
+Inputs: One or more JSON files or directories; optionally responds interactively when asked whether to print a correction prompt.
+Outputs: Console findings grouped as ERROR/WARNING/INFO and optional correction prompt text.
+Files it may modify: None.
+Safety: Read-only
+Command: `python tools\cs_extraction_review.py path\to\output.json`
+Important options: None beyond one or more positional paths.
+Dependencies: Python standard library.
+Related/overlapping tools: Used by `cs_block_prompt_generator.py`; overlaps with `validate_questions.py` but checks extractor-specific quality rather than schemaVersion 2 validity.
+Current compatibility: Current CS extraction reviewer; read-only and safe for pre-import review.
+
+### cs_extractor_to_preview_schema.py
+
+Status: Supporting
+Purpose: Converts reviewed CS extractor JSON into a schemaVersion 2 Mora Quiz preview pack.
+When to use: Use after extractor JSON has been reviewed and before running the official schema validator on a preview pack.
+Inputs: Reviewed CS extraction JSON, output JSON path, optional subject, bucket, formatting, strictness, and manifest metadata choice.
+Outputs: A schemaVersion 2 JSON pack at the explicit output path plus warning/summary text.
+Files it may modify: The explicit output JSON path; parent directories may be created.
+Safety: Destructive
+Command: `python tools\cs_extractor_to_preview_schema.py input.json output.json`
+Important options: `--subject`, `--bucket`, `--pretty`, `--strict`, `--include-manifest-metadata`.
+Dependencies: Python standard library.
+Related/overlapping tools: Complements `cs_extraction_review.py`; output should be checked with `validate_questions.py`; does not replace `quiz_manager.py`.
+Current compatibility: Produces schemaVersion 2 preview packs. It does not create live subject data and does not import CS.
+
+### export_legacy_subjects.py
+
+Status: Supporting
+Purpose: Exports current lazy `subject_data/*.js` chunks into schemaVersion 2 wrapper packs containing legacy flat questions.
+When to use: Use for backups, review packs, or migration/reference exports from existing live chunks.
+Inputs: Existing `subject_data/*.js` files and optional source/output/validator paths.
+Outputs: `content/question-packs/<subject>/<bucket>.json` files and optional validator report.
+Files it may modify: The configured output directory, defaulting to `content/question-packs`.
+Safety: Destructive
+Command: `python tools\export_legacy_subjects.py`
+Important options: `--source-dir`, `--out-dir`, `--validator`, `--skip-validation`.
+Dependencies: Python standard library; invokes the configured validator through the current Python executable unless validation is skipped.
+Related/overlapping tools: Output is validated by `validate_questions.py`; overlaps with `quiz_manager.py` only in that both understand live chunks.
+Current compatibility: Current live chunks are JSON-compatible and export correctly; exported legacy questions intentionally produce migration warnings.
+
+### pdf_image_extractor.py
+
+Status: Supporting
+Purpose: Reads Claude output plus `====IMAGES====`, crops figures from a source PDF using an OpenCV window, saves image files, and writes updated JSON with image paths.
+When to use: Use only when reviewed extraction output references figures that must be cropped from the original PDF.
+Inputs: Interactive Claude output file, original PDF path, project root path, and manual crop selections.
+Outputs: Cropped image files and updated JSON output with image references changed to saved relative paths.
+Files it may modify: Image files under the selected project root/folders from the manifest; JSON output under the configured JSON files folder.
+Safety: Writes files after confirmation
+Command: `python tools\pdf_image_extractor.py`
+Important options: None; this is an interactive script.
+Dependencies: `opencv-python`/`cv2`, `pymupdf`/`fitz`, `numpy`, `Pillow`.
+Related/overlapping tools: Can be launched from `claude_prompt_generator.py` and `cs_block_prompt_generator.py`; image references should still be reviewed and validated afterward.
+Current compatibility: Supports legacy `img` plus block/body/explanation image fields. It is an image/file updater, not a schema validator.
+
+### quiz_manager.py
+
+Status: Active
+Purpose: Interactive content manager plus validator-first JSON import preview/apply tool for current Mora Quiz chunks.
+When to use: Use for current live content management after validation and manual review, or for dry-run import previews.
+Inputs: `quiz_data.js`, `subject_data/<module>.js`, schemaVersion 2 JSON packs, interactive menu choices, or CLI import arguments.
+Outputs: Interactive previews, dry-run reports, pending/save operations, and optional live updates after explicit confirmation or `--apply`.
+Files it may modify: `quiz_data.js`, `subject_data/<module>.js`, short-note manifest/files, and copied short-note HTML files.
+Safety: Writes files after confirmation
+Command: `python tools\quiz_manager.py`
+Important options: `--quiz-data`, `--import-json`, `--subject`, `--bucket`, `--unit`, `--year`, `--hard`, `--apply`.
+Dependencies: Python standard library; calls/reuses `tools/validate_questions.py`.
+Related/overlapping tools: Uses `validate_questions.py`; consumes packs produced or reviewed by other tools when they are live-compatible; overlaps with legacy add/delete subject utilities inside the same script.
+Current compatibility: Current live chunk compatible for question-level schema fields and legacy flat questions. Applies are refused for non-empty pack-level `stimuli` or `images`; chosen direction is to keep those schema packs in `content/question-packs/` for a future pack-aware import/runtime adapter.
+
+### registry_check.py
+
+Status: Active
+Purpose: Validates `js/curriculum_registry.js` against subject metadata in `quiz_data.js` without executing JavaScript.
+When to use: Use after curriculum registry or subject metadata changes, and before stages that depend on module/semester/departments.
+Inputs: Curriculum registry path and subject registry path.
+Outputs: Console report with semester/subject counts, errors, warnings, and PASS/FAIL result.
+Files it may modify: None.
+Safety: Read-only
+Command: `python tools\registry_check.py`
+Important options: `--curriculum`, `--subjects`.
+Dependencies: Python standard library.
+Related/overlapping tools: Complements `validate_questions.py`; checks curriculum/module metadata, not question-pack schema.
+Current compatibility: Current Stage 6 registry checker for `sem1` and the four live modules.
+
+### test_quiz_manager.py
+
+Status: Supporting
+Purpose: Standard-library tests for `quiz_manager.py` import safety, schema preservation, validation refusal, ID collision checks, and temp apply behavior.
+When to use: Use after editing `tools/quiz_manager.py`.
+Inputs: Test runner invocation; internally creates temporary quiz roots and fixture packs.
+Outputs: `unittest` pass/fail report.
+Files it may modify: Temporary directories only; it should not write live repo question data.
+Safety: Read-only
+Command: `python -m unittest discover -s tools\tests -p "test_quiz_manager.py" -v`
+Important options: Standard `unittest` discovery options.
+Dependencies: Python standard library; imports `tools/quiz_manager.py` and copies `tools/validate_questions.py` into temp fixtures.
+Related/overlapping tools: Supports `quiz_manager.py`; does not replace manual smoke tests.
+Current compatibility: Current Stage 7.0 regression coverage for the upgraded manager.
+
+### validate_questions.py
+
+Status: Active
+Purpose: Official validator for schemaVersion 2 question packs; also accepts legacy flat questions with warnings.
+When to use: Use before any import preview/apply and after conversion/export tools create packs.
+Inputs: One or more JSON pack paths and optional image root for local image existence checks.
+Outputs: Console report with question count, validation errors, warnings, and PASS/FAIL result.
+Files it may modify: None.
+Safety: Read-only
+Command: `python tools\validate_questions.py examples\sample_questions.json`
+Important options: `--images-root`.
+Dependencies: Python standard library.
+Related/overlapping tools: Called by `quiz_manager.py`; used by `export_legacy_subjects.py`; complements `cs_extraction_review.py`.
+Current compatibility: Authoritative schemaVersion 2 validator for current tooling; warnings do not fail validation.
+
+## Recommended Daily Content Workflow
+
+Use this sequence for the safest current content path:
+
+1. Source material: collect the PDF, marking scheme, source pages, and any page images/crops needed for review.
+2. Question generation/conversion: for CS block extraction, use `python tools\cs_block_prompt_generator.py` to create small grouped prompts. For older flat MCQ prompt generation, `python tools\claude_prompt_generator.py` is still usable but produces legacy-shaped output that needs extra care.
+3. Image extraction/handling if needed: use `python tools\pdf_image_extractor.py` only when a reviewed output includes `====IMAGES====` entries and real PDF crops are required.
+4. Review generated extraction output: use `python tools\cs_extraction_review.py path\to\output.json` or the review menu inside `cs_block_prompt_generator.py`.
+5. Convert to current preview schema when needed: use `python tools\cs_extractor_to_preview_schema.py input.json output.json`.
+6. Schema validation: run `python tools\validate_questions.py path\to\pack.json`; optionally add `--images-root .` when local image existence should be checked.
+7. Quiz manager dry-run: run `python tools\quiz_manager.py --import-json path\to\pack.json --subject <module> --bucket <bucket>` and read the preview.
+8. Manual review: verify IDs, destination bucket, units/years, overrides, warnings, and files that would change. If the pack has pack-level `stimuli` or `images`, keep it as a reviewed pack under `content/question-packs/` for the future pack-aware adapter; do not force live apply.
+9. Explicit apply: only for live-approved, live-compatible packs, rerun with `--apply` or confirm from interactive mode.
+10. App smoke test: open the app, load the affected module/mode, check question display, answer behavior, results/review, images, and persistence.
+
+Stage 7.0 does not import CS. Do not create `subject_data/cs.js` during this workflow.
+
+## Tools Not to Run Casually
+
+- `tools/quiz_manager.py`: can delete individual questions, delete all questions in a subject, delete all questions in all subjects, rename/add/delete subjects, merge legacy `_removed.html` data, edit short notes, update `quiz_data.js`, and overwrite `subject_data` chunks after confirmation/save.
+- `tools/export_legacy_subjects.py`: writes or overwrites exported packs under `content/question-packs` by default. Use a separate `--out-dir` for experiments.
+- `tools/pdf_image_extractor.py`: writes cropped image files into project image folders and writes updated JSON output. Existing filenames can be overwritten by crop saves.
+- `tools/cs_extractor_to_preview_schema.py`: writes the explicit output path immediately; it can overwrite an existing preview pack without asking.
+- `tools/cs_block_prompt_generator.py`: writes prompt files, prompt index/plan files, and merged JSON; it can also launch the image cropper.
+- `tools/claude_prompt_generator.py`: operates on an older flat-question schema and may launch the image extractor. Do not treat its raw JSON-array output as current-schema import-ready data.
+
+## Overlapping Tools
+
+- `validate_questions.py`, `cs_extraction_review.py`, and `registry_check.py` all check correctness, but at different layers. Normally use `validate_questions.py` for schema packs, `cs_extraction_review.py` for CS extractor output quality before conversion, and `registry_check.py` for curriculum/subject metadata.
+- `quiz_manager.py`, `export_legacy_subjects.py`, and `cs_extractor_to_preview_schema.py` all move question data between formats. Normally use `quiz_manager.py` for live-compatible preview/apply, `export_legacy_subjects.py` for exporting existing live chunks to packs, and `cs_extractor_to_preview_schema.py` for converting reviewed CS extractor JSON into preview schema packs.
+- `cs_block_prompt_generator.py` and `claude_prompt_generator.py` both generate Claude prompts. Use `cs_block_prompt_generator.py` for CS/block-schema extraction. Use `claude_prompt_generator.py` only for legacy flat MCQ workflows.
+- `cs_block_prompt_generator.py` and `cs_extraction_review.py` both review CS outputs. The menu tool is convenient for the guided workflow; the standalone review script is better for direct file/folder review and repeatable checks.
+- `pdf_image_extractor.py` can be launched by both prompt generators, but it is still the same cropper. Run it directly when you need more control over input paths.
