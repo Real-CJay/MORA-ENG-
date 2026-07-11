@@ -164,24 +164,24 @@ Stage 7.0 upgrades tooling only. It does not import CS, create `subject_data/cs.
 
 ## Python Tools Inventory
 
-Python tools found: 10
+Python tools found: 11
 
 The inventory below covers every `.py` file currently under `tools/`, including tests. Status and safety are based on the actual code paths, entry points, arguments, and file writes.
 
 ### claude_prompt_generator.py
 
-Status: Legacy but usable
-Purpose: Builds an interactive prompt for Claude to answer MCQ-style questions and return legacy quiz JSON arrays.
-When to use: Use only for older flat MCQ workflows where a human will review, wrap, convert, or otherwise adapt the result before current validator-first import.
-Inputs: Interactive answers about module name, bank, year, unit/topic layout, ID prefix, whether answers/marking scheme/images are present, and optionally pasted questions.
-Outputs: Prints the generated prompt, attempts to copy it to the clipboard, and optionally saves the prompt to a `.txt` file.
-Files it may modify: Optional user-chosen prompt text file; it can also launch `pdf_image_extractor.py` if the user chooses that path.
+Status: Active
+Purpose: Builds universal Claude prompts for current schemaVersion 2 Mora Quiz question packs, with explicit legacy-compatible flat MCQ mode still available.
+When to use: Use for general Materials, Mechanics, Fluid Mechanics, Mathematics, CS, or future-module question generation prompts before validation and quiz-manager dry-run. Use explicit `--legacy` only for older flat MCQ workflows that will be reviewed, wrapped, converted, or imported carefully.
+Inputs: Interactive answers or CLI options for module/dataKey, display label, destination bucket, unit/topic, year/paper metadata, ID prefix, source scenario, pasted source text, marking scheme, expected question types, answer modes, and block/content types.
+Outputs: Prints the generated prompt, optionally copies it to the clipboard, and optionally saves the prompt to a `.md` or `.txt` file.
+Files it may modify: Optional user-chosen prompt `.md` or `.txt` file. Existing output files are not overwritten unless overwrite is explicitly approved.
 Safety: Writes files after confirmation
 Command: `python tools\claude_prompt_generator.py`
-Important options: None; this is an interactive script.
+Important options: `--module`, `--module-label`, `--bucket`, `--unit`, `--topic`, `--year`, `--paper`, `--id-prefix`, `--context`, `--destination-note`, `--source-scenario`, `--source`, `--source-file`, `--marking-scheme`, `--question-types`, `--answer-modes`, `--block-types`, `--existing-ids`, `--legacy`, `--output`, `--overwrite`, `--copy`.
 Dependencies: Python standard library; optional `pyperclip`; Windows clipboard helpers if available.
-Related/overlapping tools: Superseded for CS/block-schema extraction by `cs_block_prompt_generator.py`; overlaps with `pdf_image_extractor.py` for old image follow-up.
-Current compatibility: Produces older flat JSON-array prompt output, not schemaVersion 2 packs by itself. Direct use with the upgraded validator-first `quiz_manager.py` may require wrapping or conversion.
+Related/overlapping tools: Overlaps with `cs_block_prompt_generator.py` for Claude prompt generation. Use this universal generator for direct schemaVersion 2 pack prompts across modules; use `cs_block_prompt_generator.py` when a CS paper needs grouped prompts, review, and merge workflow.
+Current compatibility: Defaults to schemaVersion 2 pack instructions compatible with `validate_questions.py` and `quiz_manager.py` dry-run preview. Prompts may allow pack-level `stimuli`/`images`, but they explicitly warn that `quiz_manager.py` refuses live apply for non-empty pack-level shared context until a pack-aware adapter exists. Legacy flat output is explicit only.
 
 ### cs_block_prompt_generator.py
 
@@ -255,7 +255,7 @@ Safety: Writes files after confirmation
 Command: `python tools\pdf_image_extractor.py`
 Important options: None; this is an interactive script.
 Dependencies: `opencv-python`/`cv2`, `pymupdf`/`fitz`, `numpy`, `Pillow`.
-Related/overlapping tools: Can be launched from `claude_prompt_generator.py` and `cs_block_prompt_generator.py`; image references should still be reviewed and validated afterward.
+Related/overlapping tools: Can be launched from `cs_block_prompt_generator.py`; image references from universal prompts should still be cropped/handled with this tool directly when needed, then reviewed and validated afterward.
 Current compatibility: Supports legacy `img` plus block/body/explanation image fields. It is an image/file updater, not a schema validator.
 
 ### quiz_manager.py
@@ -303,6 +303,21 @@ Dependencies: Python standard library; imports `tools/quiz_manager.py` and copie
 Related/overlapping tools: Supports `quiz_manager.py`; does not replace manual smoke tests.
 Current compatibility: Current Stage 7.0 regression coverage for the upgraded manager.
 
+### test_claude_prompt_generator.py
+
+Status: Supporting
+Purpose: Standard-library tests for `claude_prompt_generator.py` schemaVersion 2 defaults, module flexibility, explicit legacy mode, block/answer guidance, file overwrite safety, clipboard fallback, and CLI help.
+When to use: Use after editing `tools/claude_prompt_generator.py` or README guidance that depends on its supported behavior.
+Inputs: Test runner invocation; internally imports `tools/claude_prompt_generator.py` and creates temporary files for overwrite checks.
+Outputs: `unittest` pass/fail report.
+Files it may modify: Temporary directories only; it should not write live repo question data.
+Safety: Read-only
+Command: `python -m unittest discover -s tools\tests -p "test_claude_prompt_generator.py" -v`
+Important options: Standard `unittest` discovery options.
+Dependencies: Python standard library; imports `tools/claude_prompt_generator.py`.
+Related/overlapping tools: Supports `claude_prompt_generator.py`; complements manual checks of generated prompts.
+Current compatibility: Current Stage 7.0A regression coverage for the universal prompt generator.
+
 ### validate_questions.py
 
 Status: Active
@@ -323,15 +338,14 @@ Current compatibility: Authoritative schemaVersion 2 validator for current tooli
 Use this sequence for the safest current content path:
 
 1. Source material: collect the PDF, marking scheme, source pages, and any page images/crops needed for review.
-2. Question generation/conversion: for CS block extraction, use `python tools\cs_block_prompt_generator.py` to create small grouped prompts. For older flat MCQ prompt generation, `python tools\claude_prompt_generator.py` is still usable but produces legacy-shaped output that needs extra care.
+2. Question generation/conversion: for general current-schema packs, use `python tools\claude_prompt_generator.py` or its CLI options to create a schemaVersion 2 prompt. For CS papers that need small grouped prompts, review, and merge, use `python tools\cs_block_prompt_generator.py`. Use `python tools\cs_extractor_to_preview_schema.py input.json output.json` only after reviewed CS extractor output needs conversion to schemaVersion 2.
 3. Image extraction/handling if needed: use `python tools\pdf_image_extractor.py` only when a reviewed output includes `====IMAGES====` entries and real PDF crops are required.
 4. Review generated extraction output: use `python tools\cs_extraction_review.py path\to\output.json` or the review menu inside `cs_block_prompt_generator.py`.
-5. Convert to current preview schema when needed: use `python tools\cs_extractor_to_preview_schema.py input.json output.json`.
-6. Schema validation: run `python tools\validate_questions.py path\to\pack.json`; optionally add `--images-root .` when local image existence should be checked.
-7. Quiz manager dry-run: run `python tools\quiz_manager.py --import-json path\to\pack.json --subject <module> --bucket <bucket>` and read the preview.
-8. Manual review: verify IDs, destination bucket, units/years, overrides, warnings, and files that would change. If the pack has pack-level `stimuli` or `images`, keep it as a reviewed pack under `content/question-packs/` for the future pack-aware adapter; do not force live apply.
-9. Explicit apply: only for live-approved, live-compatible packs, rerun with `--apply` or confirm from interactive mode.
-10. App smoke test: open the app, load the affected module/mode, check question display, answer behavior, results/review, images, and persistence.
+5. Schema validation: run `python tools\validate_questions.py path\to\pack.json`; optionally add `--images-root .` when local image existence should be checked.
+6. Quiz manager dry-run: run `python tools\quiz_manager.py --import-json path\to\pack.json --subject <module> --bucket <bucket>` and read the preview.
+7. Manual review: verify IDs, destination bucket, units/years, overrides, warnings, and files that would change. If the pack has pack-level `stimuli` or `images`, keep it as a reviewed pack under `content/question-packs/` for the future pack-aware adapter; do not force live apply.
+8. Explicit apply: only for live-approved, live-compatible packs, rerun with `--apply` or confirm from interactive mode.
+9. App smoke test: open the app, load the affected module/mode, check question display, answer behavior, results/review, images, and persistence.
 
 Stage 7.0 does not import CS. Do not create `subject_data/cs.js` during this workflow.
 
@@ -342,12 +356,12 @@ Stage 7.0 does not import CS. Do not create `subject_data/cs.js` during this wor
 - `tools/pdf_image_extractor.py`: writes cropped image files into project image folders and writes updated JSON output. Existing filenames can be overwritten by crop saves.
 - `tools/cs_extractor_to_preview_schema.py`: writes the explicit output path immediately; it can overwrite an existing preview pack without asking.
 - `tools/cs_block_prompt_generator.py`: writes prompt files, prompt index/plan files, and merged JSON; it can also launch the image cropper.
-- `tools/claude_prompt_generator.py`: operates on an older flat-question schema and may launch the image extractor. Do not treat its raw JSON-array output as current-schema import-ready data.
+- `tools/claude_prompt_generator.py`: default output is only a prompt and is safe, but `--output --overwrite` can replace an existing prompt file. Its explicit `--legacy` mode asks for old flat JSON arrays, so do not treat legacy-mode output as current-schema import-ready data. Its schemaVersion 2 prompts may allow pack-level `stimuli`/`images`; those packs are valid for review but are refused by `quiz_manager.py` live apply until pack-aware storage exists.
 
 ## Overlapping Tools
 
 - `validate_questions.py`, `cs_extraction_review.py`, and `registry_check.py` all check correctness, but at different layers. Normally use `validate_questions.py` for schema packs, `cs_extraction_review.py` for CS extractor output quality before conversion, and `registry_check.py` for curriculum/subject metadata.
 - `quiz_manager.py`, `export_legacy_subjects.py`, and `cs_extractor_to_preview_schema.py` all move question data between formats. Normally use `quiz_manager.py` for live-compatible preview/apply, `export_legacy_subjects.py` for exporting existing live chunks to packs, and `cs_extractor_to_preview_schema.py` for converting reviewed CS extractor JSON into preview schema packs.
-- `cs_block_prompt_generator.py` and `claude_prompt_generator.py` both generate Claude prompts. Use `cs_block_prompt_generator.py` for CS/block-schema extraction. Use `claude_prompt_generator.py` only for legacy flat MCQ workflows.
+- `cs_block_prompt_generator.py` and `claude_prompt_generator.py` both generate Claude prompts. Normally use `claude_prompt_generator.py` for universal schemaVersion 2 pack prompts across modules. Use `cs_block_prompt_generator.py` when a CS paper needs grouped prompt files, CS-specific review, merge, and optional image-crop workflow. `claude_prompt_generator.py --legacy` is still useful only for older flat MCQ workflows and is not the recommended path.
 - `cs_block_prompt_generator.py` and `cs_extraction_review.py` both review CS outputs. The menu tool is convenient for the guided workflow; the standalone review script is better for direct file/folder review and repeatable checks.
-- `pdf_image_extractor.py` can be launched by both prompt generators, but it is still the same cropper. Run it directly when you need more control over input paths.
+- `pdf_image_extractor.py` can be launched by `cs_block_prompt_generator.py`, but it is still the same cropper. Run it directly when universal prompts or non-CS packs need image handling.
