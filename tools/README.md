@@ -187,16 +187,16 @@ Current compatibility: Defaults to schemaVersion 2 pack instructions compatible 
 
 Status: Active
 Purpose: Main CS extraction workflow menu. Its default path creates one compact paper package, supports grouped JSON review/merge, shows workflow help, and launches image cropping.
-When to use: Use before CS source extraction or review. Create one output folder per paper, upload its `CS_EXTRACTION_MASTER.md` once to the AI project, then attach the actual PDF/pages with individual compact chunk JSON files.
-Inputs: New-package paper identity, source/answer filenames only, multiline `questions | chunk_type | PDF pages | note` groups, or an existing valid package folder. Review/merge inputs remain unchanged.
+When to use: Use before CS source extraction or review. For a new package, provide the source PDF path, batch number, and paper year; the tool derives the CS1033 identity and creates `AI exports/cs_packages/<batch>_Batch_<year>` only when that folder does not already exist.
+Inputs: A full source PDF path, inferred-or-overridden batch/year values, multiline `questions | chunk_type | PDF pages | note` groups, reviewed group JSON files, and merge paths. Review/merge inputs remain unchanged.
 Outputs: `CS_EXTRACTION_MASTER.md`, `prompt_plan.json`, and `chunks/*.json` for the default package workflow; merged JSON with optional image manifest and console review summaries for existing menu actions. Legacy standalone Markdown prompts remain option 7 only.
-Files it may modify: A selected new or valid package folder, user-selected merged JSON output, and legacy prompt output only when option 7 is selected. It can launch `pdf_image_extractor.py`, which writes images and updated JSON.
+Files it may modify: One newly derived package folder after confirmation, user-selected merged JSON output, and legacy prompt output only when option 7 is selected. An existing derived package folder is refused without changes. It can launch `pdf_image_extractor.py`, which writes images and updated JSON.
 Safety: Writes files after confirmation
 Command: `python tools\cs_block_prompt_generator.py`
 Important options: `--help`; interactive choices 0-7. Option 1 is the default extraction-package workflow. Option 7 is explicitly labelled legacy standalone Markdown generation.
 Dependencies: Python standard library; optional `fitz`/PyMuPDF for legacy best-effort PDF text extraction; imports `cs_extraction_review.py`.
 Related/overlapping tools: Wraps review behavior from `cs_extraction_review.py`; launches `pdf_image_extractor.py`; output can later be converted by `cs_extractor_to_preview_schema.py`.
-Current compatibility: Package chunks use only `single_choice` answers and existing extractor-compatible content formats. The master grows additively with marked sections, chunks never include parsed source text or local paths, and `prompt_plan.json` is tracking-only. Existing masters, statuses, legacy plans, old prompts, and chunks are preserved; legacy folders are never migrated in place. The original PDF/pages remain the source of truth.
+Current compatibility: Package chunks use only `single_choice` answers and existing extractor-compatible content formats. The master records only the source filename, derived CS1033 identity, physical one-based PDF-page convention, and one concise JSON/defect example; chunks never include parsed source text, local paths, or paper metadata. The master grows additively with marked sections and `prompt_plan.json` is tracking-only. The original PDF/pages remain the source of truth.
 
 ### cs_extraction_review.py
 
@@ -338,7 +338,7 @@ Current compatibility: Authoritative schemaVersion 2 validator for current tooli
 Use this sequence for the safest current content path:
 
 1. Source material: collect the PDF, marking scheme, source pages, and any page images/crops needed for review.
-2. Question generation/conversion: for general current-schema packs, use `python tools\claude_prompt_generator.py` or its CLI options to create a schemaVersion 2 prompt. For CS papers, use `python tools\cs_block_prompt_generator.py` option 1 to create one package folder per paper. Upload `CS_EXTRACTION_MASTER.md` once, supply the source PDF/pages with each compact chunk JSON, and use multiline group paste; `back`/`undo` reverses one immediate in-memory action, including blank termination. Use `python tools\cs_extractor_to_preview_schema.py input.json output.json` only after reviewed CS extractor output needs conversion to schemaVersion 2.
+2. Question generation/conversion: for general current-schema packs, use `python tools\claude_prompt_generator.py` or its CLI options to create a schemaVersion 2 prompt. For CS papers, use `python tools\cs_block_prompt_generator.py` option 1 and provide the source PDF path, batch, and paper year. The tool derives one new `AI exports/cs_packages/<batch>_Batch_<year>` folder, uploads `CS_EXTRACTION_MASTER.md` once, and uses compact chunks with the source PDF/pages. Multiline paste and one-step `back`/`undo` remain available. Use `python tools\cs_extractor_to_preview_schema.py input.json output.json` only after reviewed CS extractor output needs conversion to schemaVersion 2.
 3. Image extraction/handling if needed: use `python tools\pdf_image_extractor.py` only when a reviewed output includes `====IMAGES====` entries and real PDF crops are required.
 4. Review generated extraction output: use `python tools\cs_extraction_review.py path\to\output.json` or the review menu inside `cs_block_prompt_generator.py`.
 5. Schema validation: run `python tools\validate_questions.py path\to\pack.json`; optionally add `--images-root .` when local image existence should be checked.
@@ -355,7 +355,7 @@ Stage 7.0 does not import CS. Do not create `subject_data/cs.js` during this wor
 - `tools/export_legacy_subjects.py`: writes or overwrites exported packs under `content/question-packs` by default. Use a separate `--out-dir` for experiments.
 - `tools/pdf_image_extractor.py`: writes cropped image files into project image folders and writes updated JSON output. Existing filenames can be overwritten by crop saves.
 - `tools/cs_extractor_to_preview_schema.py`: writes the explicit output path immediately; it can overwrite an existing preview pack without asking.
-- `tools/cs_block_prompt_generator.py`: option 1 creates or additively updates a paper package after confirmation; it preserves valid existing package content, but option 7 can still write legacy standalone prompt files. It can also write merged JSON and launch the image cropper.
+- `tools/cs_block_prompt_generator.py`: option 1 creates one new derived CS package folder after confirmation and refuses an existing derived folder without overwriting it; option 7 can still write legacy standalone prompt files. It can also write merged JSON and launch the image cropper.
 - `tools/claude_prompt_generator.py`: default output is only a prompt and is safe, but `--output --overwrite` can replace an existing prompt file. Its explicit `--legacy` mode asks for old flat JSON arrays, so do not treat legacy-mode output as current-schema import-ready data. Its schemaVersion 2 prompts may allow pack-level `stimuli`/`images`; those packs are valid for review but are refused by `quiz_manager.py` live apply until pack-aware storage exists.
 
 ## Overlapping Tools

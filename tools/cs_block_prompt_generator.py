@@ -59,6 +59,7 @@ except ImportError:  # pragma: no cover - useful only if imported as a package
 DEFAULT_MODULE = "CS1033 Programming Fundamentals"
 DEFAULT_YEAR = "2024"
 SCRIPT_DIR = Path(__file__).resolve().parent
+DEFAULT_PACKAGE_ROOT = Path("AI exports") / "cs_packages"
 SUPPORTED_GROUP_TYPES = {
     "normal",
     "normal_code",
@@ -194,10 +195,7 @@ class PaperSpec:
     id_prefix: str
     source_pdf_filename: str
     answer_source_filename: str = ""
-    page_number_convention: str = (
-        "PDF page = physical one-based PDF page; Printed page = number printed in "
-        "the paper; Answer page = physical one-based marking-scheme page."
-    )
+    page_number_convention: str = "physical one-based PDF pages"
 
     def identity(self) -> dict[str, str]:
         return {
@@ -355,16 +353,8 @@ class PackageUpdate:
 MASTER_SECTIONS: dict[str, MasterSection] = {
     "base": MasterSection(
         "base", "1",
-        "## Universal Extraction Contract\n\n"
-        "The attached PDF pages are the source of truth. Preserve wording, option order, "
-        "code, tables, figures, and numerical values. Do not invent unreadable content or "
-        "unsupported answers. Output JSON only, with zero-based answer indexes. Put unresolved "
-        "items in `defects`. Include source paper, PDF page, and question number metadata. Do not "
-        "introduce raw HTML blocks.\n\n"
-        "Use this extractor envelope:\n\n"
-        "```json\n{\n  \"questions\": [],\n  \"defects\": []\n}\n```\n\n"
-        "Each valid question uses only `id`, `year`, `source.paper`, `source.page`, "
-        "`source.questionNumber`, `blocks`, `opts`, `ans`, and `explanationBlocks`."
+        "## Universal Extraction Contract\n\nPaper-specific examples are generated when this "
+        "section is first added."
     ),
     "defects": MasterSection(
         "defects", "1",
@@ -556,7 +546,10 @@ def render_master_section(section: MasterSection) -> str:
     )
 
 
-def inspect_master_sections(text: str) -> tuple[dict[str, tuple[str, str]], list[str], list[str]]:
+def inspect_master_sections(
+    text: str,
+    paper: PaperSpec | None = None,
+) -> tuple[dict[str, tuple[str, str]], list[str], list[str]]:
     """Return marker bodies, hard errors, and manual-edit warnings."""
     events: list[tuple[int, str, re.Match[str]]] = []
     events.extend((match.start(), "start", match) for match in SECTION_START_RE.finditer(text))
@@ -593,7 +586,7 @@ def inspect_master_sections(text: str) -> tuple[dict[str, tuple[str, str]], list
         errors.append(f"missing end marker for generated section {open_section[0]!r}")
 
     for key, (version, body) in found.items():
-        known = MASTER_SECTIONS.get(key)
+        known = master_section_for(key, paper) if paper is not None and key in MASTER_SECTIONS else MASTER_SECTIONS.get(key)
         if known is None:
             errors.append(f"unknown generated section {key!r}")
             continue
@@ -621,6 +614,7 @@ def build_master_header(paper: PaperSpec) -> str:
         - Paper title: {paper.paper_title}
         - Year/batch: {paper.year_batch}
         - Question ID prefix: {paper.id_prefix}
+        - ID format: {paper.id_prefix}_Q<number>
         - Source PDF filename: {paper.source_pdf_filename}
         - Answer/marking-scheme filename: {answer_line}
         - Page-number convention: {paper.page_number_convention}
@@ -656,6 +650,97 @@ def validate_filename(filename: str, label: str) -> str:
     if clean != filename.strip().strip('"').strip("'"):
         raise ValueError(f"{label} must be a filename, not a local path")
     return clean
+
+
+def validate_source_pdf_path(raw: str) -> Path:
+    path = Path(raw.strip().strip('"').strip("'")).expanduser()
+    if not path.is_file():
+        raise ValueError(f"source PDF was not found: {path}")
+    if path.suffix.lower() != ".pdf":
+        raise ValueError("source file must be a PDF")
+    return path
+
+
+def infer_batch_year_from_filename(filename: str) -> tuple[str, str]:
+    stem = Path(filename).stem
+    match = re.search(r"(?i)(\d{1,3})\s*batch\s*\(?\s*(20\d{2})\s*\)?", stem)
+    if not match:
+        return "", ""
+    return match.group(1), match.group(2)
+
+
+def validate_batch(raw: str) -> str:
+    value = raw.strip()
+    if not re.fullmatch(r"\d{1,3}", value) or int(value) <= 0:
+        raise ValueError("batch number must be a positive number")
+    return value
+
+
+def validate_paper_year(raw: str) -> str:
+    value = raw.strip()
+    if not re.fullmatch(r"20\d{2}", value):
+        raise ValueError("paper year must be a four-digit year")
+    return value
+
+
+def derived_paper_spec(source_pdf: Path, batch: str, paper_year: str) -> PaperSpec:
+    return PaperSpec(
+        module_name=DEFAULT_MODULE,
+        paper_title=f"{batch} Batch ({paper_year})",
+        year_batch=paper_year,
+        id_prefix=f"cs1033_{paper_year}",
+        source_pdf_filename=source_pdf.name,
+        page_number_convention="physical one-based PDF pages",
+    )
+
+
+def build_base_section(paper: PaperSpec) -> MasterSection:
+    example = {
+        "questions": [{
+            "id": f"{paper.id_prefix}_Q1",
+            "year": paper.year_batch,
+            "source": {
+                "paper": paper.paper_title,
+                "page": 1,
+                "questionNumber": 1,
+            },
+            "blocks": [{"type": "text", "text": "Example question text."}],
+            "opts": ["Option A", "Option B", "Option C", "Option D", "Option E"],
+            "ans": 0,
+            "explanationBlocks": [{"type": "text", "text": "Option A is correct."}],
+        }],
+        "defects": [{
+            "questionNumber": 2,
+            "source": {"paper": paper.paper_title, "page": 1, "questionNumber": 2},
+            "reason": "Unreadable source content.",
+        }],
+    }
+    return MasterSection(
+        "base",
+        "1",
+        "## Universal Extraction Contract\n\n"
+        "The attached PDF/pages are the source of truth. Preserve wording, option order, code, "
+        "tables, figures, and numerical values. Do not invent unreadable content or unsupported "
+        "answers. Output JSON only. Do not introduce raw HTML blocks.\n\n"
+        f"ID format: `{paper.id_prefix}_Q<number>`\n\n"
+        "`ans` is a zero-based index into `opts`. `source.page` is the physical one-based PDF page. "
+        "Put unresolved items in `defects`. Each valid question uses only `id`, `year`, "
+        "`source.paper`, `source.page`, `source.questionNumber`, `blocks`, `opts`, `ans`, and "
+        "`explanationBlocks`.\n\n"
+        "```json\n"
+        + json.dumps(example, indent=2, ensure_ascii=False)
+        + "\n```"
+    )
+
+
+def master_section_for(key: str, paper: PaperSpec) -> MasterSection:
+    if key == "base":
+        return build_base_section(paper)
+    return MASTER_SECTIONS[key]
+
+
+def package_folder_for(batch: str, paper_year: str, root: Path | None = None) -> Path:
+    return (root or DEFAULT_PACKAGE_ROOT) / f"{batch}_Batch_{paper_year}"
 
 
 def contains_local_path(value: str) -> bool:
@@ -843,14 +928,14 @@ def validate_chunk_payload(payload: dict[str, Any]) -> list[str]:
 
 
 def build_updated_master(existing_text: str, paper: PaperSpec, groups: list[ChunkSpec]) -> tuple[str, list[str]]:
-    found, errors, warnings = inspect_master_sections(existing_text) if existing_text else ({}, [], [])
+    found, errors, warnings = inspect_master_sections(existing_text, paper) if existing_text else ({}, [], [])
     if errors:
         raise ValueError("; ".join(errors))
     required: list[str] = []
     for group in groups:
         required.extend(required_master_sections(group))
     missing = [key for key in dict.fromkeys(required) if key not in found]
-    additions = "\n\n".join(render_master_section(MASTER_SECTIONS[key]) for key in missing)
+    additions = "\n\n".join(render_master_section(master_section_for(key, paper)) for key in missing)
     if not existing_text:
         text = build_master_header(paper)
         if additions:
@@ -1049,60 +1134,54 @@ def is_exit_command(raw: str) -> bool:
     return raw.strip().lower() in {"exit", "cancel"}
 
 
-def collect_new_paper_details() -> PaperSpec | None:
+def collect_new_paper_details() -> tuple[PaperSpec, str] | None:
     print()
     print("New CS extraction package")
     print("Type back or undo to revise the previous field. Type exit or cancel to return to the menu.")
-    fields = [
-        ("module_name", "Module name", DEFAULT_MODULE),
-        ("paper_title", "Paper title", ""),
-        ("year_batch", "Year or batch", DEFAULT_YEAR),
-        ("id_prefix", "Question ID prefix", ""),
-        ("source_pdf_filename", "Source PDF filename", ""),
-        ("answer_source_filename", "Answer or marking-scheme filename, optional", ""),
-        (
-            "page_number_convention",
-            "Page-number convention",
-            PaperSpec.page_number_convention,
-        ),
-    ]
-    values: dict[str, str] = {}
-    index = 0
-    while index < len(fields):
-        key, label, default = fields[index]
+    source_pdf: Path | None = None
+    batch = ""
+    paper_year = ""
+    inferred_batch = ""
+    inferred_year = ""
+    step = 0
+    while step < 3:
+        if step == 0:
+            label, default = "Source PDF path", ""
+        elif step == 1:
+            label, default = "Batch number", inferred_batch
+        else:
+            label, default = "Paper year", inferred_year or DEFAULT_YEAR
         suffix = f" [{default}]" if default else ""
         raw = input(f"{label}{suffix}: ").strip()
         if is_exit_command(raw):
             return None
         if is_back_command(raw):
-            if index == 0:
-                print("Already at the first paper field.")
+            if step == 0:
+                print("Already at the first setup field.")
+            elif step == 1:
+                step = 0
+                source_pdf = None
+                inferred_batch = ""
+                inferred_year = ""
             else:
-                index -= 1
-                values.pop(fields[index][0], None)
+                step = 1
+                batch = ""
             continue
         value = raw or default
-        if key == "source_pdf_filename" and not value:
-            print("Source PDF filename is required.")
-            continue
         try:
-            if key in {"source_pdf_filename", "answer_source_filename"} and value:
-                value = validate_filename(value, label)
+            if step == 0:
+                source_pdf = validate_source_pdf_path(value)
+                inferred_batch, inferred_year = infer_batch_year_from_filename(source_pdf.name)
+            elif step == 1:
+                batch = validate_batch(value)
+            else:
+                paper_year = validate_paper_year(value)
         except ValueError as exc:
             print(exc)
             continue
-        if key != "answer_source_filename" and not value:
-            print(f"{label} is required.")
-            continue
-        values[key] = value
-        index += 1
-    paper = PaperSpec(**values)
-    try:
-        validate_paper(paper)
-    except ValueError as exc:
-        print(f"Invalid paper details: {exc}")
-        return None
-    return paper
+        step += 1
+    assert source_pdf is not None
+    return derived_paper_spec(source_pdf, batch, paper_year), batch
 
 
 def print_group_entry_instructions() -> None:
@@ -1271,27 +1350,14 @@ def ask_package_generation_confirmation(session: PackageSession) -> bool | None:
 def generate_extraction_package() -> int:
     print("CS Extraction Package Generator")
     print("Creates one compact package folder for one paper. PDF pages remain the AI source of truth.")
-    output_default = str(Path("..") / "AI exports" / "cs_packages" / "new_paper")
-    raw_output = input(f"Output package folder [{output_default}]: ").strip()
-    if is_exit_command(raw_output):
+    setup = collect_new_paper_details()
+    if setup is None:
         return 0
-    output_dir = normalize_path(raw_output or output_default)
-    try:
-        is_new, existing_paper, existing_master, existing_plan = package_state(output_dir)
-    except ValueError as exc:
-        print(f"Cannot use output folder: {exc}")
+    paper, batch = setup
+    output_dir = package_folder_for(batch, paper.year_batch)
+    if output_dir.exists():
+        print(f"Package folder already exists and was not changed: {output_dir}")
         return 1
-
-    if is_new:
-        paper = collect_new_paper_details()
-        if paper is None:
-            return 0
-    else:
-        assert existing_paper is not None
-        paper = existing_paper
-        print()
-        print(f"Reusing existing package for: {paper.paper_title} ({paper.year_batch})")
-        print(f"Source PDF filename: {paper.source_pdf_filename}")
 
     session = PackageSession(paper=paper, groups=[], history=[])
     while True:
@@ -1319,9 +1385,7 @@ def generate_extraction_package() -> int:
             output_dir,
             paper,
             session.groups,
-            is_new_package=is_new,
-            existing_master=existing_master,
-            existing_plan=existing_plan,
+            is_new_package=True,
         )
         for warning in update.warnings:
             print(f"Warning: {warning}")

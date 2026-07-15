@@ -71,6 +71,27 @@ class PackageCreationTests(unittest.TestCase):
                 ["base", "chunk-normal", "text-block", "single-choice-answer", "defects"],
             )
 
+    def test_derived_master_has_paper_specific_question_and_defect_examples(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            source = Path(temp) / "25 Batch (2024).pdf"
+            source.write_bytes(b"%PDF-test")
+            spec = generator.derived_paper_spec(source, "25", "2024")
+            root = Path(temp) / "paper"
+            update = generator.prepare_package_update(root, spec, [group("1 | normal | page 3 | text")], is_new_package=True)
+            generator.commit_package_update(update)
+            master = (root / generator.MASTER_FILENAME).read_text(encoding="utf-8")
+            chunk = next((root / generator.CHUNKS_DIRNAME).glob("*.json")).read_text(encoding="utf-8")
+            self.assertIn("ID format: cs1033_2024_Q<number>", master)
+            self.assertIn('"id": "cs1033_2024_Q1"', master)
+            self.assertIn('"paper": "25 Batch (2024)"', master)
+            self.assertIn('"year": "2024"', master)
+            self.assertIn('"reason": "Unreadable source content."', master)
+            self.assertIn("physical one-based PDF page", master)
+            self.assertIn(source.name, master)
+            self.assertNotIn(str(source), master)
+            self.assertNotIn("25 Batch (2024)", chunk)
+            self.assertNotIn("cs1033_2024_Q1", chunk)
+
     def test_all_supported_chunk_types_have_known_sections(self) -> None:
         for index, chunk_type in enumerate(sorted(generator.SUPPORTED_GROUP_TYPES), start=1):
             with self.subTest(chunk_type=chunk_type):
@@ -250,6 +271,38 @@ class ExistingPackageProtectionTests(unittest.TestCase):
 
 
 class ParsingAndUndoTests(unittest.TestCase):
+    def test_source_setup_derives_and_overrides_paper_identity(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            source = Path(temp) / "24 Batch(2025).pdf"
+            source.write_bytes(b"%PDF-test")
+            self.assertEqual(generator.validate_source_pdf_path(str(source)), source)
+            self.assertEqual(generator.infer_batch_year_from_filename(source.name), ("24", "2025"))
+            spec = generator.derived_paper_spec(source, "25", "2024")
+            self.assertEqual(spec.module_name, "CS1033 Programming Fundamentals")
+            self.assertEqual(spec.paper_title, "25 Batch (2024)")
+            self.assertEqual(spec.year_batch, "2024")
+            self.assertEqual(spec.id_prefix, "cs1033_2024")
+            self.assertEqual(spec.source_pdf_filename, "24 Batch(2025).pdf")
+            self.assertEqual(spec.page_number_convention, "physical one-based PDF pages")
+            self.assertEqual(
+                generator.package_folder_for("25", "2024", Path(temp) / "packages"),
+                Path(temp) / "packages" / "25_Batch_2024",
+            )
+
+            with patch("builtins.input", side_effect=[str(source), "", ""]):
+                inferred = generator.collect_new_paper_details()
+            self.assertIsNotNone(inferred)
+            inferred_spec, inferred_batch = inferred
+            self.assertEqual(inferred_batch, "24")
+            self.assertEqual(inferred_spec.paper_title, "24 Batch (2025)")
+
+            with patch("builtins.input", side_effect=[str(source), "25", "2024"]):
+                overridden = generator.collect_new_paper_details()
+            self.assertIsNotNone(overridden)
+            overridden_spec, overridden_batch = overridden
+            self.assertEqual(overridden_batch, "25")
+            self.assertEqual(overridden_spec.paper_title, "25 Batch (2024)")
+
     def test_multiline_variations_and_aggregate_errors(self) -> None:
         text = "  Q1-Q4 | normal | page 3 | first\r\n5\u20136 | normal_code | pages 4-5 | second\n7 | shared-cod | 6 | typo\n8 | normal | no pages | bad"
         groups, issues = generator.parse_group_block(text)
@@ -293,9 +346,12 @@ class ParsingAndUndoTests(unittest.TestCase):
 class InteractiveSmokeTests(unittest.TestCase):
     def test_multiline_back_blank_undo_and_default_yes(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
-            root = Path(temp) / "paper"
+            source = Path(temp) / "24 Batch(2025).pdf"
+            source.write_bytes(b"%PDF-test")
+            packages_root = Path(temp) / "packages"
+            root = packages_root / "25_Batch_2024"
             answers = [
-                str(root), "", "Smoke Paper", "", "cs_smoke", "smoke.pdf", "", "",
+                str(source), "25", "2024",
                 "1 | normal | page 3 | first",
                 "2 | normal_code | page 4 | second",
                 "3 | shared_code | page 5 | third",
@@ -308,13 +364,45 @@ class InteractiveSmokeTests(unittest.TestCase):
                 "",
             ]
             output = io.StringIO()
-            with patch("builtins.input", side_effect=answers), contextlib.redirect_stdout(output):
+            with patch.object(generator, "DEFAULT_PACKAGE_ROOT", packages_root), patch("builtins.input", side_effect=answers), contextlib.redirect_stdout(output):
                 self.assertEqual(generator.generate_extraction_package(), 0)
             plan = json.loads((root / generator.PLAN_FILENAME).read_text(encoding="utf-8"))
             self.assertEqual(len(plan["chunks"]), 3)
             self.assertTrue(all(entry["status"] == "pending" for entry in plan["chunks"]))
             self.assertIn("Group entry reopened.", output.getvalue())
             self.assertIn("Prepared CS extraction package", output.getvalue())
+
+    def test_setup_prompts_are_limited_and_existing_folder_is_protected(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            source = Path(temp) / "24 Batch(2025).pdf"
+            source.write_bytes(b"%PDF-test")
+            packages_root = Path(temp) / "packages"
+            prompts: list[str] = []
+            answers = iter([
+                str(source), "25", "2024",
+                "1 | normal | page 3 | first", "", "accept", "n",
+            ])
+
+            def fake_input(prompt: str) -> str:
+                prompts.append(prompt)
+                return next(answers)
+
+            with patch.object(generator, "DEFAULT_PACKAGE_ROOT", packages_root), patch("builtins.input", side_effect=fake_input):
+                self.assertEqual(generator.generate_extraction_package(), 0)
+            setup_prompts = "\n".join(prompts)
+            self.assertIn("Source PDF path", setup_prompts)
+            self.assertIn("Batch number", setup_prompts)
+            self.assertIn("Paper year", setup_prompts)
+            for removed in ("Module name", "Paper title", "ID prefix", "filename", "Page-number convention", "Output package folder"):
+                self.assertNotIn(removed, setup_prompts)
+
+            target = packages_root / "25_Batch_2024"
+            target.mkdir(parents=True)
+            sentinel = target / "keep.txt"
+            sentinel.write_text("unchanged", encoding="utf-8")
+            with patch.object(generator, "DEFAULT_PACKAGE_ROOT", packages_root), patch("builtins.input", side_effect=[str(source), "25", "2024"]):
+                self.assertEqual(generator.generate_extraction_package(), 1)
+            self.assertEqual(sentinel.read_text(encoding="utf-8"), "unchanged")
 
 
 if __name__ == "__main__":

@@ -14,7 +14,7 @@ Use `tools\pdf_image_extractor.py` only through the CS tool's image converter/cr
 
 1. Run `python tools\cs_block_prompt_generator.py`.
 2. Choose `Generate CS extraction package`.
-3. Select one new empty folder for the paper, then enter paper details once. Only source and answer filenames are stored in AI-facing files.
+3. Enter the source PDF path, batch number, and paper year. The tool derives the CS1033 identity and creates `AI exports/cs_packages/<batch>_Batch_<year>` only when it does not already exist.
 4. Paste all groups using `questions | chunk_type | PDF pages | note`.
 5. Press Enter on a blank line or type `done`, review the normalized summary, and confirm. `back` or `undo` reverses one immediate in-memory action; the first one after blank termination reopens group entry.
 6. The tool creates `CS_EXTRACTION_MASTER.md`, `prompt_plan.json`, and one compact JSON file per group under `chunks/`.
@@ -42,19 +42,15 @@ Do not ask Claude to convert the full 80-question paper at once.
 
 ## Generate CS Extraction Package
 
-Option 1 uses one output folder for one paper. For a new empty folder it asks for paper-level details once:
+Option 1 uses one derived folder for one paper. It asks only:
 
 ```text
-Module name:
-Paper title:
-Year or batch:
-ID prefix:
-Source PDF filename:
-Answer or marking-scheme filename, optional:
-Page-number convention:
+Source PDF path:
+Batch number:
+Paper year:
 ```
 
-For an existing valid package, it reuses the master identity without asking again. It refuses legacy `prompt_plan.json` folders rather than migrating them.
+For example, batch `25` and paper year `2024` derive `CS1033 Programming Fundamentals`, `25 Batch (2024)`, `cs1033_2024`, the source PDF filename, physical one-based PDF pages, and `AI exports/cs_packages/25_Batch_2024`. Filename patterns such as `24 Batch(2025).pdf` supply defaults that may be overridden. If the derived folder already exists, the tool stops without overwriting it.
 
 Then paste groups until a blank line or `done`:
 
@@ -113,7 +109,7 @@ Each package contains:
     001_Q001-Q004_shared_flowchart.json
 ```
 
-The master contains paper identity and only the extraction sections actually required by the package. It grows additively with stable markers and does not replace manual or existing generated content. Chunks contain only job-specific fields, always use `answerTypes: ["single_choice"]`, and never include local paths or parsed PDF text. `prompt_plan.json` tracks chunk IDs and statuses; it is not an AI instruction file.
+The master contains derived paper identity, the `cs1033_<year>_Q<number>` ID format, zero-based `ans`, physical one-based `source.page`, one concise complete question/defect example, and only the extraction sections actually required by the package. Chunks contain only job-specific fields, always use `answerTypes: ["single_choice"]`, and never include local paths, paper metadata, examples, or parsed PDF text. `prompt_plan.json` tracks chunk IDs and statuses; it is not an AI instruction file.
 
 The original PDF/pages are the source of truth for wording, layout, indentation, tables, flowcharts, and option text. Option 7 preserves the older standalone Markdown prompt workflow for legacy use only.
 
