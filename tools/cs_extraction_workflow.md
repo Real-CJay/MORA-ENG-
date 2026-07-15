@@ -13,51 +13,50 @@ Use `tools\pdf_image_extractor.py` only through the CS tool's image converter/cr
 ## Simple Workflow
 
 1. Run `python tools\cs_block_prompt_generator.py`.
-2. Choose `Generate grouped Claude prompts`.
-3. Enter paper details once.
-4. Enter all groups one by one using `range | type | pages | note`.
-5. Press Enter on a blank line.
-6. Confirm the summary.
-7. The tool writes all prompt files, `PROMPT_INDEX.md`, and `prompt_plan.json` at once.
-8. Paste each prompt into Claude with only the relevant page images.
-9. Save each Claude group output: question JSON first, then `====IMAGES====` if the group needs image crops.
-10. Run `python tools\cs_block_prompt_generator.py` again.
-11. Choose `Review a Claude group output JSON`.
-12. Choose `Merge reviewed group output JSON files into one full paper JSON`.
-13. Choose `Review a merged full paper JSON`.
-14. Choose `Open image converter/cropper` only if the paper has image blocks, then provide the PDF path when asked.
-15. Convert the reviewed/cropped extraction JSON to preview/schema v2.
-16. Preview manually before import.
+2. Choose `Generate CS extraction package`.
+3. Select one new empty folder for the paper, then enter paper details once. Only source and answer filenames are stored in AI-facing files.
+4. Paste all groups using `questions | chunk_type | PDF pages | note`.
+5. Press Enter on a blank line or type `done`, review the normalized summary, and confirm. `back` or `undo` reverses one immediate in-memory action; the first one after blank termination reopens group entry.
+6. The tool creates `CS_EXTRACTION_MASTER.md`, `prompt_plan.json`, and one compact JSON file per group under `chunks/`.
+7. Upload the master once to the ChatGPT or Claude Project. Attach the actual PDF/pages and the relevant chunk JSON for extraction.
+8. Save each AI group output: question JSON first, then `====IMAGES====` if the group needs image crops.
+9. Run `python tools\cs_block_prompt_generator.py` again to review and merge outputs.
+10. Choose `Open image converter/cropper` only if the paper has image blocks, then provide the PDF path when asked.
+11. Convert the reviewed/cropped extraction JSON to preview/schema v2.
+12. Preview manually before import.
 
 Do not ask Claude to convert the full 80-question paper at once.
 
 ## Menu Options
 
 ```text
-1. Generate grouped Claude prompts
+1. Generate CS extraction package
 2. Review a Claude group output JSON
 3. Merge reviewed group output JSON files into one full paper JSON
 4. Review a merged full paper JSON
 5. Show workflow/help
 6. Open image converter/cropper
+7. Generate legacy standalone Markdown prompts
 0. Exit
 ```
 
-## Generate Grouped Prompts
+## Generate CS Extraction Package
 
-Option 1 asks for paper-level details once:
+Option 1 uses one output folder for one paper. For a new empty folder it asks for paper-level details once:
 
 ```text
-PDF path:
-Paper name:
-Year:
 Module name:
+Paper title:
+Year or batch:
 ID prefix:
-Output prompt folder:
-Page image folder, optional:
+Source PDF filename:
+Answer or marking-scheme filename, optional:
+Page-number convention:
 ```
 
-Then enter groups until a blank line:
+For an existing valid package, it reuses the master identity without asking again. It refuses legacy `prompt_plan.json` folders rather than migrating them.
+
+Then paste groups until a blank line or `done`:
 
 ```text
 range | type | pages | note
@@ -89,33 +88,34 @@ image_question
 mixed
 ```
 
-If a group type is unknown, the tool warns and asks whether to continue using `mixed`.
+If a group type is unknown, the tool reports it and may suggest a close supported type, but never changes it automatically. All invalid pasted lines are shown together and valid groups remain available for correction.
 
 After the blank line, the tool shows a summary such as:
 
 ```text
-Group 1: Q1-Q4, shared_flowchart, pages 3-4, Fig. 1 flowchart
-Group 2: Q8-Q10, shared_code, pages 5-6, recursive Search(A, i, k)
+1. Q1-Q4
+   Type: shared_flowchart
+   PDF pages: 3-4
+   Note: Fig. 1 flowchart
 ```
 
-The tool writes files only after you confirm.
+The package-generation confirmation defaults to Yes. The tool writes nothing before confirmation.
 
-## Prompt Output Files
+## Package Output Files
 
-Prompt filenames use the group order, question range, and group type:
+Each package contains:
 
 ```text
-001_Q001-Q004_shared_flowchart.md
-002_Q008-Q010_shared_code.md
-003_Q011-Q020_normal_code.md
+<paper folder>/
+  CS_EXTRACTION_MASTER.md
+  prompt_plan.json
+  chunks/
+    001_Q001-Q004_shared_flowchart.json
 ```
 
-The output folder also contains:
+The master contains paper identity and only the extraction sections actually required by the package. It grows additively with stable markers and does not replace manual or existing generated content. Chunks contain only job-specific fields, always use `answerTypes: ["single_choice"]`, and never include local paths or parsed PDF text. `prompt_plan.json` tracks chunk IDs and statuses; it is not an AI instruction file.
 
-- `PROMPT_INDEX.md`, a human-readable list of paper details, prompt filenames, question ranges, group types, pages, notes, and what page images/PDF pages to attach to Claude.
-- `prompt_plan.json`, a reusable plan containing paper details and groups so it can be edited or reused later.
-
-Page images are the source of truth for layout, indentation, tables, flowcharts, shared figures, and option text. Parsed PDF text is only a helper.
+The original PDF/pages are the source of truth for wording, layout, indentation, tables, flowcharts, and option text. Option 7 preserves the older standalone Markdown prompt workflow for legacy use only.
 
 ## Review Group Output
 
