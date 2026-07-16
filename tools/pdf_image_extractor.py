@@ -215,6 +215,7 @@ def write_updated_payload(out_path: Path, payload, questions: list, entries: lis
     if entries:
         text += "\n\n====IMAGES====\n"
         text += format_images_block(entries)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(text, encoding="utf-8")
 
 
@@ -446,9 +447,10 @@ def update_json_img_paths(questions: list, entries: list, saved: dict) -> list:
 
 # ── Path constants ────────────────────────────────────────────────────────────
 
-AI_EXPORTS_FOLDER = Path(r"C:\Users\CJay\Documents\ACA\QUIZ APP\AI exports")
-JSON_FILES_FOLDER = Path(r"C:\Users\CJay\Documents\ACA\QUIZ APP\JSON files")
-QUIZ_ROOT         = Path(r"C:\Users\CJay\Documents\ACA\QUIZ APP\QUIZ")
+DEFAULT_INPUT_FOLDER = Path.cwd()
+REPO_ROOT = Path(__file__).resolve().parents[1]
+PACKAGE_MASTER_FILENAME = "CS_EXTRACTION_MASTER.md"
+PACKAGE_PLAN_FILENAME = "prompt_plan.json"
 
 
 def _resolve_export_path(raw: str) -> Path:
@@ -459,14 +461,42 @@ def _resolve_export_path(raw: str) -> Path:
     name = p.name if p.name else str(p)
     if not name.lower().endswith('.json'):
         name += '.json'
-    return AI_EXPORTS_FOLDER / name
+    return DEFAULT_INPUT_FOLDER / name
+
+
+def is_cs_package_folder(path: Path) -> bool:
+    return path.is_dir() and (path / PACKAGE_MASTER_FILENAME).is_file() and (path / PACKAGE_PLAN_FILENAME).is_file()
+
+
+def detect_cs_package_folder(path: Path | None) -> Path | None:
+    if path is None:
+        return None
+    candidate = path if path.is_dir() else path.parent
+    for parent in (candidate, *candidate.parents):
+        if is_cs_package_folder(parent):
+            return parent
+    return None
+
+
+def output_folder_defaults(txt_path: Path, package_folder: Path | None = None) -> tuple[Path, Path]:
+    package = detect_cs_package_folder(package_folder) or detect_cs_package_folder(txt_path)
+    if package is not None:
+        return package / "images", package / "JSON"
+    return txt_path.parent / "images", txt_path.parent / "JSON"
+
+
+def validate_output_folder(path: Path, label: str) -> Path:
+    candidate = path.expanduser()
+    if candidate.resolve() == REPO_ROOT.resolve():
+        raise ValueError(f"{label} output folder cannot be the repository root")
+    return candidate
 
 
 # ── Step functions ────────────────────────────────────────────────────────────
 
 def _step_txt_file() -> Path:
     section("Step 1 — Claude output file")
-    print(f"  Default folder: {AI_EXPORTS_FOLDER}")
+    print(f"  Default folder: {DEFAULT_INPUT_FOLDER}")
     print("  Type just the filename (no extension needed) or a full path.\n")
     while True:
         raw = ask("Claude output filename")
@@ -490,9 +520,34 @@ def _step_pdf_file() -> Path:
             err(f"File not found: {p}")
 
 
+def _step_package_folder(txt_path: Path) -> Path | None:
+    detected = detect_cs_package_folder(txt_path)
+    section("Step 2 - CS package folder")
+    print("  Press Enter to use the package detected from the selected JSON, or leave it blank for standalone output.\n")
+    while True:
+        raw = ask("CS package folder, optional", str(detected) if detected else "")
+        if not raw:
+            return detected
+        package = Path(raw.strip('"').strip("'"))
+        if is_cs_package_folder(package):
+            return package
+        err(f"Not a CS package folder: {package}")
+
+
+def _step_output_folder(label: str, default: Path) -> Path:
+    section(f"{label} output folder")
+    print("  The folder is created only after you confirm cropping.\n")
+    while True:
+        raw = ask(f"{label} output folder", str(default))
+        try:
+            return validate_output_folder(Path(raw.strip('"').strip("'")), label)
+        except ValueError as exc:
+            err(str(exc))
+
+
 # ── Core extraction ───────────────────────────────────────────────────────────
 
-def _run_extraction(txt_path: Path, pdf_path: Path, root_dir: Path):
+def _run_extraction(txt_path: Path, pdf_path: Path, image_root: Path, json_output_dir: Path):
     """Shared extraction logic used by run_extractor()."""
     section("Parsing Claude output")
     text = txt_path.read_text(encoding="utf-8", errors="replace")
@@ -511,6 +566,8 @@ def _run_extraction(txt_path: Path, pdf_path: Path, root_dir: Path):
 
     ok(f"Found {len(entries)} figure(s) to extract.")
     ok(f"Found {len(questions)} question(s) in JSON.")
+    print(f"  Images save to    : {image_root}")
+    print(f"  Output JSON saves : {json_output_dir}")
 
     print()
     for idx, e in enumerate(entries, 1):
@@ -560,8 +617,8 @@ def _run_extraction(txt_path: Path, pdf_path: Path, root_dir: Path):
             continue
 
         try:
-            dest = save_crop(crop, root_dir, entry)
-            rel  = str(dest.relative_to(root_dir)).replace("\\", "/")
+            dest = save_crop(crop, image_root, entry)
+            rel  = str(dest.relative_to(image_root)).replace("\\", "/")
             saved[entry["filename"]] = rel
             ok(f"Saved → {rel}")
         except Exception as exc:
@@ -571,7 +628,7 @@ def _run_extraction(txt_path: Path, pdf_path: Path, root_dir: Path):
     section("Writing output")
     if questions and saved:
         questions = update_json_img_paths(questions, entries, saved)
-        out_json  = JSON_FILES_FOLDER / txt_path.name
+        out_json  = json_output_dir / txt_path.name
         write_updated_payload(out_json, payload, questions, entries)
         ok(f"Saved → {out_json}")
     elif not questions:
@@ -594,13 +651,15 @@ def _run_extraction(txt_path: Path, pdf_path: Path, root_dir: Path):
 def run_extractor(txt_path: Path = None, pdf_path: Path = None):
     """Callable from claude_prompt_generator.py or run standalone."""
     banner("PDF Image Extractor")
-    print(f"  Images save to    : {QUIZ_ROOT}")
-    print(f"  Output JSON saves : {JSON_FILES_FOLDER}")
+    print("  Image and JSON output folders are selected after the source JSON.")
     print("  Type  back  to undo.  Type  exit  to quit.\n")
 
     STEPS = [
         ("txt_path", lambda R: _step_txt_file() if txt_path is None else txt_path),
+        ("package_folder", lambda R: _step_package_folder(R["txt_path"])),
         ("pdf_path", lambda R: _step_pdf_file() if pdf_path is None else pdf_path),
+        ("image_root", lambda R: _step_output_folder("Images", output_folder_defaults(R["txt_path"], R["package_folder"])[0])),
+        ("json_output_dir", lambda R: _step_output_folder("JSON", output_folder_defaults(R["txt_path"], R["package_folder"])[1])),
     ]
     R: dict = {}
     i = 0
@@ -618,16 +677,7 @@ def run_extractor(txt_path: Path = None, pdf_path: Path = None):
             else:
                 print("  Already at the first step.")
 
-    _run_extraction(R["txt_path"], R["pdf_path"], QUIZ_ROOT)
-
-
-if __name__ == "__main__":
-    try:
-        run_extractor()
-    except _Exit:
-        print("\n  Exiting. Goodbye!\n")
-    except KeyboardInterrupt:
-        print("\n\n  Interrupted. Goodbye!\n")
+    _run_extraction(R["txt_path"], R["pdf_path"], R["image_root"], R["json_output_dir"])
 
 
 def _step_pdf_file() -> Path:
@@ -779,11 +829,11 @@ def main():
     # ── Update JSON and write output ──────────────────────────────────────────
     section("Writing output")
 
-    JSON_FILES_FOLDER = Path(r"C:\Users\CJay\Documents\ACA\QUIZ APP\JSON files")
+    json_output_dir = root_dir / "JSON"
 
     if questions and saved:
         questions = update_json_img_paths(questions, entries, saved)
-        out_json  = JSON_FILES_FOLDER / txt_path.name
+        out_json  = json_output_dir / txt_path.name
         write_updated_payload(out_json, payload, questions, entries)
         ok(f"Saved → {out_json}")
     elif not questions:
@@ -804,7 +854,7 @@ def main():
 
 if __name__ == "__main__":
     try:
-        main()
+        run_extractor()
     except _Exit:
         print("\n  Exiting. Goodbye!\n")
     except KeyboardInterrupt:

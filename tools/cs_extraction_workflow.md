@@ -212,7 +212,7 @@ The tool writes the merged JSON only after you confirm. It does not modify input
 
 ## Image Converter/Cropper
 
-After merging and reviewing the full paper JSON, choose `Open image converter/cropper` from the CS tool if the paper has image blocks. Then provide the PDF path when the image tool asks for it.
+After merging and reviewing the full paper JSON, choose `Open image converter/cropper` from the CS tool if the paper has image blocks. Select the JSON inside the package's `JSON/` folder when available, then provide the PDF path. The cropper detects that package and defaults to its `images/` and `JSON/` folders; both destinations remain editable before cropping is confirmed.
 
 The CS tool launches the existing cropper:
 
@@ -220,7 +220,7 @@ The CS tool launches the existing cropper:
 python tools\pdf_image_extractor.py
 ```
 
-The cropper reads the JSON plus `====IMAGES====` manifest, creates each manifest `FOLDER`, saves each `FOLDER/FILENAME`, and updates matching image references from filename-only values to full relative paths such as:
+The cropper reads the JSON plus `====IMAGES====` manifest, creates output folders only after confirmation, saves crops below the selected image output folder, and writes updated JSON below the selected JSON output folder. For a CS package, those defaults are `<package>/images` and `<package>/JSON`.
 
 ```json
 { "type": "image", "img": "IMAGES/CS/Past Papers/23 Batch 2024/cs1033_2024_Q12_FIG1.png", "alt": "shared flowchart" }

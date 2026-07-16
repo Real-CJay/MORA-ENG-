@@ -248,9 +248,9 @@ Current compatibility: Current live chunks are JSON-compatible and export correc
 Status: Supporting
 Purpose: Reads Claude output plus `====IMAGES====`, crops figures from a source PDF using an OpenCV window, saves image files, and writes updated JSON with image paths.
 When to use: Use only when reviewed extraction output references figures that must be cropped from the original PDF.
-Inputs: Interactive Claude output file, original PDF path, project root path, and manual crop selections.
+Inputs: Interactive Claude output file, optional CS package folder detected from that JSON path, original PDF path, editable image/JSON output folders, and manual crop selections.
 Outputs: Cropped image files and updated JSON output with image references changed to saved relative paths.
-Files it may modify: Image files under the selected project root/folders from the manifest; JSON output under the configured JSON files folder.
+Files it may modify: Image files below the selected image output folder and JSON below the selected JSON output folder, only after cropping confirmation. A CS package defaults to `<package>/images` and `<package>/JSON`.
 Safety: Writes files after confirmation
 Command: `python tools\pdf_image_extractor.py`
 Important options: None; this is an interactive script.

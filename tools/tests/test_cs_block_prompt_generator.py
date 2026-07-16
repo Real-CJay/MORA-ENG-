@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import contextlib
+import importlib.util
 import io
 import json
 import os
@@ -16,6 +17,12 @@ if str(TOOLS_DIR) not in sys.path:
     sys.path.insert(0, str(TOOLS_DIR))
 
 import cs_block_prompt_generator as generator
+
+
+CROPPER_SPEC = importlib.util.spec_from_file_location("pdf_image_extractor", TOOLS_DIR / "pdf_image_extractor.py")
+assert CROPPER_SPEC is not None and CROPPER_SPEC.loader is not None
+cropper = importlib.util.module_from_spec(CROPPER_SPEC)
+CROPPER_SPEC.loader.exec_module(cropper)
 
 
 def paper() -> generator.PaperSpec:
@@ -341,6 +348,69 @@ class ParsingAndUndoTests(unittest.TestCase):
             with self.subTest(value=value):
                 with patch("builtins.input", return_value=value):
                     self.assertEqual(generator.ask_package_generation_confirmation(session), expected)
+
+
+class CropperOutputLocationTests(unittest.TestCase):
+    def create_cropper_package(self, root: Path) -> Path:
+        package = root / "24_Batch_2025"
+        package.mkdir()
+        (package / cropper.PACKAGE_MASTER_FILENAME).write_text("master", encoding="utf-8")
+        (package / cropper.PACKAGE_PLAN_FILENAME).write_text("{}", encoding="utf-8")
+        return package
+
+    def test_package_is_detected_from_json_path_and_selected_package_path(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            package = self.create_cropper_package(Path(temp))
+            json_path = package / "JSON" / "group.json"
+            self.assertEqual(cropper.detect_cs_package_folder(json_path), package)
+            self.assertEqual(cropper.detect_cs_package_folder(package), package)
+            images, output_json = cropper.output_folder_defaults(Path(temp) / "outside.json", package)
+            self.assertEqual(images, package / "images")
+            self.assertEqual(output_json, package / "JSON")
+
+    def test_package_defaults_use_images_and_json_subfolders(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            package = self.create_cropper_package(Path(temp))
+            json_path = package / "JSON" / "group.json"
+            images, output_json = cropper.output_folder_defaults(json_path)
+            self.assertEqual(images, package / "images")
+            self.assertEqual(output_json, package / "JSON")
+            self.assertFalse(images.exists())
+            self.assertFalse(output_json.exists())
+
+    def test_repo_root_is_rejected_and_unrelated_json_folder_is_not_a_default(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            repo_root = root / "repo"
+            unrelated = root / "JSON files"
+            with patch.object(cropper, "REPO_ROOT", repo_root):
+                with self.assertRaisesRegex(ValueError, "repository root"):
+                    cropper.validate_output_folder(repo_root, "Images")
+            images, output_json = cropper.output_folder_defaults(unrelated / "group.json")
+            self.assertEqual(images, unrelated / "images")
+            self.assertEqual(output_json, unrelated / "JSON")
+            self.assertNotEqual(output_json, unrelated)
+
+    def test_user_output_overrides_are_accepted_without_creating_folders(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            custom_images = Path(temp) / "custom-images"
+            custom_json = Path(temp) / "custom-json"
+            with patch("builtins.input", side_effect=[str(custom_images), str(custom_json)]), contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(cropper._step_output_folder("Images", Path(temp) / "images"), custom_images)
+                self.assertEqual(cropper._step_output_folder("JSON", Path(temp) / "JSON"), custom_json)
+            self.assertFalse(custom_images.exists())
+            self.assertFalse(custom_json.exists())
+
+    def test_exit_before_confirmation_writes_nothing(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            package = self.create_cropper_package(Path(temp))
+            json_path = package / "JSON" / "group.json"
+            pdf_path = package / "source.pdf"
+            with patch("builtins.input", side_effect=["exit"]), contextlib.redirect_stdout(io.StringIO()):
+                with self.assertRaises(cropper._Exit):
+                    cropper.run_extractor(txt_path=json_path, pdf_path=pdf_path)
+            self.assertFalse((package / "images").exists())
+            self.assertFalse((package / "JSON").exists())
 
 
 class InteractiveSmokeTests(unittest.TestCase):
