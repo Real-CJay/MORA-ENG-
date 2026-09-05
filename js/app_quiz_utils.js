@@ -12,13 +12,12 @@
 
   function shuffleQuestionOptions(q) {
     // Build an indexed list of options, shuffle them, update ans index
-    const correctText = q.opts[q.ans];
     const indices = q.opts.map((_,i) => i);
     // Fisher-Yates on indices
     for (let i=indices.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[indices[i],indices[j]]=[indices[j],indices[i]];}
     const newOpts = indices.map(i => q.opts[i]);
-    const newAns = newOpts.indexOf(correctText);
-    return {...q, opts: newOpts, ans: newAns};
+    const newAns = indices.indexOf(q.ans);
+    return {...q, opts: newOpts, ans: newAns, optionOrder: indices};
   }
 
   function formatTime(s) {

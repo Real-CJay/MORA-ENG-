@@ -48,6 +48,22 @@ let _dbPermissionWarned = false;
 let _authRefreshInFlight = null;
 let _authRefreshLastAttempt = 0;   // timestamp of last refreshSession call
 let _authStateSubscribed = false;
+let authGeneration = 0;
+let _passwordRecoveryActive = false;
+const _recoveryLinkParams = new URLSearchParams(location.hash.slice(1));
+
+function setAuthUser(user) {
+  if (authUser?.id !== user?.id) {
+    authGeneration++;
+    _passwordRecoveryActive = false;
+    userProfile = null;
+    _learningSnapshotCache = null;
+    _perfCache = {};
+    Object.keys(_flagsCache).forEach(key => delete _flagsCache[key]);
+    if (typeof answerHistory !== 'undefined') answerHistory = {};
+  }
+  authUser = user || null;
+}
 
 const _AUTH_REFRESH_COOLDOWN_MS = 30000; // never refresh more than once per 30 s
 
@@ -76,7 +92,7 @@ async function dbRefreshSessionForRetry() {
     _authRefreshInFlight = _sb.auth.refreshSession()
       .then(({ data, error }) => {
         if (error || !data?.session?.user) return false;
-        authUser = data.session.user;
+        setAuthUser(data.session.user);
         return true;
       })
       .catch(() => false)
@@ -96,11 +112,12 @@ async function dbRun(label, buildQuery) {
 
 async function loadUserProfile() {
   if (isGuest()) { userProfile = null; return; }
+  const generation = authGeneration, uid = getUserId();
   const { data } = await dbRun('loadUserProfile', () => _sb.from('user_profiles')
     .select('display_name, is_admin, avatar_color, avatar_bg, avatar_icon, avatar_style, avatar_url')
-    .eq('id', getUserId())
+    .eq('id', uid)
     .single());
-  userProfile = data || null;
+  if (generation === authGeneration) userProfile = data || null;
 }
 
 function refreshUserProfileInBackground(shouldRender = false) {
@@ -109,9 +126,11 @@ function refreshUserProfileInBackground(shouldRender = false) {
     if (shouldRender) renderAuthPill();
     return;
   }
+  const generation = authGeneration;
   loadUserProfile()
-    .catch(() => { userProfile = null; })
+    .catch(() => { if (generation === authGeneration) userProfile = null; })
     .finally(() => {
+      if (generation !== authGeneration) return;
       renderAuthPill();
       if (shouldRender && typeof renderApp === 'function') renderApp();
     });
@@ -121,11 +140,6 @@ function isAdmin() { return userProfile?.is_admin === true; }
 
 // Called once on page load N/A resolves current session
 async function initAuth() {
-  const { data: { session } } = await _sb.auth.getSession();
-  authUser = session?.user ?? null;
-  authReady = true;
-  refreshUserProfileInBackground(false);
-
   // Listen for sign-in / sign-out events.
   // INITIAL_SESSION fires on every page load for existing sessions N/A bootAuth already
   // handles the first render, so we must not trigger a second one here.
@@ -133,20 +147,45 @@ async function initAuth() {
   if (!_authStateSubscribed) {
     _authStateSubscribed = true;
     _sb.auth.onAuthStateChange((event, session) => {
-      authUser = session?.user ?? null;
+      setAuthUser(session?.user);
+      const generation = authGeneration;
       const needsRender = event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'USER_UPDATED';
-      refreshUserProfileInBackground(needsRender);
+      // Do not await Supabase calls inside its auth-state callback/lock.
+      setTimeout(() => {
+        if (generation !== authGeneration) return;
+        refreshUserProfileInBackground(needsRender);
+        if (needsRender && typeof loadCurrentSubjectHistory === 'function') {
+          loadCurrentSubjectHistory().catch(() => {});
+        }
+        if (event === 'PASSWORD_RECOVERY') {
+          _passwordRecoveryActive = !!session?.user;
+          showAuthModal('recovery');
+        }
+        window.dispatchEvent(new Event('mora-auth-ready'));
+      }, 0);
     });
   }
+  const { data: { session } } = await _sb.auth.getSession();
+  setAuthUser(session?.user);
+  authReady = true;
+  refreshUserProfileInBackground(false);
+  if (_recoveryLinkParams.has('error')) {
+    showAuthModal('reset');
+    _setAuthError('This link is invalid or expired. Request a new password reset link.');
+  } else if (_recoveryLinkParams.get('type') === 'recovery' && !session) {
+    showAuthModal('reset');
+    _setAuthError('This recovery link could not be verified. Request a new link.');
+  }
+  window.dispatchEvent(new Event('mora-auth-ready'));
 }
 
 function isGuest()    { return authUser === null; }
 function isLoggedIn() { return authUser !== null; }
 function getUserId()  { return authUser?.id ?? null; }
 function getDisplayName() {
-  return authUser?.user_metadata?.display_name
+  return String(authUser?.user_metadata?.display_name
       || authUser?.email?.split('@')[0]
-      || 'User';
+      || 'User');
 }
 
 function guestJsonRead(key, fallback) {
@@ -159,7 +198,7 @@ function guestJsonRead(key, fallback) {
 }
 
 function guestJsonWrite(key, value) {
-  try { localStorage.setItem(key, JSON.stringify(value)); } catch(e) {}
+  localStorage.setItem(key, JSON.stringify(value));
 }
 
 function getGuestId() {
@@ -265,60 +304,50 @@ async function dbSyncGuestAnalytics() {
       changed = true;
     }
   }
-  if (changed) saveGuestSessions(sessions);
+  if (changed) {
+    const sent = new Set(sessions.filter(s => s.analytics_sent).map(s => s.local_id));
+    saveGuestSessions(getGuestSessions().map(s => sent.has(s.local_id) ? { ...s, analytics_sent: true } : s));
+  }
 }
 
 async function dbImportGuestProgress() {
   if (isGuest() || guestAlreadyImported()) return false;
-  const uid = getUserId();
-  const subjects = Object.keys(typeof SUBJECTS !== 'undefined' ? SUBJECTS : {});
-  let importedAnswers = 0;
-  let importedSessions = 0;
-
-  for (const subject of subjects) {
-    const hist = getGuestHistory(subject);
-    const rows = Object.entries(hist).map(([questionId, item]) => ({
-      user_id: uid,
-      subject,
-      question_id: questionId,
-      selected: item.selected,
-      correct: !!item.correct,
-      answered_at: new Date(item.timestamp || Date.now()).toISOString()
-    }));
-    if (rows.length) {
-      await dbRun('dbImportGuestAnswers', () => _sb.from('answer_history').upsert(rows, { onConflict: 'user_id,subject,question_id' }));
-      for (const row of rows) {
-        await dbUpdatePerformance(subject, row.question_id, row.correct).catch(() => {});
+  const uid = getUserId(), generation = authGeneration;
+  const key = 'mora_guest_import_v2_' + getGuestId();
+  let manifest = guestJsonRead(key, null);
+  if (manifest && manifest.userId !== uid) return false;
+  if (!manifest) {
+    const operations = [];
+    for (const subject of Object.keys(SUBJECTS)) {
+      for (const [questionId, item] of Object.entries(getGuestHistory(subject))) {
+        operations.push({
+          operationId: crypto.randomUUID(), userId: uid, type: 'answer',
+          occurredAt: new Date(item.timestamp || Date.now()).toISOString(),
+          payload: { subject, questionId, selected: item.selected, correct: !!item.correct,
+            answerFormat: item.answerFormat || null, imported: true }
+        });
       }
-      importedAnswers += rows.length;
     }
+    for (const session of getGuestSessions()) {
+      operations.push({
+        operationId: crypto.randomUUID(), userId: uid, type: 'session',
+        occurredAt: session.completed_at,
+        payload: { subject: session.subject, appMode: session.app_mode, score: session.score,
+          total: session.total, timeTaken: session.time_taken, countdownLimit: session.countdown_limit }
+      });
+    }
+    if (!operations.length) return false;
+    manifest = { userId: uid, operations };
   }
-
-  const sessions = getGuestSessions();
-  const sessionRows = sessions.map(s => ({
-    user_id: uid,
-    subject: s.subject,
-    app_mode: s.app_mode,
-    score: s.score,
-    total: s.total,
-    time_taken: s.time_taken,
-    countdown_limit: s.countdown_limit,
-    completed_at: s.completed_at
-  }));
-  if (sessionRows.length) {
-    await dbRun('dbImportGuestSessions', () => _sb.from('quiz_sessions').insert(sessionRows));
-    importedSessions = sessionRows.length;
-  }
-
-  await dbRun('dbLinkGuestSessions', () => _sb
-    .from('guest_quiz_sessions')
-    .update({ user_id: uid, is_linked: true })
-    .eq('guest_id', getGuestId())
-    .is('user_id', null));
-
+  manifest = await MoraProgressOutbox.getOrCreateImport(key, manifest);
+  if (manifest.userId !== uid || generation !== authGeneration) return false;
+  for (const operation of manifest.operations) await MoraProgressOutbox.enqueue(operation);
+  if (generation !== authGeneration) return false;
+  const synced = await MoraProgressOutbox.flush();
+  if (!synced || generation !== authGeneration) return false;
   markGuestImported();
   _learningSnapshotCache = null;
-  return importedAnswers > 0 || importedSessions > 0;
+  return manifest.operations.length > 0;
 }
 
 // ── Sign up ───────────────────────────────────────────────────────────────────
@@ -335,14 +364,15 @@ async function authSignUp(email, password, displayName) {
 async function authSignIn(email, password) {
   const { data, error } = await _sb.auth.signInWithPassword({ email, password });
   if (error) throw error;
-  authUser = data.user;
+  setAuthUser(data.user);
   return data;
 }
 
 // ── Sign out ──────────────────────────────────────────────────────────────────
 async function authSignOut() {
-  await _sb.auth.signOut();
-  authUser = null;
+  const { error } = await _sb.auth.signOut();
+  if (error) throw error;
+  setAuthUser(null);
   // Reset to landing screen
   state.screen = 'landing';
   renderApp();
@@ -352,7 +382,7 @@ async function authSignOut() {
 // ── Password reset ────────────────────────────────────────────────────────────
 async function authResetPassword(email) {
   const { error } = await _sb.auth.resetPasswordForEmail(email, {
-    redirectTo: window.location.origin + window.location.pathname
+    redirectTo: window.location.origin + '/'
   });
   if (error) throw error;
 }
@@ -362,108 +392,87 @@ async function authResetPassword(email) {
 
 async function dbLoadAnswerHistory(subject) {
   if (isGuest()) return getGuestHistory(subject);
+  const uid = getUserId(), generation = authGeneration;
   const { data, error } = await dbRun('dbLoadAnswerHistory', () => _sb
     .from('answer_history')
-    .select('question_id, selected, correct, answered_at')
-    .eq('user_id', getUserId())
+    .select('question_id, selected, correct, answered_at, answer_format')
+    .eq('user_id', uid)
     .eq('subject', subject));
-  if (error) return {};
   const hist = {};
-  (data || []).forEach(r => {
+  (error ? [] : data || []).forEach(r => {
     hist[r.question_id] = {
-      selected: r.selected,
+      selected: r.answer_format === 'canonical-v1' ? Number(r.selected) : r.selected,
+      answerFormat: r.answer_format,
       correct: r.correct,
       timestamp: new Date(r.answered_at).getTime()
     };
   });
+  // Unacknowledged answers remain visible after an offline reload.
+  const pending = await window.MoraProgressOutbox.pending(uid);
+  for (const operation of pending) {
+    if (operation.type !== 'answer' || operation.payload.subject !== subject) continue;
+    const p = operation.payload, timestamp = Date.parse(operation.occurredAt);
+    if (!hist[p.questionId] || timestamp > hist[p.questionId].timestamp) {
+      hist[p.questionId] = { selected: p.selected, correct: p.correct, answerFormat: p.answerFormat, timestamp };
+    }
+  }
+  if (generation !== authGeneration) return {};
   return hist;
 }
 
-async function dbSaveAnswer(subject, questionId, selected, correct) {
-  if (isGuest()) {
+async function dbSendProgressOperation(operation) {
+  if (getUserId() !== operation.userId) throw new Error('Progress belongs to another account');
+  const { data, error } = await _sb.rpc('save_progress_operation', { operation });
+  if (error) throw error;
+  return data;
+}
+
+async function queueProgress(type, payload, metadata = {}) {
+  const userId = Object.prototype.hasOwnProperty.call(metadata, 'userId') ? metadata.userId : getUserId();
+  if (!userId) throw new Error('A signed-in progress owner is required');
+  const operation = {
+    operationId: metadata.operationId || crypto.randomUUID(),
+    userId, occurredAt: metadata.occurredAt || new Date().toISOString(),
+    type, payload
+  };
+  await window.MoraProgressOutbox.enqueue(operation);
+  _learningSnapshotCache = null;
+  window.dispatchEvent(new Event('mora-progress-queued'));
+  return operation.operationId;
+}
+
+async function dbSaveAnswer(subject, questionId, selected, correct, metadata = {}) {
+  const owner = Object.prototype.hasOwnProperty.call(metadata, 'userId') ? metadata.userId : getUserId();
+  if (!owner) {
     const hist = getGuestHistory(subject);
-    hist[questionId] = { selected, correct, timestamp: Date.now() };
+    hist[questionId] = { selected, correct, timestamp: Date.now(), answerFormat: metadata.answerFormat || null };
     saveGuestHistory(subject, hist);
     return;
   }
-  _learningSnapshotCache = null;
-  // Upsert N/A update if already answered (e.g. retried question)
-  const { error } = await dbRun('dbSaveAnswer', () => _sb.from('answer_history').upsert({
-    user_id:     getUserId(),
-    subject,
-    question_id: questionId,
-    selected,
-    correct,
-    answered_at: new Date().toISOString()
-  }, { onConflict: 'user_id,subject,question_id' }));
-
-  // Also update question_performance counters
-  await dbUpdatePerformance(subject, questionId, correct);
+  return queueProgress('answer', {
+    subject, questionId, selected, correct, answerFormat: metadata.answerFormat || null
+  }, { ...metadata, userId: owner });
 }
 
-async function dbUpdatePerformance(subject, questionId, correct) {
-  if (isGuest()) return;
-  const uid = getUserId();
-  // Fetch existing row
-  const { data, error } = await dbRun('dbUpdatePerformance load', () => _sb
-    .from('question_performance')
-    .select('correct_count, incorrect_count')
-    .eq('user_id', uid)
-    .eq('question_id', questionId)
-    .single());
-  if (error && error.code !== 'PGRST116') return;
-
-  const cc = (data?.correct_count   || 0) + (correct ? 1 : 0);
-  const ic = (data?.incorrect_count || 0) + (correct ? 0 : 1);
-
-  await dbRun('dbUpdatePerformance save', () => _sb.from('question_performance').upsert({
-    user_id:         uid,
-    question_id:     questionId,
-    subject,
-    correct_count:   cc,
-    incorrect_count: ic
-  }, { onConflict: 'user_id,question_id' }));
-}
 
 // ── Save quiz session on completion ──────────────────────────────────────────
-async function dbSaveSession(subject, appMode, score, total, timeTaken, countdownLimit) {
-  if (isGuest()) {
-    const completedCount = guestCompletedCount() + 1;
-    try { localStorage.setItem(GUEST_COMPLETED_KEY, String(completedCount)); } catch(e) {}
+async function dbSaveSession(subject, appMode, score, total, timeTaken, countdownLimit, metadata = {}) {
+  const owner = Object.prototype.hasOwnProperty.call(metadata, 'userId') ? metadata.userId : getUserId();
+  if (!owner) {
     const sessions = getGuestSessions();
-    const session = {
-      local_id: 'local_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8),
-      guest_id: getGuestId(),
-      subject,
-      app_mode: appMode,
-      score,
-      total,
-      time_taken: timeTaken,
+    sessions.push({
+      local_id: metadata.operationId || crypto.randomUUID(), guest_id: getGuestId(),
+      subject, app_mode: appMode, score, total, time_taken: timeTaken,
       countdown_limit: countdownLimit,
-      completed_at: new Date().toISOString(),
-      analytics_sent: false
-    };
-    if (navigator.onLine && await dbSaveGuestAnalyticsSession(session)) session.analytics_sent = true;
-    sessions.push(session);
+      completed_at: metadata.occurredAt || new Date().toISOString(), analytics_sent: false
+    });
     saveGuestSessions(sessions);
-    setTimeout(() => {
-      if (shouldShowGuestAccountReminder() && typeof showGuestAccountReminder === 'function') {
-        showGuestAccountReminder();
-      }
-    }, 700);
-    return;
+    localStorage.setItem(GUEST_COMPLETED_KEY, String(guestCompletedCount() + 1));
+    dbSyncGuestAnalytics().catch(() => {});
+  } else {
+    await queueProgress('session', { subject, appMode, score, total, timeTaken, countdownLimit }, { ...metadata, userId: owner });
   }
-  _learningSnapshotCache = null;
-  await dbRun('dbSaveSession', () => _sb.from('quiz_sessions').insert({
-    user_id:         getUserId(),
-    subject,
-    app_mode:        appMode,
-    score,
-    total,
-    time_taken:      timeTaken,
-    countdown_limit: countdownLimit,
-    completed_at:    new Date().toISOString()
-  }));
+  window.dispatchEvent(new Event('mora-quiz-completed'));
 }
 
 // ── Load quiz history ─────────────────────────────────────────────────────────
@@ -543,9 +552,9 @@ async function dbLoadWeakQuestions(subject, limit = 10) {
 
 // ── Question Flags ────────────────────────────────────────────────────────────
 const _flagsCache  = {};          // subject → Set<questionId>
-const FLAGS_PREFIX = 'mora_flags_v1_';
+const FLAGS_PREFIX = 'mora_flags_v2_';
 
-function _flagKey(subject) { return FLAGS_PREFIX + subject; }
+function _flagKey(subject) { return FLAGS_PREFIX + (getUserId() || ('guest:' + getGuestId())) + ':' + subject; }
 
 function _flagsForSubject(subject) {
   if (!_flagsCache[subject]) {
@@ -598,8 +607,12 @@ async function toggleFlag(subject, qId) {
 // ── Performance cache (for spaced repetition) ────────────────────────────────
 // Keyed by questionId → { correct_count, incorrect_count }
 let _perfCache = {};
+let _perfSubject = null;
+let _perfLoadEpoch = 0;
 
 async function dbLoadPerformance(subject) {
+  const epoch = ++_perfLoadEpoch, generation = authGeneration;
+  _perfSubject = subject;
   _perfCache = {};
   if (isGuest()) return;
   const { data } = await dbRun('load perf', () =>
@@ -608,10 +621,10 @@ async function dbLoadPerformance(subject) {
       .eq('user_id', getUserId())
       .eq('subject', subject)
   );
-  if (data) data.forEach(r => { _perfCache[r.question_id] = r; });
+  if (epoch === _perfLoadEpoch && generation === authGeneration && data) data.forEach(r => { _perfCache[r.question_id] = r; });
 }
 
-function getPerfCache() { return _perfCache; }
+function getPerfCache() { return _perfSubject === state.currentSubject ? _perfCache : {}; }
 
 async function dbResetAnswers(subject, questionIds) {
   if (!questionIds || questionIds.length === 0) return;
@@ -638,12 +651,12 @@ async function dbResetAnswers(subject, questionIds) {
 
 async function dbLoadFlags(subject) {
   if (isGuest()) return;
-  const { data } = await dbRun('load flags', () =>
+  const generation = authGeneration;
+  const { data, error } = await dbRun('load flags', () =>
     _sb.from('user_flags').select('question_id').eq('user_id', getUserId()).eq('subject', subject)
   );
-  if (data && data.length) {
-    const set = _flagsForSubject(subject);
-    data.forEach(r => set.add(r.question_id));
+  if (generation === authGeneration && !error && data) {
+    _flagsCache[subject] = new Set(data.map(r => r.question_id));
     _saveLocalFlags(subject);
   }
 }
@@ -740,11 +753,11 @@ function renderAuthPill() {
         <div style="width:28px;height:28px;border-radius:50%;background:var(--accent);
                     display:flex;align-items:center;justify-content:center;
                     font-size:0.8rem;font-weight:700;color:#fff;flex-shrink:0;">
-          ${getDisplayName().charAt(0).toUpperCase()}
+          ${lpEscape(getDisplayName().charAt(0).toUpperCase())}
         </div>
         <span style="font-size:0.82rem;color:var(--text-muted);max-width:120px;
                      overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
-          ${getDisplayName()}
+          ${lpEscape(getDisplayName())}
         </span>
         <button onclick="showAccountMenu(event)"
           style="background:none;border:none;color:var(--text-muted);cursor:pointer;
@@ -769,7 +782,7 @@ function showAccountMenu(e) {
   `;
   menu.innerHTML = `
     <div style="padding:10px 14px;border-bottom:1px solid var(--border);">
-      <div style="font-size:0.85rem;font-weight:600;color:var(--text);">${getDisplayName()}</div>
+      <div style="font-size:0.85rem;font-weight:600;color:var(--text);">${lpEscape(getDisplayName())}</div>
       <div style="font-size:0.72rem;color:var(--text-muted);margin-top:1px;">${authUser?.email || ''}</div>
     </div>
     <button onclick="state.screen='history';renderApp();document.getElementById('accountMenu')?.remove()"
@@ -846,7 +859,7 @@ function showAuthToast(message = 'Successfully logged in') {
   toast.setAttribute('role', 'status');
   toast.innerHTML = `
     <span class="auth-toast-check" aria-hidden="true">&#10003;</span>
-    <span>${message}</span>
+    <span>${lpEscape(message)}</span>
   `;
   document.body.appendChild(toast);
   setTimeout(() => toast.classList.add('show'), 20);
@@ -1017,14 +1030,7 @@ async function bootAuth() {
   renderApp();
 
   if (!isGuest()) {
-    dbLoadAnswerHistory(state.currentSubject)
-      .then(hist => {
-        answerHistory = hist;
-        // Don't re-render on landing N/A renderLanding already fires dbLoadLearningSnapshot
-        // which re-renders once the snapshot arrives (avoids a redundant double paint).
-        if (state.screen !== 'landing') renderApp();
-      })
-      .catch(() => {});
+    loadCurrentSubjectHistory().catch(() => {});
     // Load flags for current subject in background
     dbLoadFlags(state.currentSubject).catch(() => {});
   } else {
@@ -1048,7 +1054,7 @@ function renderAuthPill() {
   container.innerHTML = `
     <button class="account-pill" onclick="showAccountMenu(event)" aria-label="Open account menu">
       ${lpAvatar(userProfile || lpDefaultProfile(), 36).replace('lp-avatar', 'lp-avatar account-avatar')}
-      <span class="account-name">${getDisplayName()}</span>
+      <span class="account-name">${lpEscape(getDisplayName())}</span>
       <span class="account-chevron">&#9662;</span>
     </button>`;
 }
@@ -1063,7 +1069,7 @@ function showAccountMenu(e) {
   menu.className = 'account-menu';
   menu.innerHTML = `
     <div class="account-menu-head">
-      <div class="account-menu-name">${getDisplayName()}</div>
+      <div class="account-menu-name">${lpEscape(getDisplayName())}</div>
       <div class="account-menu-email">${authUser?.email || ''}</div>
     </div>
     <button onclick="state.screen='dashboard';renderApp();document.getElementById('accountMenu')?.remove()" class="account-menu-item">
@@ -1092,7 +1098,8 @@ function showAccountMenu(e) {
       Statistics
     </button>
     <div class="account-menu-sep"></div>
-    <button onclick="authSignOut();document.getElementById('accountMenu')?.remove()" class="account-menu-item danger">
+    <button onclick="downloadProgressRecovery()" class="account-menu-item">Export offline recovery copy</button>
+    <button onclick="authSignOut().catch(error=>showAuthToast(error.message));document.getElementById('accountMenu')?.remove()" class="account-menu-item danger">
       Sign out
     </button>
   `;
@@ -1191,6 +1198,10 @@ function lpDefaultProfile() {
   };
 }
 
+function lpColor(value, fallback = '#182033') {
+  return typeof value === 'string' && /^#[0-9a-f]{6}$/i.test(value) ? value : fallback;
+}
+
 function lpAvatar(profile, size = 44) {
   const p = profile || lpDefaultProfile();
   if (p.avatar_url) {
@@ -1200,20 +1211,22 @@ function lpAvatar(profile, size = 44) {
   const text = (p.avatar_icon === 'initials' || !iconDef)
     ? (p.display_name || getDisplayName() || 'U').trim().slice(0, 2).toUpperCase()
     : (iconDef.iconHtml || lpEscape(iconDef.icon));
-  const bg = p.avatar_bg || iconDef?.bg || '#182033';
-  const color = p.avatar_color || iconDef?.color || '#8fa6f5';
+  const bg = lpColor(p.avatar_bg, lpColor(iconDef?.bg));
+  const color = lpColor(p.avatar_color, lpColor(iconDef?.color, '#8fa6f5'));
   const content = iconDef?.iconHtml && p.avatar_icon !== 'initials' ? text : lpEscape(text);
   return `<span class="lp-avatar" style="width:${size}px;height:${size}px;background:${bg};color:${color};">${content}</span>`;
 }
 
 async function dbEnsureUserProfile() {
   if (isGuest()) return null;
+  const uid = getUserId(), generation = authGeneration;
   const base = lpDefaultProfile();
   const existing = await dbRun('dbEnsureUserProfile.select', () => _sb
     .from('user_profiles')
     .select('*')
-    .eq('id', getUserId())
+    .eq('id', uid)
     .maybeSingle());
+  if (generation !== authGeneration) throw new Error('Account changed. Please try again.');
   if (existing.data) return existing.data;
   if (existing.error && existing.error.code !== 'PGRST116') return base;
 
@@ -1244,21 +1257,20 @@ async function dbUpdateUserProfile(patch) {
   Object.entries(patch || {}).forEach(([key, value]) => {
     if (allowed.has(key)) cleanPatch[key] = value;
   });
-  const row = {
-    ...lpDefaultProfile(),
-    ...(userProfile || {}),
-    ...cleanPatch,
-    id: getUserId(),
-    updated_at: new Date().toISOString()
-  };
+  if ('avatar_color' in cleanPatch) cleanPatch.avatar_color = lpColor(cleanPatch.avatar_color, '#8fa6f5');
+  if ('avatar_bg' in cleanPatch) cleanPatch.avatar_bg = lpColor(cleanPatch.avatar_bg);
+  const uid = getUserId(), generation = authGeneration;
+  await dbEnsureUserProfile();
+  if (generation !== authGeneration) throw new Error('Account changed. Please try again.');
   const { data, error } = await dbRun('dbUpdateUserProfile', () => _sb
     .from('user_profiles')
-    .upsert(row, { onConflict: 'id' })
+    .update({ ...cleanPatch, updated_at: new Date().toISOString() })
+    .eq('id', uid)
     .select('*')
     .single());
   if (error) throw error;
   _learningSnapshotCache = null;
-  userProfile = data || userProfile;
+  if (generation === authGeneration) userProfile = data || userProfile;
   return data;
 }
 
@@ -1451,9 +1463,11 @@ function lpBuildRecommendations(data) {
 }
 
 async function dbLoadLearningSnapshot(force = false) {
+  const generation = authGeneration;
   if (isGuest()) return lpAggregateLearning(lpDefaultProfile(), [], [], [], []);
   if (!force && _learningSnapshotCache && Date.now() - _learningSnapshotAt < 60000) return _learningSnapshotCache;
   const profile = await dbEnsureUserProfile();
+  if (generation !== authGeneration) throw new Error('Account changed');
   const [sessionsRes, perfRes, answersRes, achRes] = await Promise.all([
     dbRun('learning sessions', () => _sb.from('quiz_sessions').select('subject, app_mode, score, total, time_taken, countdown_limit, completed_at').eq('user_id', getUserId()).order('completed_at', { ascending:false }).limit(5000)),
     dbRun('learning performance', () => _sb.from('question_performance').select('subject, question_id, correct_count, incorrect_count').eq('user_id', getUserId()).limit(20000)),
@@ -1461,6 +1475,7 @@ async function dbLoadLearningSnapshot(force = false) {
     dbRun('learning achievements', () => _sb.from('user_achievements').select('*').eq('user_id', getUserId()))
   ]);
   const snap = lpAggregateLearning(profile, sessionsRes.data || [], perfRes.data || [], answersRes.data || [], achRes.data || []);
+  if (generation !== authGeneration) throw new Error('Account changed');
   _learningSnapshotCache = snap;
   _learningSnapshotAt = Date.now();
   dbSyncAchievements(snap).catch(() => {});
@@ -1546,8 +1561,8 @@ async function renderProfilePage() {
     <section class="lp-panel" id="profileSettingsPanel"><h2>Profile Settings</h2>
       <div class="lp-form-grid">
         <label>Display name<input id="profileNameInput" value="${lpEscape(s.profile.display_name)}"></label>
-        <label>Avatar color<input id="profileAvatarColor" type="color" value="${s.profile.avatar_color || '#8fa6f5'}"></label>
-        <label>Background color<input id="profileAvatarBg" type="color" value="${s.profile.avatar_bg || '#182033'}"></label>
+        <label>Avatar color<input id="profileAvatarColor" type="color" value="${lpColor(s.profile.avatar_color, '#8fa6f5')}"></label>
+        <label>Background color<input id="profileAvatarBg" type="color" value="${lpColor(s.profile.avatar_bg)}"></label>
       </div>
       <div class="lp-profile-upload" id="profileAvatarPanel">
         <div>
@@ -1913,6 +1928,18 @@ function showAuthModal(mode = 'login') {
 }
 
 function _buildAuthForm(mode) {
+  if (mode === 'recovery') {
+    return `<div class="auth-card">
+      <button class="auth-close" onclick="document.getElementById('authModal')?.remove()">&times;</button>
+      <h2>Choose a new password</h2>
+      <div id="authError" class="auth-alert error" style="display:none;"></div>
+      <div id="authSuccess" class="auth-alert success" style="display:none;"></div>
+      ${authPasswordField('recoveryPassword', 'New password', 'submitRecoveryPassword()')}
+      ${authPasswordField('recoveryConfirm', 'Confirm password', 'submitRecoveryPassword()')}
+      <button id="authSubmitBtn" class="auth-primary" onclick="submitRecoveryPassword()">Update password</button>
+      <button class="auth-link-btn" onclick="showAuthModal('reset')">Request a new link</button>
+    </div>`;
+  }
   if (mode === 'reset') {
     return `
     <div class="auth-card">
@@ -1971,6 +1998,34 @@ function _buildAuthForm(mode) {
   </div>`;
 }
 
+async function submitRecoveryPassword() {
+  const button = document.getElementById('authSubmitBtn');
+  if (button?.disabled) return;
+  const password = document.getElementById('recoveryPassword')?.value;
+  const confirm = document.getElementById('recoveryConfirm')?.value;
+  _setAuthError('');
+  if (!_passwordRecoveryActive || isGuest()) {
+    _setAuthError('This recovery link is invalid or expired. Request a new link.');
+    return;
+  }
+  if (!password || password !== confirm) {
+    _setAuthError('Enter matching passwords in both fields.');
+    return;
+  }
+  _setAuthLoading(true);
+  try {
+    const { error } = await _sb.auth.updateUser({ password });
+    if (error) throw error;
+    _passwordRecoveryActive = false;
+    document.getElementById('authModal')?.remove();
+    showAuthToast('Password updated');
+  } catch (error) {
+    _setAuthError(_friendlyAuthError(error));
+  } finally {
+    _setAuthLoading(false);
+  }
+}
+
 async function submitAuth() {
   const email    = document.getElementById('authEmail')?.value.trim();
   const password = document.getElementById('authPassword')?.value;
@@ -1996,11 +2051,11 @@ async function submitAuth() {
     if (_authModalMode === 'signup') {
       localStorage.setItem(AUTH_REMEMBER_KEY, '1');
       const signupData = await authSignUp(email, password, name);
-      if (signupData?.session?.user || signupData?.user) {
-        authUser = signupData.session?.user || signupData.user;
+      if (signupData?.session?.user) {
+        setAuthUser(signupData.session.user);
         await dbEnsureUserProfile().catch(() => {});
         const imported = await dbImportGuestProgress().catch(() => false);
-        answerHistory = await dbLoadAnswerHistory(state.currentSubject);
+        await loadCurrentSubjectHistory();
         document.getElementById('authModal')?.remove();
         renderAuthPill();
         renderApp();
@@ -2016,7 +2071,7 @@ async function submitAuth() {
       }
     } else {
       await authSignIn(email, password);
-      answerHistory = await dbLoadAnswerHistory(state.currentSubject);
+      await loadCurrentSubjectHistory();
       document.getElementById('authModal')?.remove();
       renderAuthPill();
       renderApp();

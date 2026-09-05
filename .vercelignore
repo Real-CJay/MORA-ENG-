@@ -9,6 +9,12 @@ netlify.toml
 
 # Database/admin setup files should not be publicly served
 *.sql
+tests/
+supabase/
+tools/
+docs/
+AI exports/
+AGENTS.md
 
 # Source/archive files that are not needed by the web app
 *.pdf
