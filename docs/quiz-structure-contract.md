@@ -193,12 +193,14 @@ Rules:
 
 ## 7. Renderer Integration Rule
 
-The live renderer is still in `quiz_app.js`.
+The live quiz controls and scoring remain in `quiz_app.js`. The existing
+`js/app_question_render_bridge.js` integrates `js/question_renderer.js` behind
+feature flags for question/explanation presentation on the already approved
+quiz, exam, review, View All and directory surfaces. This is not a schema-v2
+answer/scoring adapter: live data still requires flat `opts` and `ans`.
+Do not use the renderer's answer/check controls or expand its current surfaces.
 
-`js/question_renderer.js` is preview-only for now. Do not wire it directly into
-the live quiz flow.
-
-Future renderer integration should be adapter-first and feature-flagged. It must
+Further renderer integration must remain adapter-first and feature-flagged. It must
 be tested against quiz start, answer selection, answer correctness, results,
 exam mode, View All, Question Directory, image viewing, math rendering, progress
 saving, and offline behavior.

@@ -12,6 +12,7 @@ import json
 import os
 import re
 import sys
+from pathlib import Path
 from typing import Any
 
 
@@ -481,6 +482,16 @@ def validate_pack(pack: Any, images_root: str | None) -> Reporter:
     seen_ids: set[str] = set()
     for index, question in enumerate(questions):
         validate_question(question, index, pack_subject, stimuli, images, seen_ids, reporter)
+        if isinstance(question, dict) and is_legacy_question(question):
+            src = question.get('img')
+            if src not in (None, ''):
+                if not isinstance(src, str) or src in ('None', 'null'):
+                    reporter.error(f'questions[{index}].img', 'invalid missing-image placeholder')
+                elif images_root and not src.startswith(('https://', 'http://')):
+                    root = Path(images_root).resolve()
+                    target = (root / src).resolve()
+                    if not target.is_relative_to(root) or not target.is_file():
+                        reporter.error(f'questions[{index}].img', f'missing or out-of-root image: {src}')
 
     return reporter
 

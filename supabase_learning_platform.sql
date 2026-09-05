@@ -447,5 +447,3 @@ grant select on table public.learning_pastpaper_leaderboard_all_time to anon, au
 grant select on table public.learning_pastpaper_leaderboard_weekly to anon, authenticated;
 grant select on table public.learning_pastpaper_leaderboard_monthly to anon, authenticated;
 grant execute on function public.get_leaderboard_modes() to anon, authenticated;
-
-
