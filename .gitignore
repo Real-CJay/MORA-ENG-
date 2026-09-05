@@ -3,6 +3,7 @@ start.bat
 .env
 .env.*
 node_modules/
+.venv/
 supabase/.temp/
 __pycache__/
 *.pyc
@@ -14,6 +15,20 @@ netlify.toml
 
 # Database/admin setup files
 *.sql
+!/admin_setup.sql
+!/supabase_admin_extras.sql
+!/supabase_flags_and_settings.sql
+!/supabase_guest_analytics.sql
+!/supabase_leaderboard_modes.sql
+!/supabase_learning_platform.sql
+!/supabase_master_setup.sql
+!/supabase_permissions_repair.sql
+!/supabase_profile_repair.sql
+!/supabase_question_reports.sql
+!/supabase_rls_hardening_stage_3_04a.sql
+!/supabase_short_notes.sql
+!/supabase_timer_setting.sql
+!/supabase/migrations/*.sql
 
 # Source/archive files that are not needed by the web app
 *.pdf
