@@ -18,8 +18,9 @@ const PROVIDERS = {
 const RATE_LIMIT_WINDOW_MS = readPositiveIntegerEnv('JANUDA_RATE_LIMIT_WINDOW_MS', 60 * 1000);
 const RATE_LIMIT_AUTH_MAX = readPositiveIntegerEnv('JANUDA_RATE_LIMIT_AUTH_MAX', 30);
 const RATE_LIMIT_IP_MAX = readPositiveIntegerEnv('JANUDA_RATE_LIMIT_IP_MAX', 10);
-const RATE_LIMIT_MAX_BUCKETS = readPositiveIntegerEnv('JANUDA_RATE_LIMIT_MAX_BUCKETS', 5000);
-const rateLimitBuckets = new Map();
+const MAX_BODY_BYTES = 96 * 1024;
+const MAX_SYSTEM_CHARS = 16000;
+const MAX_USER_CHARS = 32000;
 
 function readPositiveIntegerEnv(name, fallback) {
   const value = Number.parseInt(process.env[name] || '', 10);
@@ -41,100 +42,49 @@ function hashKey(value) {
   return crypto.createHash('sha256').update(String(value || 'unknown')).digest('hex');
 }
 
-function toBase64Url(buffer) {
-  return buffer.toString('base64').replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
-}
-
-function decodeBase64UrlJson(value) {
-  const normalized = value.replace(/-/g, '+').replace(/_/g, '/');
-  const padded = normalized + '='.repeat((4 - (normalized.length % 4)) % 4);
-  return JSON.parse(Buffer.from(padded, 'base64').toString('utf8'));
-}
-
-function safeEqual(a, b) {
-  const left = Buffer.from(String(a));
-  const right = Buffer.from(String(b));
-  return left.length === right.length && crypto.timingSafeEqual(left, right);
-}
-
-function getVerifiedSupabaseUserId(req) {
-  const secret = process.env.SUPABASE_JWT_SECRET;
-  if (!secret) return null;
-
-  const authHeader = getHeader(req, 'authorization') || '';
-  const match = authHeader.match(/^Bearer\s+(.+)$/i);
-  if (!match) return null;
-
-  const token = match[1].trim();
-  const parts = token.split('.');
-  if (parts.length !== 3) return null;
-
-  try {
-    const header = decodeBase64UrlJson(parts[0]);
-    const payload = decodeBase64UrlJson(parts[1]);
-    if (header.alg !== 'HS256') return null;
-
-    const expectedSignature = toBase64Url(
-      crypto.createHmac('sha256', secret).update(`${parts[0]}.${parts[1]}`).digest()
-    );
-    if (!safeEqual(expectedSignature, parts[2])) return null;
-    if (payload.exp && Date.now() >= payload.exp * 1000) return null;
-    return payload.sub ? String(payload.sub) : null;
-  } catch {
-    return null;
-  }
+async function getVerifiedSupabaseUserId(req) {
+  const authorization = getHeader(req, 'authorization');
+  if (!authorization || !/^Bearer\s+\S+$/i.test(authorization)) return null;
+  const response = await fetch(process.env.SUPABASE_URL + '/auth/v1/user', {
+    headers: { apikey: process.env.SUPABASE_SERVICE_ROLE_KEY, Authorization: authorization },
+    signal: AbortSignal.timeout(5000)
+  });
+  if (response.status === 401 || response.status === 403) return null;
+  if (!response.ok) throw new Error('Authentication service unavailable');
+  const user = await response.json();
+  return typeof user.id === 'string' ? user.id : null;
 }
 
 function getClientIp(req) {
-  const forwardedFor = getHeader(req, 'x-forwarded-for');
-  if (forwardedFor) return forwardedFor.split(',')[0].trim();
-  return getHeader(req, 'x-real-ip') || req.socket?.remoteAddress || 'unknown';
+  // Vercel overwrites forwarded headers. Outside Vercel trust only the socket.
+  if (process.env.VERCEL === '1') {
+    const ip = getHeader(req, 'x-vercel-forwarded-for') || getHeader(req, 'x-forwarded-for');
+    if (ip) return ip.split(',')[0].trim();
+  }
+  return req.socket?.remoteAddress || 'unknown';
 }
 
-function getRateLimitIdentity(req) {
-  const userId = getVerifiedSupabaseUserId(req);
-  if (userId) {
-    return {
-      key: `user:${hashKey(userId)}`,
-      limit: RATE_LIMIT_AUTH_MAX
-    };
-  }
-
-  return {
-    key: `ip:${hashKey(getClientIp(req))}`,
-    limit: RATE_LIMIT_IP_MAX
-  };
-}
-
-function cleanupRateLimitBuckets(now) {
-  if (rateLimitBuckets.size <= RATE_LIMIT_MAX_BUCKETS) return;
-  for (const [key, bucket] of rateLimitBuckets.entries()) {
-    if (bucket.resetAt <= now) rateLimitBuckets.delete(key);
-  }
-}
-
-function checkRateLimit(req) {
-  const now = Date.now();
-  cleanupRateLimitBuckets(now);
-
-  const identity = getRateLimitIdentity(req);
-  let bucket = rateLimitBuckets.get(identity.key);
-  if (!bucket || bucket.resetAt <= now) {
-    bucket = { count: 0, resetAt: now + RATE_LIMIT_WINDOW_MS };
-    rateLimitBuckets.set(identity.key, bucket);
-  }
-
-  bucket.count += 1;
-  const retryAfterSeconds = Math.max(1, Math.ceil((bucket.resetAt - now) / 1000));
-  const remaining = Math.max(0, identity.limit - bucket.count);
-
-  return {
-    limited: bucket.count > identity.limit,
-    limit: identity.limit,
-    remaining,
-    retryAfterSeconds,
-    resetAt: bucket.resetAt
-  };
+async function checkRateLimit(req) {
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) throw new Error('Rate limiter not configured');
+  const userId = await getVerifiedSupabaseUserId(req);
+  const limit = userId ? RATE_LIMIT_AUTH_MAX : RATE_LIMIT_IP_MAX;
+  const response = await fetch(process.env.SUPABASE_URL + '/rest/v1/rpc/consume_rate_limit', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      apikey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+      Authorization: 'Bearer ' + process.env.SUPABASE_SERVICE_ROLE_KEY
+    },
+    body: JSON.stringify({
+      bucket_key: (userId ? 'user:' : 'ip:') + hashKey(userId || getClientIp(req)),
+      window_ms: RATE_LIMIT_WINDOW_MS, max_requests: limit
+    }),
+    signal: AbortSignal.timeout(5000)
+  });
+  if (!response.ok) throw new Error('Rate limiter unavailable');
+  const data = await response.json();
+  if (typeof data.limited !== 'boolean' || !Number.isFinite(data.resetAt)) throw new Error('Invalid rate limiter response');
+  return { ...data, retryAfterSeconds: Math.max(1, Math.ceil((data.resetAt - Date.now()) / 1000)) };
 }
 
 function setRateLimitHeaders(res, rateLimit) {
@@ -152,7 +102,25 @@ module.exports = async function handler(req, res) {
     return sendJson(res, 405, { error: 'Method not allowed' });
   }
 
-  const rateLimit = checkRateLimit(req);
+  let body;
+  try {
+    const raw = typeof req.body === 'string' ? req.body : JSON.stringify(req.body || {});
+    if (Buffer.byteLength(raw, 'utf8') > MAX_BODY_BYTES) return sendJson(res, 413, { error: 'Request is too large.' });
+    body = JSON.parse(raw);
+  } catch {
+    return sendJson(res, 400, { error: 'Invalid JSON body.' });
+  }
+  if (!body || typeof body !== 'object' || Array.isArray(body) ||
+      typeof body.systemPrompt !== 'string' || typeof body.userPrompt !== 'string') {
+    return sendJson(res, 400, { error: 'Prompts must be strings.' });
+  }
+  if (body.systemPrompt.length > MAX_SYSTEM_CHARS || body.userPrompt.length > MAX_USER_CHARS) {
+    return sendJson(res, 413, { error: 'Prompt is too long.' });
+  }
+  if (!body.systemPrompt.trim() || !body.userPrompt.trim()) return sendJson(res, 400, { error: 'Missing prompt.' });
+  let rateLimit;
+  try { rateLimit = await checkRateLimit(req); }
+  catch { return sendJson(res, 503, { error: 'AI is temporarily unavailable. Please retry later.' }); }
   setRateLimitHeaders(res, rateLimit);
   if (rateLimit.limited) {
     return sendJson(res, 429, {
@@ -162,7 +130,6 @@ module.exports = async function handler(req, res) {
     });
   }
 
-  const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
   const providerKey = body.provider === 'groq' ? 'groq' : 'qwen';
   const provider = PROVIDERS[providerKey];
   const apiKey = process.env[provider.envKey];
@@ -184,11 +151,13 @@ module.exports = async function handler(req, res) {
   };
 
   if (providerKey === 'qwen') {
-    headers['HTTP-Referer'] = req.headers.origin || 'https://moraquiz.app';
+    headers['HTTP-Referer'] = 'https://moraquiz.app';
     headers['X-Title'] = provider.title;
   }
 
+  try {
   const upstream = await fetch(provider.url, {
+    signal: AbortSignal.timeout(30000),
     method: 'POST',
     headers,
     body: JSON.stringify({
@@ -205,11 +174,14 @@ module.exports = async function handler(req, res) {
 
   if (!upstream.ok) {
     return sendJson(res, upstream.status, {
-      error: data?.error?.message || data?.message || 'AI provider request failed.'
+      error: 'AI provider request failed. Please retry later.'
     });
   }
 
   return sendJson(res, 200, {
     text: data?.choices?.[0]?.message?.content || ''
   });
+  } catch (error) {
+    return sendJson(res, error.name === 'TimeoutError' || error.name === 'AbortError' ? 504 : 502, { error: 'AI provider did not respond. Please retry later.' });
+  }
 };

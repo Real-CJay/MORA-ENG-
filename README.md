@@ -5,6 +5,9 @@
 ## Developer References
 
 - [Quiz structure contract](docs/quiz-structure-contract.md)
+- [Approved repairs and verification](docs/repair-status.md)
+- [Database baseline and release order](docs/database-baseline.md)
+- [Tool installation and content workflow](tools/README.md)
 
 ---
 
@@ -12,21 +15,23 @@
 
 ```
 quiz/
-├── index.html                 ← Open this in a browser to run the app
+├── index.html                 ← App shell; serve over HTTP/HTTPS
 ├── quiz_style.css             ← All visual styling (colours, layout, components)
-├── quiz_data.js               ← All question arrays + subject registry (SUBJECTS)
+├── quiz_data.js               ← Subject metadata (SUBJECTS)
+├── subject_data/              ← Lazy-loaded live question chunks
+├── js/curriculum_registry.js  ← Semester/department/module registry
 ├── quiz_app.js                ← All app logic, state, rendering, quiz engine
 │
-├── images/                    ← Question images go here
+├── IMAGES/                    ← Reviewed question figures (case-sensitive)
 │   └── example_fig1.png
 │
-├── quiz_manager.py            ← Add/edit subjects, units, questions interactively
+├── tools/quiz_manager.py      ← Scoped, reviewed live content changes
 |-- tools/
 |   |-- export_legacy_subjects.py <- Export subject_data chunks to JSON packs
 |   |-- validate_questions.py      <- Validate JSON question packs
 |   `-- registry_check.py          <- Validate semester/module registry
 │
-└── claude_prompt_generator.py ← Build a Claude prompt to answer past paper PDFs
+└── tools/claude_prompt_generator.py ← Build extraction prompts
 ```
 
 ---
@@ -37,13 +42,11 @@ Important: run the app through a local web server. Do not open `index.html`
 directly with a `file://` URL; service workers, manifest install support, and
 app routing require `http://`, `https://`, or a deployed host.
 
-On Windows, run `start.bat`, or run `python -m http.server 8000` in this folder
-and open `http://localhost:8000/`.
-
-Just open `index.html` in any modern browser. No server needed.
-
-For images to load, all files must be in the **same folder** — you can't open
-`index.html` from a different directory and expect `quiz_style.css` or images to load.
+Run `node tests/serve.cjs` from this folder and open `http://127.0.0.1:4173/`.
+This local-only server supports app deep links but does not proxy the AI endpoint.
+The browser still uses the configured Supabase project: block its network requests
+for UI-only tests, or configure a separately authorized staging environment.
+Keep the directory layout intact. There is no production build step.
 
 ---
 
@@ -68,7 +71,7 @@ its context window even as the app grows.
 ### Step 1 — Generate a Claude prompt for your PDF
 
 ```
-python claude_prompt_generator.py
+python tools/claude_prompt_generator.py
 ```
 
 Answer the questions:
@@ -94,24 +97,29 @@ This prints a ready-to-paste prompt.
 1. Open a **new** Claude chat (fresh context)
 2. Attach your PDF
 3. Paste the prompt
-4. Claude replies with a JSON array — save it as `questions.json`
+4. Save the reviewed schema-v2 extraction as JSON. It is preview content, not
+   automatically live-compatible. See the tools guide for the explicit legacy
+   flat-MCQ workflow when a live import has been approved.
 
 ### Step 3 — Import into the quiz
 
 ```
-python quiz_manager.py
+python tools/quiz_manager.py
 ```
 
 Navigate to: **Questions → [Subject] → Import from JSON**
 
 Enter the path to `questions.json`, choose the bank and unit if needed.
-Save → overwrites `quiz_data.js` in place.
+Preview first. Explicit apply writes the selected `subject_data/<module>.js`
+chunk only after the final payload passes the live-compatibility gate. Schema-v2
+block/answer questions remain preview-only; do not force them into live chunks.
 
 ---
 
 ## Question JSON Format
 
-Every question Claude generates must follow this format exactly.
+The examples below describe live flat-MCQ data, not the default schema-v2
+extraction format. IDs must be globally unique and images must resolve locally.
 
 ### Past Paper question
 
@@ -140,7 +148,7 @@ Every question Claude generates must follow this format exactly.
   "id":     "math_b22_2023_Q15",
   "unit":   3,
   "year":   "2023 Batch 22",
-  "img":    "math_b22_fig3.png",
+  "img":    "IMAGES/math_b22_fig3.png",
   "imgAlt": "Figure 3: Phase diagram",
   "text":   "Using Figure 3, identify the eutectic point temperature.",
   "opts":   ["400°C", "600°C", "750°C", "900°C"],

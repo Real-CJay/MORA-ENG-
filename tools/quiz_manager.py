@@ -936,6 +936,11 @@ def add_question_interactive(html, subject_key):
     if   arr_type == 'hard':       d['hard'] = True
     elif arr_type == 'normal':     d['hard'] = False
 
+    blockers = live_question_blockers(d, subject_key, meta, CURRENT_QUIZ_ROOT)
+    if blockers:
+        err('Question was not added: ' + '; '.join(blockers))
+        return html
+
     obj_str = dict_to_js_obj(d)
 
     if uid is not None:
@@ -1617,6 +1622,50 @@ def _apply_overrides_to_question(question, overrides):
     return q, messages
 
 
+def live_question_blockers(question, subject_key, meta, root):
+    """The live app still uses flat, single-answer MCQs; schema validity is separate."""
+    blockers = []
+    qid = question.get('id', '<missing>')
+    if not isinstance(qid, str) or not re.fullmatch(r'[A-Za-z0-9_-]+', qid):
+        blockers.append(f'{qid}: live ID must contain only letters, digits, underscores or hyphens')
+    if question.get('subject', subject_key) != subject_key:
+        blockers.append(f'{qid}: question subject does not match destination')
+    if question.get('type', 'mcq') != 'mcq' or 'body' in question or 'answer' in question:
+        blockers.append(f'{qid}: preview-only question format; live scoring requires a flat MCQ')
+    opts, ans = question.get('opts'), question.get('ans')
+    if not isinstance(opts, list) or len(opts) < 2 or not all(isinstance(o, str) for o in opts):
+        blockers.append(f'{qid}: live opts must contain at least two strings')
+    elif type(ans) is not int or not 0 <= ans < len(opts):
+        blockers.append(f'{qid}: live ans must be an integer option index')
+    if not isinstance(question.get('text'), str) or not question['text'].strip():
+        blockers.append(f'{qid}: live question text is required')
+    for field in ('exp', 'context', 'imgAlt'):
+        if question.get(field) is not None and not isinstance(question[field], str):
+            blockers.append(f'{qid}: live {field} must be text')
+    units = {str(unit) for unit in meta.get('units', {})}
+    if question.get('unit') is not None and (type(question['unit']) is not int or str(question['unit']) not in units):
+        blockers.append(f'{qid}: unknown destination unit')
+    image = question.get('img')
+    if image not in (None, ''):
+        if not isinstance(image, str) or not image.replace('\\', '/').startswith('IMAGES/') or re.search(r'''[<>"'\x00-\x1f]''', image):
+            blockers.append(f'{qid}: img must be a repository-relative IMAGES/ path')
+        elif root is None:
+            blockers.append(f'{qid}: repository root is required to verify img')
+        else:
+            base = Path(root).resolve()
+            image_path = (base / image).resolve()
+            if not image_path.is_relative_to(base) or not image_path.is_file():
+                blockers.append(f'{qid}: missing or out-of-root image: {image}')
+    validator = _load_validator_module(root)
+    reporter = validator.Reporter()
+    for field in ('text', 'exp', 'context'):
+        validator.check_unsafe(question.get(field), f'{qid}.{field}', reporter)
+    for index, option in enumerate(opts if isinstance(opts, list) else []):
+        validator.check_unsafe(option, f'{qid}.opts[{index}]', reporter)
+    blockers.extend(reporter.errors)
+    return blockers
+
+
 def prepare_import_plan(html, source_path, pack, validation_warnings, subject_key, array_type, overrides=None):
     destination_bucket = bucket_from_array_type(array_type)
     if destination_bucket not in VALID_DESTINATION_BUCKETS:
@@ -1656,6 +1705,15 @@ def prepare_import_plan(html, source_path, pack, validation_warnings, subject_ke
     if duplicate_ids:
         blockers.append("duplicate/colliding question IDs: " + ', '.join(sorted(set(duplicate_ids))))
     blockers.extend(_pack_context_blockers(pack))
+    if pack.get('subject') != subject_key:
+        blockers.append('pack subject does not match destination module')
+    meta = get_subject_meta(html, subject_key)
+    for question in planned_questions:
+        blockers.extend(live_question_blockers(question, subject_key, meta, CURRENT_QUIZ_ROOT))
+        if destination_bucket != 'pastPaper' and question.get('unit') is None:
+            blockers.append(f"{question.get('id')}: destination requires a unit")
+        if destination_bucket == 'pastPaper' and (type(question.get('year')) not in (str, int) or not str(question['year']).strip()):
+            blockers.append(f"{question.get('id')}: full-paper destination requires a year/paper label")
 
     units = sorted({q.get('unit') for q in planned_questions if q.get('unit') is not None}, key=lambda item: str(item))
     years = sorted({q.get('year') for q in planned_questions if q.get('year') is not None}, key=lambda item: str(item))
@@ -1730,6 +1788,12 @@ def print_import_preview(plan):
 def apply_import_plan(html, plan):
     if not plan.can_apply:
         raise RuntimeError("Cannot apply import plan: " + '; '.join(plan.apply_blockers))
+    # Revalidate at the write boundary: previews can become stale or be modified.
+    fresh = prepare_import_plan(html, plan.source_path,
+        {'subject': plan.destination_subject, 'questions': plan.questions},
+        plan.validation_warnings, plan.destination_subject, array_type_from_bucket(plan.destination_bucket))
+    if not fresh.can_apply:
+        raise RuntimeError('Cannot apply changed import plan: ' + '; '.join(fresh.apply_blockers))
     array_type = array_type_from_bucket(plan.destination_bucket)
     var_name = get_array_var_name(plan.destination_subject, array_type)
     _, _, objects = read_array(html, var_name)

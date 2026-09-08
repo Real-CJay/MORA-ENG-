@@ -1,6 +1,25 @@
 # Mora Quiz Question Tools
 
-Stage 1 adds a schema foundation and validator for future question packs. These tools do not run inside the current static app and do not modify existing `subject_data/*.js` chunks.
+These offline Python tools support extraction, schema-v2 preview, validation, and explicitly approved flat-MCQ live imports. They do not run in the static app. The quiz manager can modify live chunks after confirmation; schema validation alone does not authorize or guarantee live compatibility.
+
+## Install and Test
+
+From the repository root, use Python 3.11 or newer in a separate environment:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r tools/requirements.txt
+.\.venv\Scripts\python.exe -B -m unittest discover -s tools/tests
+.\.venv\Scripts\python.exe -B tools/registry_check.py
+```
+
+The pinned dependencies include OpenCV, NumPy, Pillow and PyMuPDF for cropper tests. The runtime app has no Python dependency. PyMuPDF currently emits a `fitz` deprecation warning; it does not fail the tests.
+
+## Live Import Boundary
+
+Schema-v2 extraction and previews remain supported, but block-based `body`/`answer` questions are refused by live apply. Live questions must have string `text`, string-array `opts`, and a zero-based integer `ans`, plus a valid destination module/unit, a globally unique safe ID, and existing `IMAGES/...` local paths. Literal `"None"` is not a valid image path. Schema pack-level images/stimuli are still preview-only.
+
+The manager rechecks the final post-override payload immediately before any write. Manual additions use the same compatibility checks. Do not bypass a rejected import or infer that schema round-tripping means live compatibility. Missing required figures must be recovered from verified sources, not silently hidden.
 
 ## Files
 
@@ -271,7 +290,7 @@ Command: `python tools\quiz_manager.py`
 Important options: `--quiz-data`, `--import-json`, `--subject`, `--bucket`, `--unit`, `--year`, `--hard`, `--apply`.
 Dependencies: Python standard library; calls/reuses `tools/validate_questions.py`.
 Related/overlapping tools: Uses `validate_questions.py`; consumes packs produced or reviewed by other tools when they are live-compatible; overlaps with legacy add/delete subject utilities inside the same script.
-Current compatibility: Current live chunk compatible for question-level schema fields and legacy flat questions. Applies are refused for non-empty pack-level `stimuli` or `images`; chosen direction is to keep those schema packs in `content/question-packs/` for a future pack-aware import/runtime adapter.
+Current compatibility: Live apply accepts compatible legacy flat MCQs only, after final-payload validation. Schema-v2 block/answer questions and non-empty pack-level `stimuli` or `images` remain in preview/review storage until a separately approved adapter exists.
 
 ### registry_check.py
 

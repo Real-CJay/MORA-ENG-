@@ -167,6 +167,8 @@ function resetQuizAttemptState() {
   state.examCurrentPage = 0;
   state.examAnswers = {};
   state.examSubmitted = false;
+  state.attemptId = crypto.randomUUID();
+  state.attemptUserId = getUserId();
   state.devBlockFixture = false;
   window.MoraDevBlockFixtureActive = false;
   document.body.classList.remove('exam-active');
@@ -292,7 +294,10 @@ async function downloadForOffline(type, subjectKey, id) {
     await _cacheSubjectData(subjectKey);
     await _cacheImages(images);
     _markOfflineItem(type, subjectKey, id, true);
-  } catch(e) {}
+  } catch(e) {
+    _markOfflineItem(type, subjectKey, id, false);
+    showAuthToast(e.message || 'Offline download failed. Please retry.');
+  }
   renderApp();
 }
 
@@ -397,12 +402,15 @@ function startTimer() {
   stopTimer();
   state.timerSeconds = 0;
   state.timerPaused = false;
+  state.timerStartedAt = Date.now();
+  state.timerPausedMs = 0;
+  state.timerPauseStartedAt = null;
   if (state.countdownLimit > 0) {
     state.countdownRemaining = state.countdownLimit;
   }
   state.timerInterval = setInterval(() => {
     if (state.timerPaused) return;
-    state.timerSeconds++;
+    updateElapsedTime();
     if (state.countdownLimit > 0) {
       state.countdownRemaining = Math.max(0, state.countdownLimit - state.timerSeconds);
       const el = document.getElementById('quiz-timer');
@@ -414,10 +422,9 @@ function startTimer() {
       if (state.countdownRemaining <= 0) {
         stopTimer();
         playAlarm();
-        // force end quiz
-        state.screen = 'results';
-        state.showReview = false;
-        renderApp();
+        // Timeout and manual submission share the same exactly-once completion.
+        if (state.screen === 'examQuiz') submitExamPaper();
+        else finishQuizAttempt(false);
         // flash overlay
         const flash = document.createElement('div');
         flash.style.cssText = 'position:fixed;inset:0;background:rgba(248,113,113,0.18);z-index:9999;pointer-events:none;animation:flashFade 1s ease forwards;';
@@ -432,6 +439,9 @@ function startTimer() {
 }
 
 function pauseTimer() {
+  if (state.timerPaused) return;
+  updateElapsedTime();
+  state.timerPauseStartedAt = Date.now();
   state.timerPaused = true;
   const btn = document.getElementById('pauseTimerBtn');
   const timerEl = document.getElementById('quiz-timer');
@@ -440,6 +450,9 @@ function pauseTimer() {
 }
 
 function resumeTimer() {
+  if (!state.timerPaused) return;
+  state.timerPausedMs += Date.now() - state.timerPauseStartedAt;
+  state.timerPauseStartedAt = null;
   state.timerPaused = false;
   const btn = document.getElementById('pauseTimerBtn');
   const timerEl = document.getElementById('quiz-timer');
@@ -451,7 +464,15 @@ function togglePauseTimer() {
   if (state.timerPaused) resumeTimer(); else pauseTimer();
 }
 
+function updateElapsedTime() {
+  if (state.timerStartedAt == null) return;
+  const end = state.timerPaused ? state.timerPauseStartedAt : Date.now();
+  const elapsed = Math.max(0, Math.floor((end - state.timerStartedAt - state.timerPausedMs) / 1000));
+  state.timerSeconds = state.countdownLimit > 0 ? Math.min(elapsed, state.countdownLimit) : elapsed;
+}
+
 function stopTimer() {
+  if (state.timerInterval) updateElapsedTime();
   if (state.timerInterval) { clearInterval(state.timerInterval); state.timerInterval = null; }
 }
 
@@ -840,7 +861,7 @@ function startQuiz(onlyWrong = false) {
   resetQuizAttemptState();
   state.devBlockFixture = devSyntheticAttempt;
   if (devSyntheticAttempt) enableDevBlockRendering();
-  state.questions = pool.map(q => ({...q}));
+  state.questions = (state.appMode === 'fullpaper' ? pool : limitQuestionCount(pool)).map(q => ({...q}));
   state.screen = 'quiz';
   ensureActiveQuizHistoryEntry();
   startTimer();
@@ -882,20 +903,38 @@ function goHome() {
   renderApp();
 }
 
-function savePracticeAnswer(subject, questionId, selected, correct) {
-  return dbSaveAnswer(subject, questionId, selected, correct);
+function savePracticeAnswer(subject, questionId, selected, correct, metadata) {
+  return dbSaveAnswer(subject, questionId, selected, correct, metadata);
 }
 
-function saveExamAnswer(subject, questionId, selected, correct) {
-  return dbSaveAnswer(subject, questionId, selected, correct);
+function saveExamAnswer(subject, questionId, selected, correct, metadata) {
+  return dbSaveAnswer(subject, questionId, selected, correct, metadata);
 }
 
-function saveCompletedQuizSession(subject, appMode, score, total, timeTaken, countdownLimit) {
-  return dbSaveSession(subject, appMode, score, total, timeTaken, countdownLimit);
+function saveCompletedQuizSession(subject, appMode, score, total, timeTaken, countdownLimit, metadata) {
+  return dbSaveSession(subject, appMode, score, total, timeTaken, countdownLimit, metadata);
+}
+
+function canonicalAnswer(q, selected) {
+  return q.optionOrder ? q.optionOrder[selected] : selected;
+}
+
+function savedAnswerIndex(q, history) {
+  if (!history || history.answerFormat !== 'canonical-v1') return -1;
+  return q.optionOrder ? q.optionOrder.indexOf(history.selected) : history.selected;
+}
+
+function saveAttemptMetadata() {
+  return { userId: state.attemptUserId, occurredAt: new Date().toISOString(), answerFormat: 'canonical-v1' };
+}
+
+function reportSaveFailure(error) {
+  console.warn('Progress save pending or failed:', error.message || error);
+  showAuthToast('Progress could not be saved. Keep this page open and retry when storage is available.');
 }
 
 function selectAnswer(idx) {
-  if (state.answered) return;
+  if (state.answered || state.examSubmitted || state.screen !== 'quiz') return;
   state.answered = true;
   state.selected = idx;
   const q = state.questions[state.current];
@@ -904,15 +943,19 @@ function selectAnswer(idx) {
   state.results.push({ id: q.id, correct, selected: idx, question: q });
   if (!state.devBlockFixture) {
     // Update in-memory history
-    answerHistory[q.id] = { selected: idx, correct, timestamp: Date.now() };
+    const selected = canonicalAnswer(q, idx);
+    if (state.attemptUserId === getUserId()) {
+      answerHistory[q.id] = { selected, correct, timestamp: Date.now(), answerFormat: 'canonical-v1' };
+    }
     // Save to Supabase (no-op for guests)
-    savePracticeAnswer(state.currentSubject, q.id, idx, correct);
+    savePracticeAnswer(state.currentSubject, q.id, selected, correct, saveAttemptMetadata()).catch(reportSaveFailure);
   }
   renderApp();
   if (!state.devBlockFixture) maybeNudgeJanuda();
 }
 
 function next() {
+  if (state.screen !== 'quiz' || state.examSubmitted || !state.answered) return;
   state.current++;
   state.answered = false;
   state.selected = -1;
@@ -924,18 +967,8 @@ function next() {
       renderApp();
       return;
     }
-    state.screen = 'results';
-    state.showReview = false;
-    stopTimer();
-    // Save completed session to Supabase (no-op for guests)
-    saveCompletedQuizSession(
-      state.currentSubject,
-      state.appMode,
-      state.score,
-      state.questions.length,
-      state.timerSeconds,
-      state.countdownLimit
-    );
+    finishQuizAttempt(false);
+    return;
   }
   renderApp();
 }
@@ -1266,7 +1299,7 @@ function startExamQuiz() {
   state.devBlockFixture = devSyntheticAttempt;
   if (devSyntheticAttempt) enableDevBlockRendering();
   state.resumeOffset = 0;
-  state.questions       = pool.map(q => ({...q}));
+  state.questions       = (state.appMode === 'fullpaper' ? pool : limitQuestionCount(pool)).map(q => ({...q}));
   state.examPages       = buildExamPages(state.questions);
   state.screen          = 'examQuiz';
   ensureActiveQuizHistoryEntry();
@@ -1282,6 +1315,7 @@ function startExamQuiz() {
 window.startExamQuiz = startExamQuiz;
 
 function examSelectAnswer(qId, optIdx) {
+  if (state.examSubmitted || state.screen !== 'examQuiz') return;
   state.examAnswers[qId] = optIdx;
   // DOM-only: no full re-render so page position & other answers stay intact
   const card = document.getElementById('eq-' + qId);
@@ -1400,30 +1434,49 @@ function submitExamConfirm() {
 }
 window.submitExamConfirm = submitExamConfirm;
 
-async function submitExamPaper() {
-  document.getElementById('examSubmitDlg')?.remove();
+function finishQuizAttempt(exam) {
+  if (state.examSubmitted || !isActiveQuizScreen()) return;
+  state.examSubmitted = true;
   stopTimer();
+  document.getElementById('examSubmitDlg')?.remove();
   document.body.classList.remove('exam-active');
-  state.results = state.questions.map(q => ({
-    id:       q.id,
-    question: q,
-    selected: state.examAnswers[q.id] ?? -1,
-    correct:  (state.examAnswers[q.id] ?? -1) === q.ans
-  }));
-  state.score      = state.results.filter(r => r.correct).length;
-  state.showReview = true;
-  state.screen     = 'results';
-  if (!state.devBlockFixture) {
-    // Save to DB
-    for (const r of state.results) {
-      if (r.selected >= 0)
-        await saveExamAnswer(state.currentSubject, r.id, r.selected, r.correct).catch(() => {});
-    }
-    await saveCompletedQuizSession(state.currentSubject, state.appMode, state.score,
-                        state.questions.length, state.timerSeconds, state.countdownLimit).catch(() => {});
+  if (exam) {
+    state.results = state.questions.map(q => ({
+      id: q.id, question: q, selected: state.examAnswers[q.id] ?? -1,
+      correct: (state.examAnswers[q.id] ?? -1) === q.ans
+    }));
+    state.score = state.results.filter(r => r.correct).length;
   }
+  const attempt = {
+    subject: state.currentSubject, mode: state.appMode, score: state.score,
+    total: state.questions.length, seconds: state.timerSeconds, limit: state.countdownLimit,
+    results: state.results.slice(), metadata: saveAttemptMetadata(), dev: state.devBlockFixture
+  };
+  state.showReview = exam;
+  state.screen = 'results';
+  // Render before network work; callbacks below never read mutable quiz state.
   renderApp();
-  setTimeout(renderMath, 120);
+  if (attempt.dev) return;
+  const writes = [];
+  if (exam) {
+    for (const result of attempt.results) {
+      if (result.selected < 0) continue;
+      const selected = canonicalAnswer(result.question, result.selected);
+      if (attempt.metadata.userId === getUserId()) {
+        answerHistory[result.id] = {
+          selected, correct: result.correct, timestamp: Date.now(), answerFormat: 'canonical-v1'
+        };
+      }
+      writes.push(saveExamAnswer(attempt.subject, result.id, selected, result.correct, attempt.metadata));
+    }
+  }
+  writes.push(saveCompletedQuizSession(attempt.subject, attempt.mode, attempt.score,
+    attempt.total, attempt.seconds, attempt.limit, attempt.metadata));
+  Promise.all(writes).catch(reportSaveFailure);
+}
+
+async function submitExamPaper() {
+  finishQuizAttempt(true);
 }
 window.submitExamPaper = submitExamPaper;
 
@@ -1861,6 +1914,9 @@ function applyRoute(path, routeState) {
   renderApp();
   _isApplyingRoute = false;
   _lastRoutePath = location.pathname;
+  loadCurrentSubjectHistory().catch(reportSaveFailure);
+  dbLoadFlags(subjectKey).catch(() => {});
+  dbLoadPerformance(subjectKey).catch(() => {});
 }
 
 function confirmLeaveActiveQuiz() {
@@ -1999,6 +2055,29 @@ function applyScrollReveal() {
 }
 
 let _renderScheduled = false;
+let _renderEpoch = 0;
+let _navigationEpoch = 0, _navigationKey = '', _subjectEntryEpoch = 0;
+let _historyLoadEpoch = 0;
+
+function renderAsyncPage(promise, commit) {
+  const epoch = _renderEpoch, generation = authGeneration, screen = state.screen;
+  return promise.then(html => {
+    if (epoch === _renderEpoch && generation === authGeneration && screen === state.screen) commit(html);
+  }).catch(error => {
+    if (epoch !== _renderEpoch || generation !== authGeneration || screen !== state.screen) return;
+    const app = document.getElementById('app');
+    if (app) app.innerHTML = `<p role="alert">Could not load this page. ${lpEscape(error.message)}</p><button onclick="renderApp()">Retry</button>`;
+  });
+}
+
+async function loadCurrentSubjectHistory() {
+  const subject = state.currentSubject, generation = authGeneration, epoch = ++_historyLoadEpoch;
+  answerHistory = {};
+  const history = await dbLoadAnswerHistory(subject);
+  if (generation !== authGeneration || subject !== state.currentSubject || epoch !== _historyLoadEpoch) return;
+  answerHistory = history;
+  renderApp();
+}
 
 function settleBlockRenderHydration(hydration) {
   if (hydration?.then) {
@@ -2017,6 +2096,12 @@ function hydrateBlockRenderSurface(methodName, root = document.getElementById('a
 }
 
 function renderApp() {
+  _renderEpoch++;
+  const navigationKey = JSON.stringify([state.screen, state.currentSubject, state.curriculumRoute]);
+  if (navigationKey !== _navigationKey) {
+    _navigationKey = navigationKey;
+    _navigationEpoch++;
+  }
   // Debounce: if a render is already queued for this animation frame, skip.
   // This collapses multiple synchronous or near-simultaneous renderApp() calls
   // (e.g. from button handlers or back-to-back state updates) into one paint.
@@ -2063,6 +2148,7 @@ function _doRenderApp() {
 
   if (app && screenNeedsSubjectData(state.screen) && !isSubjectLoaded(state.currentSubject)) {
     app.innerHTML = renderSubjectLoading();
+    if (getSubjectLoadError(state.currentSubject)) return;
     ensureSubjectData(state.currentSubject)
       .then(() => {
         if (screenNeedsSubjectData(state.screen)) renderApp();
@@ -2094,19 +2180,19 @@ function _doRenderApp() {
   else if (state.screen === 'allDone') app.innerHTML = renderAllDone();
   else if (state.screen === 'history') {
     app.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text-muted);">Loading...</div>';
-    renderHistory().then(html => { app.innerHTML = html; applyScrollReveal(); });
+    renderAsyncPage(renderHistory(), html => { app.innerHTML = html; applyScrollReveal(); });
   }
   else if (state.screen === 'stats') {
     app.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text-muted);">Loading...</div>';
-    renderStats().then(html => { app.innerHTML = html; applyScrollReveal(); });
+    renderAsyncPage(renderStats(), html => { app.innerHTML = html; applyScrollReveal(); });
   }
   else if (state.screen === 'dashboard') {
     app.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text-muted);">Loading...</div>';
-    renderDashboard().then(html => { app.innerHTML = html; applyScrollReveal(); });
+    renderAsyncPage(renderDashboard(), html => { app.innerHTML = html; applyScrollReveal(); });
   }
   else if (state.screen === 'profile') {
     app.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text-muted);">Loading...</div>';
-    renderProfilePage().then(html => {
+    renderAsyncPage(renderProfilePage(), html => {
       app.innerHTML = html;
       applyScrollReveal();
       if (typeof maybeShowProfileTutorial === 'function') maybeShowProfileTutorial();
@@ -2114,23 +2200,23 @@ function _doRenderApp() {
   }
   else if (state.screen === 'analytics') {
     app.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text-muted);">Loading...</div>';
-    renderAnalyticsPage().then(html => { app.innerHTML = html; applyScrollReveal(); });
+    renderAsyncPage(renderAnalyticsPage(), html => { app.innerHTML = html; applyScrollReveal(); });
   }
   else if (state.screen === 'weakAreas') {
     app.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text-muted);">Loading...</div>';
-    renderWeakAreasPage().then(html => { app.innerHTML = html; applyScrollReveal(); });
+    renderAsyncPage(renderWeakAreasPage(), html => { app.innerHTML = html; applyScrollReveal(); });
   }
   else if (state.screen === 'achievements') {
     app.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text-muted);">Loading...</div>';
-    renderAchievementsPage().then(html => { app.innerHTML = html; applyScrollReveal(); });
+    renderAsyncPage(renderAchievementsPage(), html => { app.innerHTML = html; applyScrollReveal(); });
   }
   else if (state.screen === 'leaderboards') {
     app.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text-muted);">Loading...</div>';
-    renderLeaderboardsPage().then(html => { app.innerHTML = html; applyScrollReveal(); });
+    renderAsyncPage(renderLeaderboardsPage(), html => { app.innerHTML = html; applyScrollReveal(); });
   }
   else if (state.screen === 'questionDirectory') {
     app.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text-muted);">Loading question directory...</div>';
-    renderQuestionDirectoryPage().then(html => {
+    renderAsyncPage(renderQuestionDirectoryPage(), html => {
       app.innerHTML = html;
       applyScrollReveal();
       hydrateBlockRenderSurface('hydrateDirectory', app);
@@ -2139,7 +2225,7 @@ function _doRenderApp() {
   }
   else if (state.screen === 'admin') {
     app.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text-muted);">Loading admin data...</div>';
-    renderAdminPage().then(html => { app.innerHTML = html; applyScrollReveal(); });
+    renderAsyncPage(renderAdminPage(), html => { app.innerHTML = html; applyScrollReveal(); });
   }
   else if (state.screen === 'examQuiz') app.innerHTML = renderExamQuiz();
   else if (state.screen === 'viewAll') app.innerHTML = renderViewAll();
@@ -2234,7 +2320,10 @@ function enterSubject(subjectKey) {
 function enterSubjectMode(subjectKey, destination = 'subjectHome', options = {}) {
   const s = SUBJECTS[subjectKey];
   if (!s || subjectTotalCount(subjectKey) === 0) return;
+  const entryEpoch = ++_subjectEntryEpoch, navigationEpoch = _navigationEpoch, generation = authGeneration;
+  const entryIsCurrent = () => entryEpoch === _subjectEntryEpoch && navigationEpoch === _navigationEpoch && generation === authGeneration;
   const finish = () => {
+    if (!entryIsCurrent()) return;
     state.currentSubject = subjectKey;
     state.curriculumRoute = options.curriculumRoute || null;
     state.topics = Object.keys(SUBJECTS[subjectKey].units).map(Number);
@@ -2259,8 +2348,8 @@ function enterSubjectMode(subjectKey, destination = 'subjectHome', options = {})
   }
   const loadData = ensureSubjectData(subjectKey);
   const loadHistory = dbLoadAnswerHistory(subjectKey)
-    .then(h => { answerHistory = h; })
-    .catch(() => { answerHistory = {}; });
+    .then(h => { if (entryIsCurrent()) answerHistory = h; })
+    .catch(() => { if (entryIsCurrent()) answerHistory = {}; });
   // Load flags + performance data in background
   if (typeof dbLoadFlags === 'function')       dbLoadFlags(subjectKey).catch(() => {});
   if (typeof dbLoadPerformance === 'function') dbLoadPerformance(subjectKey).catch(() => {});
@@ -2271,6 +2360,7 @@ function enterSubjectMode(subjectKey, destination = 'subjectHome', options = {})
   }
   markTransitionSeen(subjectKey);
   Promise.race([preloadImage(rootAssetPath(splash.image)), wait(900)]).finally(() => {
+    if (!entryIsCurrent()) return;
     showSubjectTransition(splash);
     setTimeout(() => Promise.allSettled([loadData, loadHistory]).finally(finish), 240);
   });
@@ -3293,7 +3383,7 @@ function renderQuiz() {
       ${isTargetMode ? `<span class="q-tag ${q.unit?unitClass(q.unit):''}">${modeMeta.label}</span>` : `<span class="q-tag ${unitClass(q.unit)}">${unitTag(q.unit)}</span>`}
       ${!isTargetMode ? `<span class="q-tag">${q.year || 'Past Paper'}</span>` : ''}
       ${q.hard ? `<span class="q-tag" style="background:#2b0808;border-color:#c0392b;color:#f87171;font-weight:700;letter-spacing:0.05em;font-size:0.78rem;">Hard</span>` : ''}
-      ${answerHistory[q.id] && !state.answered ? `<span class="q-tag" style="background:${answerHistory[q.id].correct?'#0d2b1a':'#2b0d0d'};border-color:${answerHistory[q.id].correct?'#1a5c35':'#5c1a1a'};color:${answerHistory[q.id].correct?'var(--correct)':'var(--wrong)'};">${answerHistory[q.id].correct?'&#10003;':'&#10007;'} prev: ${cleanDisplayText(q.opts[answerHistory[q.id].selected])}</span>` : ''}
+      ${answerHistory[q.id] && !state.answered ? `<span class="q-tag" style="background:${answerHistory[q.id].correct?'#0d2b1a':'#2b0d0d'};border-color:${answerHistory[q.id].correct?'#1a5c35':'#5c1a1a'};color:${answerHistory[q.id].correct?'var(--correct)':'var(--wrong)'};">${answerHistory[q.id].correct?'&#10003;':'&#10007;'} prev: ${cleanDisplayText(q.opts[savedAnswerIndex(q, answerHistory[q.id])] ?? 'unavailable (legacy answer)')}</span>` : ''}
       ${window._appSettings?.flags_enabled !== false && !state.devBlockFixture ? `<button id="flag-${q.id}" class="flag-btn${isFlagged(state.currentSubject,q.id)?' flagged':''}" onclick="toggleFlagUI('${state.currentSubject}','${q.id}')" title="${isFlagged(state.currentSubject,q.id)?'Remove flag':'Flag for review'}">!</button>` : ''}
     </div>
     ${questionBodyHtml}
@@ -3958,7 +4048,7 @@ function renderAllDone() {
     const ic = isCorrect ? 'var(--correct)' : 'var(--wrong)';
     return `<div style="background:${bg};border:1px solid ${bdr};border-radius:12px;padding:1rem 1.2rem;margin-bottom:8px;font-size:0.86rem;">
       <div style="font-weight:600;margin-bottom:5px;color:${ic};">${icon} Q${i+1}. ${q.text.replace(/\n/g,'<br>')}</div>
-      <div style="color:var(--text-muted);">Your answer: <strong style="color:${ic};">${q.opts[ah.selected] ?? '?'}</strong></div>
+      <div style="color:var(--text-muted);">Your answer: <strong style="color:${ic};">${q.opts[savedAnswerIndex(q, ah)] ?? 'Unavailable (legacy answer)'}</strong></div>
       ${!isCorrect ? `<div style="color:var(--text-muted);">Correct: <strong style="color:var(--correct);">${q.opts[q.ans]}</strong></div>` : ''}
       <div style="font-size:0.8rem;color:#888;margin-top:6px;border-top:1px solid #333;padding-top:6px;">${q.exp}</div>
     </div>`;
@@ -4250,20 +4340,28 @@ function adminConfirmResetHistory(userId, displayName) {
       <div style="background:var(--surface);border:1.5px solid #5c1a1a;border-radius:20px;padding:1.8rem 1.5rem;max-width:380px;width:calc(100% - 2rem);position:relative;">
         <button class="auth-close" onclick="document.getElementById('adminResetDlg')?.remove()">×</button>
         <div style="font-size:0.68rem;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:#f87171;margin-bottom:0.7rem;">⚠ Destructive Action</div>
-        <h2 style="font-size:1.05rem;margin-bottom:0.5rem;">Reset history for ${displayName}?</h2>
+        <h2 style="font-size:1.05rem;margin-bottom:0.5rem;">Reset history for ${lpEscape(displayName)}?</h2>
         <p style="font-size:0.85rem;color:var(--text-muted);line-height:1.6;margin-bottom:1.2rem;">
           This permanently deletes all quiz sessions, answer history, performance data, achievements, and flags for this account.<br>
           <strong style="color:#f87171;">This cannot be undone.</strong>
         </p>
         <div class="guest-auth-actions">
-          <button onclick="adminDoResetHistory('${userId}','${displayName}')" style="background:#c0392b;border:none;border-radius:10px;color:#fff;font-weight:700;padding:0.6rem 1.4rem;cursor:pointer;font-family:inherit;font-size:0.9rem;">Yes, Reset Everything</button>
+          <button id="adminResetConfirmBtn" style="background:#c0392b;border:none;border-radius:10px;color:#fff;font-weight:700;padding:0.6rem 1.4rem;cursor:pointer;font-family:inherit;font-size:0.9rem;">Yes, Reset Everything</button>
           <button class="guest-primary" onclick="document.getElementById('adminResetDlg')?.remove()">Cancel</button>
         </div>
       </div>
     </div>
   `);
+  document.getElementById('adminResetConfirmBtn')?.addEventListener('click', () => {
+    adminDoResetHistory(userId, displayName);
+  }, { once: true });
 }
 window.adminConfirmResetHistory = adminConfirmResetHistory;
+document.addEventListener('click', event => {
+  const button = event.target.closest?.('[data-admin-reset-user]');
+  if (!button) return;
+  adminConfirmResetHistory(button.dataset.adminResetUser, button.dataset.adminResetName);
+});
 
 async function adminDoResetHistory(userId, displayName) {
   document.getElementById('adminResetDlg')?.remove();
@@ -4275,7 +4373,7 @@ async function adminDoResetHistory(userId, displayName) {
     const app = document.getElementById('app');
     if (app) {
       app.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text-muted);">Refreshing…</div>';
-      renderAdminPage().then(html => { app.innerHTML = html; applyScrollReveal(); });
+      renderAsyncPage(renderAdminPage(), html => { app.innerHTML = html; applyScrollReveal(); });
     }
   } catch(e) {
     alert('Reset failed: ' + (e.message || e));
@@ -4289,7 +4387,7 @@ async function adminToggleSetting(key, value) {
   const app = document.getElementById('app');
   if (app) {
     app.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text-muted);">Saving…</div>';
-    renderAdminPage().then(html => { app.innerHTML = html; });
+    renderAsyncPage(renderAdminPage(), html => { app.innerHTML = html; });
   }
 }
 window.adminToggleSetting = adminToggleSetting;
@@ -4302,7 +4400,7 @@ async function adminToggleArraySetting(key, val, checked) {
   const app = document.getElementById('app');
   if (app) {
     app.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text-muted);">Saving…</div>';
-    renderAdminPage().then(html => { app.innerHTML = html; });
+    renderAsyncPage(renderAdminPage(), html => { app.innerHTML = html; });
   }
 }
 window.adminToggleArraySetting = adminToggleArraySetting;
@@ -4321,7 +4419,7 @@ async function renderAdminPage() {
       dbAdminGuestStats().catch(() => ({}))
     ]);
   } catch(e) {
-    return '<div style="text-align:center;padding:4rem;color:#f87171;">Failed to load admin data: ' + e.message + '</div>';
+    return '<div style="text-align:center;padding:4rem;color:#f87171;">Failed to load admin data: ' + lpEscape(e.message) + '</div>';
   }
 
   const globalAcc = overview.total_questions > 0
@@ -4340,8 +4438,8 @@ async function renderAdminPage() {
     const preview = q ? q.text.replace(/\n/g, ' ').substring(0, 80) + (q.text.length > 80 ? '…' : '') : r.question_id;
     const accColor = r.accuracy < 30 ? '#f87171' : r.accuracy < 50 ? '#fbbf24' : '#4ade80';
     return `<tr style="border-top:1px solid #1e2235;">
-      <td style="padding:10px 12px;font-size:0.8rem;color:var(--text-muted);font-family:'DM Mono',monospace;white-space:nowrap;">${r.question_id}</td>
-      <td style="padding:10px 12px;font-size:0.82rem;color:var(--text);">${preview}</td>
+      <td style="padding:10px 12px;font-size:0.8rem;color:var(--text-muted);font-family:'DM Mono',monospace;white-space:nowrap;">${lpEscape(r.question_id)}</td>
+      <td style="padding:10px 12px;font-size:0.82rem;color:var(--text);">${lpEscape(preview)}</td>
       <td style="padding:10px 12px;text-align:center;font-family:'DM Mono',monospace;font-size:0.82rem;color:var(--text-muted);">${r.total_attempts}</td>
       <td style="padding:10px 12px;text-align:center;font-family:'DM Mono',monospace;font-weight:700;color:${accColor};">${r.accuracy}%</td>
     </tr>`;
@@ -4351,17 +4449,17 @@ async function renderAdminPage() {
   const userRows = users.map((u, i) => {
     const accColor = !u.total_q ? 'var(--text-muted)' : u.accuracy >= 70 ? '#4ade80' : u.accuracy >= 50 ? '#fbbf24' : '#f87171';
     const lastActive = u.last_active ? new Date(u.last_active).toLocaleDateString() : '—';
-    const safeName = (u.display_name || 'this user').replace(/'/g, "\\'");
-    const safeId   = u.user_id;
+    const safeName = lpEscape(u.display_name || 'this user');
+    const safeId   = lpEscape(u.user_id);
     return `<tr style="border-top:1px solid #1e2235;">
-      <td style="padding:9px 12px;font-size:0.82rem;color:var(--text);font-weight:500;">${u.display_name || '—'}</td>
-      <td style="padding:9px 12px;font-size:0.78rem;color:var(--text-muted);">${u.email || '—'}</td>
+      <td style="padding:9px 12px;font-size:0.82rem;color:var(--text);font-weight:500;">${lpEscape(u.display_name || '—')}</td>
+      <td style="padding:9px 12px;font-size:0.78rem;color:var(--text-muted);">${lpEscape(u.email || '—')}</td>
       <td style="padding:9px 12px;text-align:center;font-family:'DM Mono',monospace;font-size:0.82rem;color:var(--text-muted);">${u.quizzes}</td>
       <td style="padding:9px 12px;text-align:center;font-family:'DM Mono',monospace;font-size:0.82rem;color:var(--text-muted);">${u.total_q}</td>
       <td style="padding:9px 12px;text-align:center;font-family:'DM Mono',monospace;font-weight:700;color:${accColor};">${u.total_q ? u.accuracy + '%' : '—'}</td>
       <td style="padding:9px 12px;text-align:right;font-size:0.75rem;color:var(--text-muted);">${lastActive}</td>
       <td style="padding:9px 12px;text-align:center;">
-        <button onclick="adminConfirmResetHistory('${safeId}','${safeName}')"
+        <button data-admin-reset-user="${safeId}" data-admin-reset-name="${safeName}"
           style="background:transparent;border:1px solid #5c1a1a;border-radius:7px;color:#f87171;font-size:0.72rem;padding:3px 10px;cursor:pointer;font-family:inherit;transition:background 0.15s,border-color 0.15s;"
           onmouseover="this.style.background='#2b0d0d';this.style.borderColor='#c0392b'"
           onmouseout="this.style.background='transparent';this.style.borderColor='#5c1a1a'"
@@ -4640,7 +4738,7 @@ function renderViewAll() {
     // Revealed answer section — correct option highlighted + explanation
     const revealRows = q.opts.map((opt, oi) => {
       const isCorrect = oi === q.ans;
-      const wasPicked = prevAns && prevAns.selected === oi;
+      const wasPicked = prevAns && savedAnswerIndex(q, prevAns) === oi;
       const bg     = isCorrect ? 'var(--correct-bg)'  : (wasPicked ? 'var(--wrong-bg)'    : 'var(--surface2)');
       const border = isCorrect ? 'var(--correct-border)' : (wasPicked ? 'var(--wrong-border)' : 'var(--border)');
       const color  = isCorrect ? 'var(--correct)'     : (wasPicked ? 'var(--wrong)'       : 'var(--text-muted)');
@@ -4975,7 +5073,7 @@ function openJanudaChat() {
 function markdownToHTML(text) {
   // Step 1: Extract and protect LaTeX blocks with placeholders
   const latexTokens = [];
-  let safe = text;
+  let safe = String(text || '');
   // display math $$...$$
   safe = safe.replace(/\$\$([\s\S]+?)\$\$/g, (_, inner) => {
     latexTokens.push({ type: 'display', src: '$$' + inner + '$$' });
@@ -5010,9 +5108,9 @@ function markdownToHTML(text) {
     .split('\n').map(line => line.trim() === '' ? '<br>' : `<p style="margin:3px 0;line-height:1.6;">${line}</p>`)
     .join('');
 
-  // Step 3: Restore LaTeX placeholders as raw strings (KaTeX will render them)
+  // Restore as escaped text; HTML parsing decodes entities before KaTeX reads it.
   latexTokens.forEach((tok, i) => {
-    html = html.replace(`%%LATEX${i}%%`, tok.src);
+    html = html.replace(`%%LATEX${i}%%`, () => lpEscape(tok.src));
   });
   return html;
 }

@@ -1,5 +1,4 @@
 (function() {
-  const PWA_QUEUE_KEY = 'mora_quiz_pending_sync_v1';
   const INSTALL_DISMISSED_KEY = 'mora_quiz_install_dismissed_at';
   const INSTALL_REMIND_KEY = 'mora_quiz_install_remind_at';
   const COMPLETED_COUNT_KEY = 'mora_quiz_completed_count';
@@ -19,7 +18,7 @@
 
   function isActiveQuiz() {
     try {
-      return typeof state !== 'undefined' && state.screen === 'quiz';
+      return typeof state !== 'undefined' && (state.screen === 'quiz' || state.screen === 'examQuiz');
     } catch(e) {
       return false;
     }
@@ -47,96 +46,40 @@
     else show(banner);
   }
 
-  function queueRead() {
-    try {
-      return JSON.parse(localStorage.getItem(PWA_QUEUE_KEY) || '[]');
-    } catch(e) {
-      return [];
-    }
-  }
-
-  function queueWrite(items) {
-    try {
-      localStorage.setItem(PWA_QUEUE_KEY, JSON.stringify(items));
-    } catch(e) {}
-  }
-
-  function queuePush(type, payload) {
-    const items = queueRead();
-    items.push({ type, payload, queuedAt: Date.now() });
-    queueWrite(items);
-  }
-
+  let syncRetryTimer = null;
+  let syncRetryDelay = 5000;
+  let pendingNoticeShown = false;
   async function syncPending() {
-    if (!navigator.onLine || typeof isGuest !== 'function' || isGuest()) return;
-    if (!window.__pwaOriginalDbSaveAnswer || !window.__pwaOriginalDbSaveSession) return;
-
-    const items = queueRead();
-    if (!items.length) return;
-    const remaining = [];
-
-    for (const item of items) {
-      try {
-        if (item.type === 'answer') {
-          const p = item.payload;
-          await window.__pwaOriginalDbSaveAnswer(p.subject, p.questionId, p.selected, p.correct);
-        } else if (item.type === 'session') {
-          const p = item.payload;
-          await window.__pwaOriginalDbSaveSession(p.subject, p.appMode, p.score, p.total, p.timeTaken, p.countdownLimit);
-        }
-      } catch(e) {
-        remaining.push(item);
+    if (!window.MoraProgressOutbox) return;
+    clearTimeout(syncRetryTimer);
+    try {
+      await MoraProgressOutbox.preserveLegacy();
+      const done = await MoraProgressOutbox.flush();
+      if (done) { syncRetryDelay = 5000; pendingNoticeShown = false; }
+    } catch (error) {
+      console.warn('Offline progress retained for retry:', error.message);
+      if (!pendingNoticeShown && typeof showAuthToast === 'function') {
+        showAuthToast('Cloud sync is pending. Do not clear browser data; retry when storage and connection are available.');
+        pendingNoticeShown = true;
       }
-    }
-
-    queueWrite(remaining);
-    if (items.length && !remaining.length && typeof showAuthToast === 'function') {
-      showAuthToast('Offline progress synced');
+    } finally {
+      const owner = typeof getUserId === 'function' && getUserId();
+      if (owner && navigator.onLine) {
+        const pending = await MoraProgressOutbox.pending(owner).catch(() => []);
+        if (pending.length) {
+          syncRetryTimer = setTimeout(syncPending, syncRetryDelay);
+          syncRetryDelay = Math.min(syncRetryDelay * 2, 60000);
+        }
+      }
     }
   }
 
   function wrapSupabaseSaves() {
-    if (typeof dbSaveAnswer === 'function' && !window.__pwaOriginalDbSaveAnswer) {
-      window.__pwaOriginalDbSaveAnswer = dbSaveAnswer;
-      dbSaveAnswer = async function(subject, questionId, selected, correct) {
-        if (typeof isGuest === 'function' && isGuest()) {
-          return await window.__pwaOriginalDbSaveAnswer(subject, questionId, selected, correct);
-        }
-        if (!navigator.onLine) {
-          queuePush('answer', { subject, questionId, selected, correct });
-          return;
-        }
-        try {
-          return await window.__pwaOriginalDbSaveAnswer(subject, questionId, selected, correct);
-        } catch(e) {
-          if (typeof isGuest !== 'function' || !isGuest()) {
-            queuePush('answer', { subject, questionId, selected, correct });
-          }
-        }
-      };
-    }
-
-    if (typeof dbSaveSession === 'function' && !window.__pwaOriginalDbSaveSession) {
-      window.__pwaOriginalDbSaveSession = dbSaveSession;
-      dbSaveSession = async function(subject, appMode, score, total, timeTaken, countdownLimit) {
-        noteCompletedQuizForInstallPrompt();
-        if (typeof isGuest === 'function' && isGuest()) {
-          return await window.__pwaOriginalDbSaveSession(subject, appMode, score, total, timeTaken, countdownLimit);
-        }
-        if (!navigator.onLine) {
-          queuePush('session', { subject, appMode, score, total, timeTaken, countdownLimit });
-          return;
-        }
-        try {
-          return await window.__pwaOriginalDbSaveSession(subject, appMode, score, total, timeTaken, countdownLimit);
-        } catch(e) {
-          if (typeof isGuest !== 'function' || !isGuest()) {
-            queuePush('session', { subject, appMode, score, total, timeTaken, countdownLimit });
-          }
-        }
-      };
-    }
+    window.MoraProgressOutbox?.configure(dbSendProgressOperation, getUserId);
   }
+  window.addEventListener('mora-auth-ready', syncPending);
+  window.addEventListener('mora-progress-queued', syncPending);
+  window.addEventListener('mora-quiz-completed', noteCompletedQuizForInstallPrompt);
 
   function noteCompletedQuizForInstallPrompt() {
     const count = (parseInt(localStorage.getItem(COMPLETED_COUNT_KEY) || '0', 10) || 0) + 1;

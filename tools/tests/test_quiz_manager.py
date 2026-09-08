@@ -196,7 +196,7 @@ class QuizManagerTest(unittest.TestCase):
         imported = self.read_chunk("alpha")["pastPaper"][0]
         self.assertEqual(imported, legacy)
 
-    def test_current_schema_questions_survive_apply_round_trip(self):
+    def test_current_schema_questions_remain_preview_only(self):
         questions = [
             single_question("alpha_single_002"),
             {
@@ -274,15 +274,11 @@ class QuizManagerTest(unittest.TestCase):
         self.assertTrue(outcome.ok, outcome.errors)
         html = self.quiz_data_path.read_text(encoding="utf-8")
         plan = self.manager.prepare_import_plan(html, pack_path, pack, outcome.warnings, "alpha", "past_paper")
-        self.assertTrue(plan.can_apply, plan.apply_blockers)
-        html = self.manager.apply_import_plan(html, plan)
-        self.assertTrue(self.manager.write_all_changes(self.quiz_data_path, html))
-        imported = self.read_chunk("alpha")["pastPaper"]
-        self.assertEqual(imported, questions)
-
-        chunk_text = (self.root / "subject_data" / "alpha.js").read_text(encoding="utf-8")
-        self.assertIn('"value":null', chunk_text)
-        self.assertNotIn('"None"', chunk_text)
+        self.assertFalse(plan.can_apply)
+        self.assertEqual(plan.questions, questions)
+        with self.assertRaises(RuntimeError):
+            self.manager.apply_import_plan(html, plan)
+        self.assertEqual(self.read_chunk('alpha')['pastPaper'], [])
 
     def test_pack_level_stimuli_images_round_trip_and_block_live_apply(self):
         stimuli = {
@@ -328,7 +324,9 @@ class QuizManagerTest(unittest.TestCase):
         self.assertEqual(after, before)
 
     def test_explicit_apply_updates_only_intended_temp_files(self):
-        pack_path = self.write_pack("apply_pack.json", valid_pack([single_question("alpha_apply_001")]))
+        question = {'id': 'alpha_apply_001', 'subject': 'alpha', 'type': 'mcq', 'unit': 1,
+                    'year': '2026', 'text': 'Choose one', 'opts': ['A', 'B'], 'ans': 1}
+        pack_path = self.write_pack("apply_pack.json", valid_pack([question]))
         beta_before = (self.root / "subject_data" / "beta.js").read_bytes()
         args = types.SimpleNamespace(
             quiz_data=str(self.quiz_data_path),
@@ -397,6 +395,35 @@ class QuizManagerTest(unittest.TestCase):
         self.assertEqual(question["unit"], 1)
         self.assertEqual(question["year"], "2026")
         self.assertNotIn("hard", question)
+
+    def test_live_gate_rejects_invalid_final_payloads_without_writes(self):
+        base = {'id': 'alpha_gate_001', 'subject': 'alpha', 'type': 'mcq', 'unit': 1,
+                'text': 'Choose one', 'opts': ['A', 'B'], 'ans': 1}
+        html = self.quiz_data_path.read_text(encoding='utf-8')
+        cases = [dict(base, ans='1'), dict(base, ans=True), dict(base, unit=999),
+                 dict(base, opts=['A', {'body': 'B'}]), dict(base, img='None'),
+                 dict(base, img='IMAGES/missing.png'), dict(base, subject='beta')]
+        for question in cases:
+            with self.subTest(question=question):
+                plan = self.manager.prepare_import_plan(html, 'memory.json', valid_pack([question]), [], 'alpha', 'past_paper')
+                self.assertFalse(plan.can_apply)
+                with self.assertRaises(RuntimeError):
+                    self.manager.apply_import_plan(html, plan)
+        plan = self.manager.prepare_import_plan(html, 'memory.json', valid_pack([base]), [], 'alpha', 'past_paper', {'unit': 999})
+        self.assertFalse(plan.can_apply)
+
+    def test_live_gate_rechecks_preview_and_resolves_images(self):
+        image = self.root / 'IMAGES' / 'test.png'
+        image.parent.mkdir()
+        image.write_bytes(b'fixture')
+        question = {'id': 'alpha_image_001', 'subject': 'alpha', 'type': 'mcq', 'unit': 1,
+                    'year': '2026', 'text': 'Choose one', 'opts': ['A', 'B'], 'ans': 1, 'img': 'IMAGES/test.png'}
+        html = self.quiz_data_path.read_text(encoding='utf-8')
+        plan = self.manager.prepare_import_plan(html, 'memory.json', valid_pack([question]), [], 'alpha', 'past_paper')
+        self.assertTrue(plan.can_apply, plan.apply_blockers)
+        plan.questions[0]['ans'] = '1'
+        with self.assertRaises(RuntimeError):
+            self.manager.apply_import_plan(html, plan)
 
     def test_block_preview_uses_body_code_math_text(self):
         code_question = {

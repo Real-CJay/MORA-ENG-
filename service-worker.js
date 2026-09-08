@@ -1,16 +1,17 @@
 const CACHE_PREFIX = 'mora-quiz';
-const CACHE_VERSION = 'mora-quiz-v85';
+const CACHE_VERSION = 'mora-quiz-v86';
 const APP_SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const RUNTIME_CACHE   = `${CACHE_VERSION}-runtime`;
 // Subject data cache is not versioned; it survives app updates so downloaded
 // modules remain available offline even after the user gets a new app version.
 const SUBJECTS_CACHE  = `${CACHE_PREFIX}-subjects`;
 // This mirrors the cache-busting query currently used by index.html.
-const PRECACHE_ASSET_VERSION = '82';
+const PRECACHE_ASSET_VERSION = '83';
 
 const versionedAppAsset = path => `${path}?v=${PRECACHE_ASSET_VERSION}`;
 
 const REQUIRED_APP_SHELL = [
+  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0',
   '/',
   '/index.html',
   versionedAppAsset('/manifest.json'),
@@ -19,6 +20,7 @@ const REQUIRED_APP_SHELL = [
   versionedAppAsset('/js/curriculum_registry.js'),
   versionedAppAsset('/js/curriculum_module_adapter.js'),
   versionedAppAsset('/auth.js'),
+  versionedAppAsset('/js/app_progress_outbox.js'),
   versionedAppAsset('/js/app_helpers.js'),
   versionedAppAsset('/js/app_subject_loader.js'),
   versionedAppAsset('/js/app_offline_cache.js'),
@@ -26,6 +28,8 @@ const REQUIRED_APP_SHELL = [
   versionedAppAsset('/js/app_quiz_utils.js'),
   versionedAppAsset('/js/app_transition_helpers.js'),
   versionedAppAsset('/js/app_subject_helpers.js'),
+  versionedAppAsset('/js/app_question_render_bridge.js'),
+  '/js/question_renderer.js',
   versionedAppAsset('/quiz_app.js'),
   versionedAppAsset('/pwa.js'),
   '/vendor/katex/katex.min.css',
@@ -195,10 +199,10 @@ self.addEventListener('message', event => {
           return caches.open(SUBJECTS_CACHE).then(cache => cache.put(url, resp));
         })
         .then(() => {
-          event.source?.postMessage({ type: 'SUBJECT_CACHED', subjectKey, ok: true });
+          (event.ports?.[0] || event.source)?.postMessage({ type: 'SUBJECT_CACHED', subjectKey, ok: true });
         })
         .catch(() => {
-          event.source?.postMessage({ type: 'SUBJECT_CACHED', subjectKey, ok: false });
+          (event.ports?.[0] || event.source)?.postMessage({ type: 'SUBJECT_CACHED', subjectKey, ok: false });
         })
     );
   }
@@ -218,12 +222,15 @@ self.addEventListener('message', event => {
     event.waitUntil(
       caches.open(SUBJECTS_CACHE).then(cache =>
         Promise.allSettled(urls.map(async url => {
-          try {
-            const resp = await fetch(url);
-            if (resp && resp.status === 200) await cache.put(url, resp);
-          } catch(e) {}
-        }))
-      )
+          const resp = await fetch(url);
+          if (!resp || resp.status !== 200) throw new Error('Image download failed');
+          await cache.put(url, resp);
+        })).then(results => {
+          (event.ports?.[0] || event.source)?.postMessage({ type: 'IMAGES_CACHED', ok: results.every(r => r.status === 'fulfilled') });
+        })
+      ).catch(() => {
+        (event.ports?.[0] || event.source)?.postMessage({ type: 'IMAGES_CACHED', ok: false });
+      })
     );
   }
 });
@@ -267,14 +274,22 @@ self.addEventListener('fetch', event => {
   }
 
   if (request.mode === 'navigate') {
+    const isAppRoute = url.origin === location.origin && (
+      url.pathname === '/' || url.pathname === '/index.html' ||
+      /^\/(subjects|semester|quiz)(\/|$)/.test(url.pathname) ||
+      /^\/(history|stats|dashboard|profile|analytics|weak-areas|achievements|leaderboards|past-papers|target-quiz|questions|admin)\/?$/.test(url.pathname)
+    );
     event.respondWith(
       fetch(request)
         .then(response => {
-          const copy = response.clone();
-          caches.open(APP_SHELL_CACHE).then(cache => cache.put('/index.html', copy));
+          if (response.ok && (response.headers.get('Content-Type') || '').includes('text/html')) {
+            const copy = response.clone();
+            event.waitUntil(caches.open(isAppRoute ? APP_SHELL_CACHE : RUNTIME_CACHE)
+              .then(cache => cache.put(isAppRoute ? '/index.html' : request, copy)));
+          }
           return response;
         })
-        .catch(() => caches.match('/index.html').then(cached => cached || caches.match('/').then(root => root || offlineHtmlResponse())))
+        .catch(() => caches.match(isAppRoute ? '/index.html' : request).then(cached => cached || offlineHtmlResponse()))
     );
     return;
   }
@@ -307,10 +322,6 @@ self.addEventListener('fetch', event => {
     );
   }
 });
-
-
-
-
 
 
 

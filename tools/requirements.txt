@@ -1,0 +1,5 @@
+# Offline extraction tools only; the static website has no Python dependency.
+PyMuPDF==1.28.2
+Pillow==12.3.0
+numpy==2.4.6
+opencv-python==4.14.0.94
