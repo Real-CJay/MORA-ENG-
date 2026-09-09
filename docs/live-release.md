@@ -14,7 +14,11 @@ The user authorized applying the reviewed migration, committing the repairs and 
 
 ## Client release
 
-Database/API baseline committed as `1573184`; client repairs committed as `04ff920`. Existing deployment target: `mora-eng`, team `januparansindu-6726s-projects`, Hobby plan. Deployment is pending CLI authentication with access to that existing team; the initial CLI login could not access it. No deployment or Git push has occurred in this release attempt.
+Database/API baseline committed as `1573184`; client repairs committed as `04ff920`; extraction/tooling repairs committed as `f3dd264`. All three were pushed and merged into `main` through PR #1, merge commit `8686330` on 2026-09-08.
+
+Existing deployment target: `mora-eng`, team `januparansindu-6726s-projects`, Hobby plan. The user elected to handle Vercel manually after CLI authentication difficulties. Production client revision remains unverified; this is not a claim of deployment completion. No further login attempt, deployment or migration is needed merely to reconcile this record.
+
+For current stage status, see the [master roadmap](master-plan.md) and [7.0C closeout](stage-7-0c-closeout.md).
 
 ## Verification and boundaries
 

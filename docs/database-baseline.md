@@ -1,5 +1,7 @@
 # Database baseline and release order
 
+Historical review: the statements below describe the pre-application baseline, not today's release status. The reviewed migration was subsequently applied and SQL sources committed; see [live release](live-release.md). Do not replay scripts based on this document. Current stages are in the [master roadmap](master-plan.md).
+
 This is a local source review, not certification of the deployed database. No production SQL was executed. Keep extraction audit 7.0C unchanged; the receipt/limiter migration is a separately approved repair unit.
 
 ## Historical scripts

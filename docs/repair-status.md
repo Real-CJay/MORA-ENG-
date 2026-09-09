@@ -2,6 +2,8 @@
 
 For the subsequently authorized live database application and commit/deployment status, see [live release](live-release.md). The implementation-only statements below describe the earlier local pass.
 
+Current position (2026-09-09): the repairs were pushed and merged into `main` at `8686330`; 7.0C's approved local audit scope is closed. See the [closeout](stage-7-0c-closeout.md) for fresh checks and the [master roadmap](master-plan.md) for remaining stages. Historical "current" counts and limitations below describe the earlier pass; the later release record supersedes them, including the 27-test Node total and subsequent local offline checks.
+
 Baseline: `stage-7-0c-general-extraction-tool-audit`, `79d105f`. The extraction-tool audit remains 7.0C. These are separately scoped approved repairs, not new numbered stages. No commits, staging, pushes, deployment or production SQL execution were performed.
 
 ## Implemented locally

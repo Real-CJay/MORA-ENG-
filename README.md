@@ -4,6 +4,8 @@
 
 ## Developer References
 
+- [Current master roadmap and stage status](docs/master-plan.md)
+- [Stage 7.0C closeout](docs/stage-7-0c-closeout.md)
 - [Quiz structure contract](docs/quiz-structure-contract.md)
 - [Approved repairs and verification](docs/repair-status.md)
 - [Database baseline and release order](docs/database-baseline.md)

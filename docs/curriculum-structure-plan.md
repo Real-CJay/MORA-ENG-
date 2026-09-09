@@ -1,5 +1,7 @@
 # Mora Quiz Curriculum Structure Plan
 
+Historical Stage 6.0I proposal. Its future-stage assignments are not the current roadmap; use the [master roadmap](master-plan.md), including approved dynamic curriculum and enrollment work. No historical example here authorizes new live data.
+
 Stage 6.0I establishes the curriculum registry without changing live quiz behavior. Mora Quiz remains a static HTML/CSS/JavaScript app with classic scripts, Supabase, lazy-loaded `subject_data/*.js`, and the existing `quiz_app.js` quiz engine.
 
 ## Correct Hierarchy
