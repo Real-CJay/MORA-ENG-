@@ -6,6 +6,7 @@
 
 - [Current master roadmap and stage status](docs/master-plan.md)
 - [Stage 7.0C closeout](docs/stage-7-0c-closeout.md)
+- [Synthetic bank and safe content validation](docs/sample-bank-contract.md)
 - [Quiz structure contract](docs/quiz-structure-contract.md)
 - [Approved repairs and verification](docs/repair-status.md)
 - [Database baseline and release order](docs/database-baseline.md)
@@ -53,6 +54,11 @@ Keep the directory layout intact. There is no production build step.
 ---
 
 ## File Roles — What to Upload to Claude
+
+For application maintenance, provide relevant code/dependencies and the sample
+bank contract, not real question banks or full-bank exports. Real content is
+manually reviewed by the owner. Use the content-safe validator in the linked
+contract; do not paste verbose real-content logs.
 
 | You want to…                        | Upload this file      | Leave these alone     |
 |-------------------------------------|-----------------------|-----------------------|

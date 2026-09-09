@@ -1,0 +1,259 @@
+{
+  "catalogVersion": 1,
+  "synthetic": true,
+  "packFiles": {
+    "live": "live.json",
+    "preview": "preview.json"
+  },
+  "invalidCasesFile": "invalid.json",
+  "departments": [
+    {
+      "id": "entc",
+      "label": "ENTC",
+      "streams": []
+    },
+    {
+      "id": "cse",
+      "label": "CSE",
+      "streams": []
+    },
+    {
+      "id": "electrical",
+      "label": "Electrical",
+      "streams": []
+    },
+    {
+      "id": "material",
+      "label": "Material",
+      "streams": []
+    },
+    {
+      "id": "bio_medical",
+      "label": "Bio Medical",
+      "streams": []
+    },
+    {
+      "id": "chemical",
+      "label": "Chemical",
+      "streams": []
+    },
+    {
+      "id": "mechanical",
+      "label": "Mechanical",
+      "streams": [
+        {
+          "id": "aeronautical",
+          "label": "Aeronautical"
+        },
+        {
+          "id": "mechatronics",
+          "label": "Mechatronics"
+        },
+        {
+          "id": "common_stream",
+          "label": "Common Stream"
+        }
+      ]
+    },
+    {
+      "id": "civil",
+      "label": "Civil",
+      "streams": []
+    }
+  ],
+  "semesters": [
+    {
+      "id": "sample_sem1",
+      "label": "Semester 1 (samples)",
+      "type": "common",
+      "placements": [
+        {
+          "moduleId": "__sample_shared",
+          "departmentId": null,
+          "streamId": null
+        }
+      ]
+    },
+    {
+      "id": "sample_sem2",
+      "label": "Semester 2 (samples)",
+      "type": "departmental",
+      "placements": [
+        {
+          "moduleId": "__sample_shared",
+          "departmentId": "entc",
+          "streamId": null
+        },
+        {
+          "moduleId": "__sample_shared",
+          "departmentId": "cse",
+          "streamId": null
+        },
+        {
+          "moduleId": "__sample_shared",
+          "departmentId": "electrical",
+          "streamId": null
+        },
+        {
+          "moduleId": "__sample_shared",
+          "departmentId": "material",
+          "streamId": null
+        },
+        {
+          "moduleId": "__sample_shared",
+          "departmentId": "bio_medical",
+          "streamId": null
+        },
+        {
+          "moduleId": "__sample_shared",
+          "departmentId": "chemical",
+          "streamId": null
+        },
+        {
+          "moduleId": "__sample_shared",
+          "departmentId": "civil",
+          "streamId": null
+        },
+        {
+          "moduleId": "__sample_shared",
+          "departmentId": "mechanical",
+          "streamId": "aeronautical"
+        },
+        {
+          "moduleId": "__sample_shared",
+          "departmentId": "mechanical",
+          "streamId": "mechatronics"
+        },
+        {
+          "moduleId": "__sample_shared",
+          "departmentId": "mechanical",
+          "streamId": "common_stream"
+        },
+        {
+          "moduleId": "__sample_empty",
+          "departmentId": "cse",
+          "streamId": null
+        }
+      ]
+    }
+  ],
+  "modules": [
+    {
+      "id": "__sample_shared",
+      "label": "Sample Engineering",
+      "units": [
+        {
+          "id": 1,
+          "label": "Sample unit 1"
+        },
+        {
+          "id": 2,
+          "label": "Sample unit 2"
+        }
+      ],
+      "groups": [
+        {
+          "id": "sample_units",
+          "label": "Unit-wise past papers",
+          "bucket": "pastUnit",
+          "unit": 1,
+          "questionIds": [
+            "__dev_synthetic_minimal",
+            "__dev_synthetic_math"
+          ]
+        },
+        {
+          "id": "sample_paper",
+          "label": "Sample paper A",
+          "bucket": "pastPaper",
+          "year": "Sample paper A",
+          "questionIds": [
+            "__dev_synthetic_rich",
+            "__dev_synthetic_hybrid"
+          ]
+        },
+        {
+          "id": "sample_normal",
+          "label": "Target normal",
+          "bucket": "targetNormal",
+          "questionIds": [
+            "__dev_synthetic_duplicate_options"
+          ]
+        },
+        {
+          "id": "sample_hard",
+          "label": "Target hard",
+          "bucket": "targetHard",
+          "questionIds": [
+            "__dev_synthetic_hard"
+          ]
+        }
+      ],
+      "previewQuestionIds": [
+        "__dev_synthetic_preview_mcq",
+        "__dev_synthetic_preview_multi_select",
+        "__dev_synthetic_preview_numeric",
+        "__dev_synthetic_preview_short_answer",
+        "__dev_synthetic_preview_structured",
+        "__dev_synthetic_preview_written",
+        "__dev_synthetic_preview_code_output",
+        "__dev_synthetic_preview_matching",
+        "__dev_synthetic_preview_image_based"
+      ]
+    },
+    {
+      "id": "__sample_empty",
+      "label": "Empty sample module",
+      "units": [],
+      "groups": [],
+      "previewQuestionIds": []
+    }
+  ],
+  "coverage": {
+    "live-minimal": [
+      "__dev_synthetic_minimal"
+    ],
+    "live-html-context-image": [
+      "__dev_synthetic_rich"
+    ],
+    "latex-delimiters": [
+      "__dev_synthetic_math"
+    ],
+    "canonical-duplicate-options": [
+      "__dev_synthetic_duplicate_options"
+    ],
+    "target-hard-last-index": [
+      "__dev_synthetic_hard"
+    ],
+    "hybrid-block-fallback": [
+      "__dev_synthetic_hybrid"
+    ],
+    "preview-mcq": [
+      "__dev_synthetic_preview_mcq"
+    ],
+    "preview-multi_select": [
+      "__dev_synthetic_preview_multi_select"
+    ],
+    "preview-numeric": [
+      "__dev_synthetic_preview_numeric"
+    ],
+    "preview-short_answer": [
+      "__dev_synthetic_preview_short_answer"
+    ],
+    "preview-structured": [
+      "__dev_synthetic_preview_structured"
+    ],
+    "preview-written": [
+      "__dev_synthetic_preview_written"
+    ],
+    "preview-code_output": [
+      "__dev_synthetic_preview_code_output"
+    ],
+    "preview-matching": [
+      "__dev_synthetic_preview_matching"
+    ],
+    "preview-image_based": [
+      "__dev_synthetic_preview_image_based"
+    ]
+  }
+}

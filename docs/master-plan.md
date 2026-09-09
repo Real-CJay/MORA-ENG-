@@ -7,7 +7,8 @@ future-stage proposals are historical. Permanent guardrails remain in AGENTS.md.
 
 - Baseline: main at `8686330`, including repairs `1573184`, `04ff920`, `f3dd264`.
 - 7.0C: closed for the approved local audit/repair scope; see [closeout](stage-7-0c-closeout.md).
-- Next: Stage 8. Stages 8-19 are not implemented by this documentation update.
+- Stage 8: implemented locally; see [sample bank and verification boundary](sample-bank-contract.md).
+- Next: Stage 9 (admin sample explorer). Stages 9-19 remain unimplemented.
 - Production client revision and full hosted/device acceptance remain unverified.
 - Manual CS preparation continues independently; Mechanics figures are excluded.
 - Each stage remains a separate verified unit. Production SQL, deployment,
@@ -59,7 +60,7 @@ Reconcile completed repairs, outstanding audit requirements and outdated release
 AI uses synthetic content by default; real content inspection requires permission.
 This includes real banks, figures, exports and historical reports containing
 question excerpts. Validators may process real content without printing it.
-Until Stage 8 adds content-safe reports, do not stream real-bank validator
+Use `tools/validate_content_safe.py`; do not stream verbose real-bank validator
 output into the AI conversation. Academic correctness is reviewed by the user.
 Coverage is driven by a checklist, not a fixed number of questions.
 

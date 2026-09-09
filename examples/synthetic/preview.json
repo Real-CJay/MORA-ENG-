@@ -1,0 +1,404 @@
+{
+  "schemaVersion": 2,
+  "subject": "__sample_shared",
+  "bucket": "pastPaper",
+  "stimuli": {
+    "sample_shared": {
+      "title": "Synthetic shared setup",
+      "body": [
+        {
+          "type": "text",
+          "value": "Two questions refer to this one setup."
+        }
+      ],
+      "images": [
+        "sample_triangle"
+      ]
+    }
+  },
+  "images": {
+    "sample_triangle": {
+      "src": "IMAGES/__samples/stage8-diagram.svg",
+      "alt": "Synthetic triangle",
+      "sourcePage": 1
+    }
+  },
+  "questions": [
+    {
+      "id": "__dev_synthetic_preview_mcq",
+      "subject": "__sample_shared",
+      "unit": 1,
+      "year": "Sample paper P",
+      "type": "mcq",
+      "body": [
+        {
+          "type": "text",
+          "value": "Synthetic shared example with $x=2$."
+        },
+        {
+          "type": "math",
+          "latex": "x^2=4",
+          "display": true
+        },
+        {
+          "type": "code",
+          "language": "python",
+          "value": "for n in [2]:\n    print(n)"
+        },
+        {
+          "type": "table",
+          "header": true,
+          "rows": [
+            [
+              "symbol",
+              "value"
+            ],
+            [
+              "x",
+              "2"
+            ]
+          ]
+        },
+        {
+          "type": "image",
+          "assetId": "sample_triangle"
+        }
+      ],
+      "options": [
+        {
+          "label": "a",
+          "body": [
+            {
+              "type": "text",
+              "value": "2"
+            }
+          ]
+        },
+        {
+          "label": "b",
+          "body": [
+            {
+              "type": "text",
+              "value": "3"
+            }
+          ]
+        }
+      ],
+      "answer": {
+        "mode": "single",
+        "value": "a"
+      },
+      "explanation": [
+        {
+          "type": "text",
+          "value": "Synthetic model answer; not academic material."
+        }
+      ],
+      "source": {
+        "pdf": "synthetic",
+        "page": 1,
+        "qno": 1
+      },
+      "status": "draft",
+      "stimulusId": "sample_shared",
+      "images": [
+        "sample_triangle"
+      ]
+    },
+    {
+      "id": "__dev_synthetic_preview_multi_select",
+      "subject": "__sample_shared",
+      "unit": 1,
+      "year": "Sample paper P",
+      "type": "multi_select",
+      "body": [
+        {
+          "type": "text",
+          "value": "Synthetic multi_select example."
+        }
+      ],
+      "options": [
+        {
+          "label": "a",
+          "body": [
+            {
+              "type": "text",
+              "value": "2"
+            }
+          ]
+        },
+        {
+          "label": "b",
+          "body": [
+            {
+              "type": "text",
+              "value": "3"
+            }
+          ]
+        }
+      ],
+      "answer": {
+        "mode": "multiple",
+        "value": [
+          "a",
+          "b"
+        ]
+      },
+      "explanation": [
+        {
+          "type": "text",
+          "value": "Synthetic model answer; not academic material."
+        }
+      ],
+      "source": {
+        "pdf": "synthetic",
+        "page": 1,
+        "qno": 2
+      },
+      "status": "draft"
+    },
+    {
+      "id": "__dev_synthetic_preview_numeric",
+      "subject": "__sample_shared",
+      "unit": 1,
+      "year": "Sample paper P",
+      "type": "numeric",
+      "body": [
+        {
+          "type": "text",
+          "value": "Synthetic numeric example."
+        }
+      ],
+      "answer": {
+        "mode": "numeric",
+        "value": [
+          2,
+          -2
+        ],
+        "matchMode": "all",
+        "tolerance": 0.01,
+        "toleranceType": "absolute"
+      },
+      "explanation": [
+        {
+          "type": "text",
+          "value": "Synthetic model answer; not academic material."
+        }
+      ],
+      "source": {
+        "pdf": "synthetic",
+        "page": 1,
+        "qno": 3
+      },
+      "status": "draft"
+    },
+    {
+      "id": "__dev_synthetic_preview_short_answer",
+      "subject": "__sample_shared",
+      "unit": 1,
+      "year": "Sample paper P",
+      "type": "short_answer",
+      "body": [
+        {
+          "type": "text",
+          "value": "Synthetic short_answer example."
+        }
+      ],
+      "answer": {
+        "mode": "text",
+        "value": [
+          "two",
+          "2"
+        ],
+        "matchMode": "any"
+      },
+      "explanation": [
+        {
+          "type": "text",
+          "value": "Synthetic model answer; not academic material."
+        }
+      ],
+      "source": {
+        "pdf": "synthetic",
+        "page": 1,
+        "qno": 4
+      },
+      "status": "draft"
+    },
+    {
+      "id": "__dev_synthetic_preview_structured",
+      "subject": "__sample_shared",
+      "unit": 1,
+      "year": "Sample paper P",
+      "type": "structured",
+      "body": [
+        {
+          "type": "text",
+          "value": "Synthetic structured example."
+        }
+      ],
+      "answer": {
+        "mode": "self_mark",
+        "value": null
+      },
+      "explanation": [
+        {
+          "type": "text",
+          "value": "Synthetic model answer; not academic material."
+        }
+      ],
+      "source": {
+        "pdf": "synthetic",
+        "page": 1,
+        "qno": 5
+      },
+      "status": "draft"
+    },
+    {
+      "id": "__dev_synthetic_preview_written",
+      "subject": "__sample_shared",
+      "unit": 1,
+      "year": "Sample paper P",
+      "type": "written",
+      "body": [
+        {
+          "type": "text",
+          "value": "Synthetic written example."
+        }
+      ],
+      "answer": {
+        "mode": "manual",
+        "value": null
+      },
+      "explanation": [
+        {
+          "type": "text",
+          "value": "Synthetic model answer; not academic material."
+        }
+      ],
+      "source": {
+        "pdf": "synthetic",
+        "page": 1,
+        "qno": 6
+      },
+      "status": "draft"
+    },
+    {
+      "id": "__dev_synthetic_preview_code_output",
+      "subject": "__sample_shared",
+      "unit": 1,
+      "year": "Sample paper P",
+      "type": "code_output",
+      "body": [
+        {
+          "type": "text",
+          "value": "Synthetic code_output example."
+        }
+      ],
+      "answer": {
+        "mode": "text",
+        "value": "2"
+      },
+      "explanation": [
+        {
+          "type": "text",
+          "value": "Synthetic model answer; not academic material."
+        }
+      ],
+      "source": {
+        "pdf": "synthetic",
+        "page": 1,
+        "qno": 7
+      },
+      "status": "draft"
+    },
+    {
+      "id": "__dev_synthetic_preview_matching",
+      "subject": "__sample_shared",
+      "unit": 1,
+      "year": "Sample paper P",
+      "type": "matching",
+      "body": [
+        {
+          "type": "text",
+          "value": "Synthetic matching example."
+        }
+      ],
+      "answer": {
+        "mode": "text",
+        "value": [
+          "a-1",
+          "b-2"
+        ],
+        "matchMode": "all",
+        "orderedMatch": false,
+        "extraAllowed": false
+      },
+      "explanation": [
+        {
+          "type": "text",
+          "value": "Synthetic model answer; not academic material."
+        }
+      ],
+      "source": {
+        "pdf": "synthetic",
+        "page": 1,
+        "qno": 8
+      },
+      "status": "draft"
+    },
+    {
+      "id": "__dev_synthetic_preview_image_based",
+      "subject": "__sample_shared",
+      "unit": 1,
+      "year": "Sample paper P",
+      "type": "image_based",
+      "body": [
+        {
+          "type": "text",
+          "value": "Synthetic image_based example."
+        }
+      ],
+      "options": [
+        {
+          "label": "a",
+          "body": [
+            {
+              "type": "text",
+              "value": "2"
+            }
+          ]
+        },
+        {
+          "label": "b",
+          "body": [
+            {
+              "type": "text",
+              "value": "3"
+            }
+          ]
+        }
+      ],
+      "answer": {
+        "mode": "single",
+        "value": "a"
+      },
+      "explanation": [
+        {
+          "type": "text",
+          "value": "Synthetic model answer; not academic material."
+        }
+      ],
+      "source": {
+        "pdf": "synthetic",
+        "page": 1,
+        "qno": 9
+      },
+      "status": "draft",
+      "stimulusId": "sample_shared",
+      "images": [
+        "sample_triangle"
+      ]
+    }
+  ]
+}

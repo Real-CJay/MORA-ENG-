@@ -4,6 +4,8 @@ This repo is the **Mora Quiz** app. This file contains stable guardrails only. I
 
 For current stage status, current live subjects, current roadmap, and feature-specific instructions, follow the user's latest stage prompt and current master plan.
 
+The current roadmap is `docs/master-plan.md`.
+
 If this file conflicts with the explicit current stage prompt, stop and report the conflict instead of guessing.
 
 ## Role
@@ -161,6 +163,17 @@ Escalations:
 ```
 
 ## Testing Rules
+
+### Content boundary
+
+For application maintenance, use `examples/synthetic/catalog.json` and
+`docs/sample-bank-contract.md`. Do not inspect real question text, figures,
+exports or historical reports containing question excerpts without explicit
+user permission. Validators may process real banks programmatically, but only
+content-safe output from `tools/validate_content_safe.py` should enter AI context.
+Do not stream older verbose validators/import previews for real content.
+Academic review belongs to the user. Synthetic examples supplement, not replace,
+behavioral regression tests. Samples must never enter real quizzes or progress.
 
 Run every check requested by the current stage prompt.
 

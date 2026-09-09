@@ -1,0 +1,147 @@
+{
+  "schemaVersion": 2,
+  "subject": "__sample_shared",
+  "bucket": "pastPaper",
+  "stimuli": {},
+  "images": {},
+  "questions": [
+    {
+      "id": "__dev_synthetic_minimal",
+      "subject": "__sample_shared",
+      "unit": 1,
+      "year": "Sample paper A",
+      "type": "mcq",
+      "text": "Which number equals one plus one?",
+      "opts": [
+        "1",
+        "2",
+        "3"
+      ],
+      "ans": 1
+    },
+    {
+      "id": "__dev_synthetic_rich",
+      "subject": "__sample_shared",
+      "unit": 2,
+      "year": "Sample paper A",
+      "type": "mcq",
+      "text": "Select the label <strong>B</strong>.",
+      "opts": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "ans": 1,
+      "context": "Made-up triangle; the drawing is illustrative.",
+      "img": "IMAGES/__samples/stage8-diagram.svg",
+      "imgAlt": "Synthetic triangle with labels A, B and C",
+      "exp": "<strong>B</strong> is the requested label.<br>No real examination content.",
+      "source": {
+        "pdf": "synthetic",
+        "page": 1,
+        "qno": 2
+      }
+    },
+    {
+      "id": "__dev_synthetic_math",
+      "subject": "__sample_shared",
+      "unit": 1,
+      "year": "Sample paper A",
+      "type": "mcq",
+      "text": "Use $x=2$, $$y=3$$, \\(z=4\\), and \\[w=5\\]. Select x.",
+      "opts": [
+        "$2$",
+        "\\(3\\)",
+        "4"
+      ],
+      "ans": 0,
+      "exp": "The given value is \\(x=2\\).",
+      "context": "Inline and display LaTeX fixture."
+    },
+    {
+      "id": "__dev_synthetic_duplicate_options",
+      "subject": "__sample_shared",
+      "unit": 1,
+      "year": "Sample paper A",
+      "type": "mcq",
+      "text": "Choose the second option, even though two labels are identical.",
+      "opts": [
+        "Same",
+        "Same",
+        "Different"
+      ],
+      "ans": 1,
+      "exp": "The original index is 1; label equality cannot identify this answer."
+    },
+    {
+      "id": "__dev_synthetic_hard",
+      "subject": "__sample_shared",
+      "unit": 2,
+      "year": "Sample paper A",
+      "type": "mcq",
+      "text": "Select the final option.",
+      "opts": [
+        "first",
+        "last"
+      ],
+      "ans": 1,
+      "hard": true,
+      "exp": "This synthetic target-hard question checks the last canonical index.",
+      "img": null
+    },
+    {
+      "id": "__dev_synthetic_hybrid",
+      "subject": "__sample_shared",
+      "unit": 1,
+      "year": "Sample paper A",
+      "type": "mcq",
+      "text": "Flat fallback: select two.",
+      "opts": [
+        "one",
+        "two"
+      ],
+      "ans": 1,
+      "blocks": [
+        {
+          "type": "text",
+          "text": "Synthetic block body; select two."
+        },
+        {
+          "type": "math",
+          "latex": "1+1=2"
+        },
+        {
+          "type": "code",
+          "language": "python",
+          "text": "if True:\n    print(2)"
+        },
+        {
+          "type": "table",
+          "header": true,
+          "rows": [
+            [
+              "n",
+              "value"
+            ],
+            [
+              "1",
+              "2"
+            ]
+          ]
+        },
+        {
+          "type": "image",
+          "img": "/IMAGES/__samples/stage8-diagram.svg",
+          "alt": "Synthetic triangle"
+        }
+      ],
+      "explanationBlocks": [
+        {
+          "type": "text",
+          "text": "One plus one is two."
+        }
+      ]
+    }
+  ]
+}

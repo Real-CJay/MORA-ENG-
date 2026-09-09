@@ -1,0 +1,104 @@
+{
+  "synthetic": true,
+  "cases": [
+    {
+      "id": "bad_index",
+      "base": "__dev_synthetic_minimal",
+      "set": {
+        "ans": 50
+      },
+      "expectedSchema": "ANSWER_INDEX",
+      "expectedLive": "LIVE_ANSWER_INDEX"
+    },
+    {
+      "id": "string_index",
+      "base": "__dev_synthetic_minimal",
+      "set": {
+        "ans": "b"
+      },
+      "expectedSchema": null,
+      "expectedLive": "LIVE_ANSWER_INDEX"
+    },
+    {
+      "id": "unknown_unit",
+      "base": "__dev_synthetic_minimal",
+      "set": {
+        "unit": 999
+      },
+      "expectedSchema": null,
+      "expectedLive": "UNIT_UNKNOWN"
+    },
+    {
+      "id": "wrong_module",
+      "base": "__dev_synthetic_minimal",
+      "set": {
+        "subject": "other_sample"
+      },
+      "expectedSchema": null,
+      "expectedLive": "MODULE_MISMATCH"
+    },
+    {
+      "id": "bad_options",
+      "base": "__dev_synthetic_minimal",
+      "set": {
+        "opts": [
+          1,
+          2
+        ]
+      },
+      "expectedSchema": null,
+      "expectedLive": "LIVE_OPTIONS"
+    },
+    {
+      "id": "missing_image",
+      "base": "__dev_synthetic_minimal",
+      "set": {
+        "img": "IMAGES/__samples/absent.svg",
+        "imgAlt": "Intentionally missing"
+      },
+      "expectedSchema": "IMAGE_UNRESOLVED",
+      "expectedLive": "IMAGE_UNRESOLVED"
+    },
+    {
+      "id": "placeholder_image",
+      "base": "__dev_synthetic_minimal",
+      "set": {
+        "img": "None"
+      },
+      "expectedSchema": "IMAGE_PLACEHOLDER",
+      "expectedLive": "LIVE_IMAGE_PATH"
+    },
+    {
+      "id": "out_of_root_image",
+      "base": "__dev_synthetic_minimal",
+      "set": {
+        "img": "IMAGES/../../outside.svg"
+      },
+      "expectedSchema": "IMAGE_UNRESOLVED",
+      "expectedLive": "IMAGE_UNRESOLVED"
+    },
+    {
+      "id": "unsafe_html",
+      "base": "__dev_synthetic_minimal",
+      "set": {
+        "text": "<img src=x onerror=alert('synthetic')>"
+      },
+      "expectedSchema": "UNSAFE_CONTENT",
+      "expectedLive": "UNSAFE_CONTENT"
+    },
+    {
+      "id": "preview_body",
+      "base": "__dev_synthetic_minimal",
+      "set": {
+        "body": [
+          {
+            "type": "text",
+            "value": "Synthetic preview body"
+          }
+        ]
+      },
+      "expectedSchema": "SCHEMA_RULE",
+      "expectedLive": "PREVIEW_ONLY"
+    }
+  ]
+}

@@ -354,6 +354,13 @@ Current compatibility: Authoritative schemaVersion 2 validator for current tooli
 
 ## Recommended Daily Content Workflow
 
+For AI-assisted app maintenance, use the [synthetic bank contract](../docs/sample-bank-contract.md).
+Run `python -B tools/validate_content_safe.py --live-repo --max-issues 20` for
+read-only live-bank diagnostics without question prose. JSON-pack arguments to
+that command perform schema checks only, not import approval. The verbose
+preview/apply workflow below is for the owner's manual content review; do not
+stream its real-content output into AI context without permission.
+
 Use this sequence for the safest current content path:
 
 1. Source material: collect the PDF, marking scheme, source pages, and any page images/crops needed for review.

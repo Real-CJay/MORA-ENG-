@@ -456,8 +456,8 @@ def validate_question(
             reporter.error(f"{path}.images[{image_index}]", f"image assetId {asset_id!r} not found in images registry")
 
 
-def validate_pack(pack: Any, images_root: str | None) -> Reporter:
-    reporter = Reporter()
+def validate_pack(pack: Any, images_root: str | None, *, reporter: Reporter | None = None) -> Reporter:
+    reporter = Reporter() if reporter is None else reporter
     if not isinstance(pack, dict):
         reporter.error("$", "pack must be a JSON object")
         return reporter
