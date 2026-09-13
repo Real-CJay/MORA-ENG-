@@ -132,6 +132,18 @@ For `multi_select`. `value` is an array of option labels.
 
 For numeric-entry answers. `value` may be a number or an array of numbers.
 
+Exact answers use the existing numeric mode with `tolerance: 0` (also the
+comparator default when omitted). There is no `numeric_exact` schema type/mode;
+that name identifies a sample, not a new contract. For example:
+
+```json
+{ "mode": "numeric", "value": [2, -2], "matchMode": "all", "tolerance": 0 }
+```
+
+Use nonzero tolerance only for explicitly approximate answers or a justified
+numerical margin. The examples below demonstrate approximate comparison, not
+a requirement to accept approximations for every numeric question.
+
 ```json
 { "mode": "numeric", "value": 0.000001, "tolerance": 0.02, "toleranceType": "relative" }
 ```

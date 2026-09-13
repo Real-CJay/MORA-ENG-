@@ -36,6 +36,7 @@ netlify.toml
 
 # Accidental/generated local files
 -
+.local-reports/
 
 # OS/editor noise
 .DS_Store

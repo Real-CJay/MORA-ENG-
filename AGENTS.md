@@ -78,9 +78,13 @@ git add -A
 
 Stage exact files only.
 
-Do not commit, merge, push, delete branches, or switch major direction unless the user explicitly asks.
+Standing user authorization: before starting the next stage, commit the completed
+and verified current stage's approved changes, staging exact files only. Include
+approved supporting documentation/rule changes; exclude unrelated work and exports.
+If ownership is unclear or required checks fail, stop rather than committing.
 
-The user normally handles commit/merge/push manually.
+This does not authorize automatic pushes, merges, deployments, branch deletion,
+or a change of direction. Those still require an explicit user request.
 
 ## Stage Guardrails
 
@@ -187,6 +191,16 @@ git diff --check
 Only claim tests passed if actually run.
 
 Report any skipped test and why.
+
+For cross-file/tool changes, use `tools/compatibility.json` and run
+`python -B tools/check_sync.py` before the next-stage commit. Inspect reported
+REVIEW NEEDED/UNMAPPED paths; add focused coverage or escalate rather than
+silently marking them synced. Use `--reviewed` only after reviewing the listed
+prompt/doc/manifest changes; it cannot replace manual/browser acceptance.
+Keep schema, sample-only support and live-import compatibility distinct.
+Use `--inventory --output .local-reports/sync-status.json` for a generated file
+record, not handwritten per-file release numbers. Rerun after changes; a report
+or old file timestamp is not proof of compatibility. See `docs/tool-sync.md`.
 
 Every implementation handoff must explain how to manually check the updated
 content and behavior: exact navigation/actions and expected results, plus whether

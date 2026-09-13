@@ -14,6 +14,12 @@ SPEC.loader.exec_module(generator)
 
 
 class ClaudePromptGeneratorTests(unittest.TestCase):
+    def test_exact_numeric_guidance_does_not_invent_a_new_mode(self):
+        prompt = generator.build_prompt(generator.PromptConfig())
+        self.assertIn('mode "numeric" with tolerance 0', prompt)
+        self.assertIn('Do not invent a numeric_exact question type or answer mode', prompt)
+        self.assertIn('Use nonzero tolerance only', prompt)
+
     def test_default_output_targets_schema_version_2(self):
         prompt = generator.build_prompt(generator.PromptConfig())
         self.assertIn('"schemaVersion":2', prompt)

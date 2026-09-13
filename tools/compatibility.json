@@ -1,0 +1,56 @@
+{
+  "manifestVersion": 1,
+  "baselineCommit": "9bbb1b2",
+  "schemaVersion": 2,
+  "questionTypes": ["mcq", "multi_select", "numeric", "short_answer", "structured", "written", "code_output", "matching", "image_based"],
+  "answerModes": ["single", "multiple", "numeric", "text", "self_mark", "manual"],
+  "blockTypes": ["text", "math", "code", "table", "image"],
+  "excludedUntracked": ["AI exports/*", ".local-reports/*"],
+  "reviewPaths": ["AGENTS.md", "docs/*", "tools/*.md", "tools/*prompt_generator.py", "tools/compatibility.json"],
+  "contracts": {
+    "authoring-schema": {
+      "revision": 1,
+      "paths": ["tools/claude_prompt_generator.py", "tools/validate_questions.py", "tools/question_schema.md", "tools/tests/test_claude_prompt_generator.py", "examples/synthetic/*"],
+      "tests": ["prompt", "samples"]
+    },
+    "preview-answers": {
+      "revision": 1,
+      "paths": ["js/question_renderer.js", "js/app_question_render_bridge.js", "js/app_sample_explorer.js", "js/app_admin_tabs.js", "examples/synthetic/*", "IMAGES/__samples/*", "tests/samples.test.cjs", "tests/sample-explorer.test.cjs", "tests/sample-explorer.browser.js", "tests/admin-tabs.browser.js", "docs/sample-bank-contract.md", "docs/stage-9-sample-explorer.md"],
+      "tests": ["sample-runtime", "samples"],
+      "manual": "Browser controls, mobile layout and actual admin access need the documented manual/browser checks."
+    },
+    "live-import": {
+      "revision": 1,
+      "paths": ["tools/quiz_manager.py", "tools/validate_content_safe.py", "tools/tests/test_quiz_manager.py", "tools/tests/test_sample_bank.py", "tools/validate_questions.py", "tools/question_schema.md", "examples/synthetic/*"],
+      "tests": ["imports", "samples"],
+      "manual": "Schema/preview support never grants live import support. No real-content inspection is authorized by this check."
+    },
+    "curriculum": {
+      "revision": 1,
+      "paths": ["js/curriculum_registry.js", "js/curriculum_module_adapter.js", "quiz_data.js", "tools/registry_check.py", "tools/registry_schema.md", "docs/quiz-structure-contract.md"],
+      "tests": ["registry"]
+    },
+    "offline-shell": {
+      "revision": 1,
+      "paths": ["index.html", "service-worker.js", "pwa.js", "js/app_offline_cache.js", "tests/offline.test.cjs", "js/app_sample_explorer.js", "js/app_admin_tabs.js", "quiz_app.js", "auth.js"],
+      "tests": ["offline"],
+      "manual": "Cold offline startup and device update behavior remain manual acceptance checks."
+    },
+    "cs-intermediate": {
+      "revision": 1,
+      "paths": ["tools/cs_block_prompt_generator.py", "tools/cs_extraction_review.py", "tools/cs_extractor_to_preview_schema.py", "tools/pdf_image_extractor.py", "tools/requirements.txt", "tools/tests/test_cs_block_prompt_generator.py", "tools/cs_extraction_workflow.md"],
+      "tests": ["cs"],
+      "manual": "CS extraction has its own intermediate format; do not silently convert it to the preview/live contract."
+    },
+    "runtime-regression": {
+      "revision": 1,
+      "paths": ["quiz_app.js", "auth.js", "js/app_helpers.js", "js/app_quiz_utils.js", "tests/runtime.test.cjs", "tests/security.test.cjs"],
+      "tests": ["runtime"]
+    },
+    "sync-checker": {
+      "revision": 1,
+      "paths": ["tools/check_sync.py", "tools/compatibility.json", "tools/tests/test_sync_check.py", "tools/README.md", "docs/tool-sync-proposal.md", "docs/tool-sync.md", "AGENTS.md", "docs/master-plan.md", ".gitignore"],
+      "tests": ["sync"]
+    }
+  }
+}

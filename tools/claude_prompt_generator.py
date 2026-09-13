@@ -279,7 +279,9 @@ Answer guidance:
 - True/false questions should be modelled as mcq options, usually labels a and b, with answer mode single.
 - Matching may be used as a question type only. Do not create answer mode "matching"; it is not validator-supported.
 - Ordered matching or ordered short-answer checks, when needed, must use mode text or multiple with matchMode "all" plus orderedMatch true. orderedMatch and extraAllowed are valid only with matchMode "all".
-- Numeric answers near zero should usually use toleranceType "absolute"; otherwise relative tolerance is acceptable.
+- Exact numeric answers must use mode "numeric" with tolerance 0. Do not invent a numeric_exact question type or answer mode.
+- Use nonzero tolerance only when the question explicitly permits approximation or a justified numerical margin. Do not apply tolerance to exact integer/root answers automatically.
+- For approximate numeric answers near zero use toleranceType "absolute"; otherwise relative tolerance may be appropriate.
 
 ID rules:
 - Every question id must be globally unique across the whole app, not only inside this pack.

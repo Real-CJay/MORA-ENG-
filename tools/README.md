@@ -391,3 +391,16 @@ Stage 7.0 does not import CS. Do not create `subject_data/cs.js` during this wor
 - `cs_block_prompt_generator.py` and `claude_prompt_generator.py` both prepare AI extraction instructions. Normally use `claude_prompt_generator.py` for universal schemaVersion 2 pack prompts across modules. Use `cs_block_prompt_generator.py` option 1 for a CS paper package with one reusable master, compact chunks, CS-specific review, merge, and optional image cropping. Its option 7 and `claude_prompt_generator.py --legacy` remain only for older workflows.
 - `cs_block_prompt_generator.py` and `cs_extraction_review.py` both review CS outputs. The menu tool is convenient for the guided workflow; the standalone review script is better for direct file/folder review and repeatable checks.
 - `pdf_image_extractor.py` can be launched by `cs_block_prompt_generator.py`, but it is still the same cropper. Run it directly when universal prompts or non-CS packs need image handling.
+
+## Compatibility and file status
+
+Before a stage handoff, run `python -B tools/check_sync.py`. It connects mapped
+generators, validators, samples, runtime checks and offline shell metadata. For
+all mapped checks use `--all`. Prompt/doc changes require review; unmapped changes
+need coverage or escalation, not a shared version-number label.
+
+Generate the file inventory with
+`python -B tools/check_sync.py --inventory --output .local-reports/sync-status.json`.
+The report records Git identity/history, changed/untracked files, coverage and
+actual test results. It is generated locally, not shipped as app content.
+See [tool-sync documentation](../docs/tool-sync.md) for commands and limitations.
