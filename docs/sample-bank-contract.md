@@ -3,7 +3,7 @@
 ## Boundary and catalog
 
 Entry point: `examples/synthetic/catalog.json`. Six live-compatible questions,
-nine preview-only questions, ten invalid mutations and one synthetic SVG replace
+ten preview-only questions across nine types, ten invalid mutations and one synthetic SVG replace
 real content in routine AI maintenance context. The user reviews academic
 correctness. AI inspection of real banks, figures, exports, screenshots or
 historical question excerpts requires explicit permission.
@@ -26,10 +26,11 @@ streams Aeronautical, Mechatronics and Common Stream; a shared and an empty
 module. These are not real curriculum entries.
 
 Question IDs start `__dev_synthetic_` (the existing synthetic guard); module IDs
-start `__sample_`. No production entry point loads these packs. The made-up SVG
+start `__sample_`. No student quiz entry point loads these packs. The made-up SVG
 is `IMAGES/__samples/stage8-diagram.svg`, matching existing image-path rules.
 Samples are not for live import and contain no secrets. Static files do not
-become private merely because a future viewer is admin-only.
+become private merely because the viewer is admin-only. Stage 9 loads them only
+on demand inside its admin sample workspace, never into student quizzes.
 
 ## Coverage checklist
 
@@ -42,6 +43,7 @@ become private merely because a future viewer is admin-only.
 | hard | Target-hard flag, second unit, last answer index, null image |
 | hybrid | Flat fallback/scoring plus existing optional aliases for all five block types |
 | nine preview types | mcq, multi_select, numeric, short_answer, structured, written, code_output, matching, image_based |
+| exact numeric sample | Separate numeric_exact example using existing numeric mode with tolerance 0; both exact roots required |
 | six preview modes | single, multiple, numeric, text, self_mark, manual |
 | generated variants | Numeric/text scalar/arrays, any/all, tolerance modes, ordered/extra matches |
 | shared references | Two preview questions share a stimulus; multiple placements share one module |

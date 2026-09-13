@@ -166,7 +166,7 @@
       "body": [
         {
           "type": "text",
-          "value": "Synthetic numeric example."
+          "value": "Enter both numbers whose square is 4, one per field."
         }
       ],
       "answer": {
@@ -201,7 +201,7 @@
       "body": [
         {
           "type": "text",
-          "value": "Synthetic short_answer example."
+          "value": "What is one plus one? Enter the number or its English word."
         }
       ],
       "answer": {
@@ -234,7 +234,7 @@
       "body": [
         {
           "type": "text",
-          "value": "Synthetic structured example."
+          "value": "Respond to both parts: (a) What is 1 + 1? (b) Explain using two individual counters."
         }
       ],
       "answer": {
@@ -244,7 +244,7 @@
       "explanation": [
         {
           "type": "text",
-          "value": "Synthetic model answer; not academic material."
+          "value": "(a) 2. (b) Place one counter beside another; counting both gives two counters. Check both parts yourself; no mark is assigned."
         }
       ],
       "source": {
@@ -263,7 +263,7 @@
       "body": [
         {
           "type": "text",
-          "value": "Synthetic written example."
+          "value": "Explain in one sentence why one counter plus another counter makes two."
         }
       ],
       "answer": {
@@ -273,7 +273,7 @@
       "explanation": [
         {
           "type": "text",
-          "value": "Synthetic model answer; not academic material."
+          "value": "One counter together with one more makes a group of two counters. Equivalent explanations are valid; compare manually."
         }
       ],
       "source": {
@@ -292,7 +292,7 @@
       "body": [
         {
           "type": "text",
-          "value": "Synthetic code_output example."
+          "value": "What does the Python statement print(1 + 1) output? Code will not be executed."
         }
       ],
       "answer": {
@@ -321,7 +321,7 @@
       "body": [
         {
           "type": "text",
-          "value": "Synthetic matching example."
+          "value": "Match a (one counter) and b (two counters) to 1 (single) and 2 (pair). Type one pair per field, for example a-1. Order does not matter."
         }
       ],
       "answer": {
@@ -399,6 +399,34 @@
       "images": [
         "sample_triangle"
       ]
+    },
+    {
+      "id": "__dev_synthetic_preview_numeric_exact",
+      "subject": "__sample_shared",
+      "unit": 1,
+      "year": "Sample paper P",
+      "type": "numeric",
+      "body": [
+        {
+          "type": "text",
+          "value": "Numeric — exact: enter both numbers whose square is 4, one per field. No tolerance is allowed; approximations such as 2.005 are incorrect."
+        }
+      ],
+      "answer": {
+        "mode": "numeric",
+        "value": [2, -2],
+        "matchMode": "all",
+        "tolerance": 0,
+        "toleranceType": "absolute"
+      },
+      "explanation": [
+        {
+          "type": "text",
+          "value": "The exact answers are 2 and -2, in either order. Both are required. Zero tolerance means numeric equality, so 2.0 is also accepted as 2."
+        }
+      ],
+      "source": {"pdf": "synthetic", "page": 1, "qno": 10},
+      "status": "draft"
     }
   ]
 }

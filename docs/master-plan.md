@@ -8,7 +8,8 @@ future-stage proposals are historical. Permanent guardrails remain in AGENTS.md.
 - Baseline: main at `8686330`, including repairs `1573184`, `04ff920`, `f3dd264`.
 - 7.0C: closed for the approved local audit/repair scope; see [closeout](stage-7-0c-closeout.md).
 - Stage 8: implemented locally; see [sample bank and verification boundary](sample-bank-contract.md).
-- Next: Stage 9 (admin sample explorer). Stages 9-19 remain unimplemented.
+- Stage 9, including approved extensions 9.5–9.7: implemented locally; see [explorer and manual checks](stage-9-sample-explorer.md).
+- Next: Stage 10 (scoped code decomposition). Stages 10-19 remain unimplemented.
 - Production client revision and full hosted/device acceptance remain unverified.
 - Manual CS preparation continues independently; Mechanics figures are excluded.
 - Each stage remains a separate verified unit. Production SQL, deployment,
@@ -70,6 +71,17 @@ Coverage is driven by a checklist, not a fixed number of questions.
 - **9.2:** Question preview, synthetic fields and coverage notes.
 - **9.3:** Isolated answering/reset for live-compatible samples.
 - **9.4:** Verify admin access and absence of real progress, analytics or purchase effects.
+- **9.5:** Interactive sample-only answering/check/reset for defined preview modes;
+  manual model comparison for structured/written responses. Never persist answers
+  or enable these types in live quizzes merely because the sample works.
+- **9.6:** Identify complete, partial and missing interactions. Matching uses typed
+  pairs; structured uses free text without subpart marks. Dedicated pairing and
+  subpart-grading designs remain unestablished, not silently treated as complete.
+  Code-output answers are compared as text; code is never executed.
+- **9.7:** Separate admin Statistics, Sample bank and Settings tabs in a top bar.
+  Render navigation before statistics load, reject stale responses, isolate
+  errors/retry, and support keyboard/mobile use. Keep this UI unit separate from
+  sample answer logic; no new settings or database behavior.
 
 The sample hierarchy includes quiz modes and units/papers beneath modules.
 Use one catalog with shared references, not duplicated sample banks. Sample

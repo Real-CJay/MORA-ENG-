@@ -193,6 +193,7 @@
         "__dev_synthetic_preview_mcq",
         "__dev_synthetic_preview_multi_select",
         "__dev_synthetic_preview_numeric",
+        "__dev_synthetic_preview_numeric_exact",
         "__dev_synthetic_preview_short_answer",
         "__dev_synthetic_preview_structured",
         "__dev_synthetic_preview_written",
@@ -236,6 +237,9 @@
     ],
     "preview-numeric": [
       "__dev_synthetic_preview_numeric"
+    ],
+    "preview-numeric-exact": [
+      "__dev_synthetic_preview_numeric_exact"
     ],
     "preview-short_answer": [
       "__dev_synthetic_preview_short_answer"

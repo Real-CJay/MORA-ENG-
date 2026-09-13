@@ -54,6 +54,8 @@ const _recoveryLinkParams = new URLSearchParams(location.hash.slice(1));
 
 function setAuthUser(user) {
   if (authUser?.id !== user?.id) {
+    window.MoraSampleExplorer?.close();
+    window.MoraAdminTabs?.close();
     authGeneration++;
     _passwordRecoveryActive = false;
     userProfile = null;
@@ -131,6 +133,8 @@ function refreshUserProfileInBackground(shouldRender = false) {
     .catch(() => { if (generation === authGeneration) userProfile = null; })
     .finally(() => {
       if (generation !== authGeneration) return;
+      window.MoraSampleExplorer?.checkAccess();
+      window.MoraAdminTabs?.checkAccess();
       renderAuthPill();
       if (shouldRender && typeof renderApp === 'function') renderApp();
     });

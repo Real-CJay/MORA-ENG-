@@ -188,6 +188,10 @@ Only claim tests passed if actually run.
 
 Report any skipped test and why.
 
+Every implementation handoff must explain how to manually check the updated
+content and behavior: exact navigation/actions and expected results, plus whether
+the change is local or deployed. A commit/version number alone is not this check.
+
 ## Final Rule
 
 When in doubt, stop and report.

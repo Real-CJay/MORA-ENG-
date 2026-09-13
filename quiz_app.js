@@ -2096,6 +2096,7 @@ function hydrateBlockRenderSurface(methodName, root = document.getElementById('a
 }
 
 function renderApp() {
+  if (state.screen !== 'admin') window.MoraAdminTabs?.close();
   _renderEpoch++;
   const navigationKey = JSON.stringify([state.screen, state.currentSubject, state.curriculumRoute]);
   if (navigationKey !== _navigationKey) {
@@ -2225,7 +2226,7 @@ function _doRenderApp() {
   }
   else if (state.screen === 'admin') {
     app.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text-muted);">Loading admin data...</div>';
-    renderAsyncPage(renderAdminPage(), html => { app.innerHTML = html; applyScrollReveal(); });
+    renderAsyncPage(renderAdminPage(), html => { app.innerHTML = html; window.MoraAdminTabs.mount(); applyScrollReveal(); });
   }
   else if (state.screen === 'examQuiz') app.innerHTML = renderExamQuiz();
   else if (state.screen === 'viewAll') app.innerHTML = renderViewAll();
@@ -4373,7 +4374,7 @@ async function adminDoResetHistory(userId, displayName) {
     const app = document.getElementById('app');
     if (app) {
       app.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text-muted);">Refreshing…</div>';
-      renderAsyncPage(renderAdminPage(), html => { app.innerHTML = html; applyScrollReveal(); });
+      renderAsyncPage(renderAdminPage(), html => { app.innerHTML = html; window.MoraAdminTabs.mount(); applyScrollReveal(); });
     }
   } catch(e) {
     alert('Reset failed: ' + (e.message || e));
@@ -4387,7 +4388,7 @@ async function adminToggleSetting(key, value) {
   const app = document.getElementById('app');
   if (app) {
     app.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text-muted);">Saving…</div>';
-    renderAsyncPage(renderAdminPage(), html => { app.innerHTML = html; });
+    renderAsyncPage(renderAdminPage(), html => { app.innerHTML = html; window.MoraAdminTabs.mount(); });
   }
 }
 window.adminToggleSetting = adminToggleSetting;
@@ -4400,12 +4401,16 @@ async function adminToggleArraySetting(key, val, checked) {
   const app = document.getElementById('app');
   if (app) {
     app.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text-muted);">Saving…</div>';
-    renderAsyncPage(renderAdminPage(), html => { app.innerHTML = html; });
+    renderAsyncPage(renderAdminPage(), html => { app.innerHTML = html; window.MoraAdminTabs.mount(); });
   }
 }
 window.adminToggleArraySetting = adminToggleArraySetting;
 
 async function renderAdminPage() {
+  return window.MoraAdminTabs.render();
+}
+
+async function renderAdminStatistics() {
   if (!isAdmin()) return '<div style="text-align:center;padding:4rem;color:#f87171;">Access denied.</div>';
 
   let overview, users, missed, activity, guests;
@@ -4418,9 +4423,7 @@ async function renderAdminPage() {
       dbAdminDailyActivity(),
       dbAdminGuestStats().catch(() => ({}))
     ]);
-  } catch(e) {
-    return '<div style="text-align:center;padding:4rem;color:#f87171;">Failed to load admin data: ' + lpEscape(e.message) + '</div>';
-  }
+  } catch(e) { throw e; }
 
   const globalAcc = overview.total_questions > 0
     ? Math.round(overview.total_correct / overview.total_questions * 100) : 0;
@@ -4487,12 +4490,6 @@ async function renderAdminPage() {
   const thStyle = 'padding:8px 12px;text-align:left;font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;border-bottom:1px solid #2e3348;';
 
   return `
-  <div class="header" style="padding:2rem 0 1.5rem;">
-    <div class="header-badge" style="background:#1a1d27;border-color:#2e3348;color:#a0a8d0;">Admin Dashboard</div>
-    <h1 style="margin-bottom:0.4rem;">Dashboard</h1>
-    <p style="color:var(--text-muted);">Platform statistics — visible to admins only</p>
-  </div>
-
   <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:1.5rem;">
     ${statCard(overview.total_users, 'Total Users', '#7dd3fc')}
     ${statCard(overview.active_7d, 'Active (7d)', '#4ade80')}
@@ -4576,7 +4573,6 @@ async function renderAdminPage() {
     </div>
   </div>` : '<p style="color:var(--text-muted);text-align:center;padding:2rem;">No users yet.</p>'}
 
-  ${renderAdminSettings()}
   `;
 }
 
