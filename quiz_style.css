@@ -516,6 +516,17 @@
     transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }
   .chat-window.open { transform: translateY(0); opacity: 1; pointer-events: all; }
+  /* Only minimized windows may collapse below the normal resize minimum. */
+  .chat-window.minimized { min-height: 0; height: 54px !important; }
+  .chat-window.minimized > :not(.chat-header) { display: none !important; }
+  .chat-window.minimized > .chat-header { flex: 1; min-height: 0; padding-block: 0; }
+  /* Split panels must stay inside their half of even a narrow viewport. */
+  .chat-window.split-left, .chat-window.split-right { min-width: 0; overflow: hidden; }
+  .chat-window:is(.split-left, .split-right) .chat-header { flex-wrap: wrap; gap: 6px; }
+  .chat-window:is(.split-left, .split-right) .chat-header h3 { min-width: 0; }
+  .chat-window:is(.split-left, .split-right) .chat-input-area { flex-wrap: wrap; }
+  .chat-window:is(.split-left, .split-right) .chat-input-area input { min-width: 0; flex-basis: 100px; }
+  .chat-window:is(.split-left, .split-right) #modelDropdown { max-width: calc(50vw - 22px); }
   .chat-window.maximized { inset:0!important;width:100%!important;height:100%!important;max-height:none!important;border-radius:0!important;transform:none!important;opacity:1!important;pointer-events:all!important; }
   .chat-window.split-left { top:0!important;left:0!important;right:auto!important;bottom:0!important;width:50vw!important;height:100%!important;max-height:none!important;border-radius:0!important;transform:none!important;opacity:1!important;pointer-events:all!important; }
   .chat-window.split-right { top:0!important;left:50vw!important;right:0!important;bottom:0!important;width:50vw!important;height:100%!important;max-height:none!important;border-radius:0!important;transform:none!important;opacity:1!important;pointer-events:all!important; }

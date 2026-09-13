@@ -56,7 +56,7 @@ would cross shared-state/save boundaries without helping Stage 11 immediately.
 Future extraction remains optional, one independently tested feature at a time.
 Proceed to Stage 11 curriculum foundation; do not make a full decomposition a gate.
 
-## Verification and known baseline limitations
+## Original extraction verification
 
 - The two moved blocks were compared against `e628371`: identical logic.
 - Node regression suite: 38 passed, including five focused chat tests.
@@ -71,9 +71,23 @@ Proceed to Stage 11 curriculum foundation; do not make a full decomposition a ga
   overlap the app at narrow widths. Browser assertions explicitly preserve these
   baseline constraints; passing does not mean those UX issues are fixed.
 
-Follow-up choice: (1) approve a small separate CSS/window-state repair (recommended),
-or (2) retain these known limitations while proceeding with curriculum work.
-Neither choice is silently included in this behavior-preserving extraction.
+## Approved follow-up — chat geometry fixes
+
+The user subsequently approved fixing both limitations. Minimized windows now
+use a dedicated class: 54px header only, with content and resize handles hidden.
+Restore, maximize, snap, header drag and close all clear the class and recover
+normal geometry/content. Normal windows retain their 300px resize minimum.
+
+Split windows override the 280px minimum width, fit exactly half the viewport,
+and wrap header/input controls within that half. Model dropdown width is bounded
+to the split panel. No new layout mode, provider, persistence or quiz changes.
+
+Follow-up verification: 39 Node tests; 41 browser assertions each at 1262×568 and
+390×844, including actual minimized height, both split boundaries, button/input
+containment and transitions out of minimized state. Browser-verification skills
+required checking actual CSS/geometry rather than only the DOM test model.
+Delivery advances to asset query 87 / worker v90; chat contract revision 2.
+
 Hosted updates, cold offline startup and physical-device gestures were not tested
 in this stage; offline regression and required-asset checks are not substitutes.
 
@@ -89,13 +103,15 @@ Open `http://127.0.0.1:4173/chat-controls-test`. If port 4173 already serves an 
 test process, use `$env:MORA_TEST_PORT='4183'` before starting and open that port.
 
 1. Click **Ask Januda Ayya**: synthetic text appears, input receives focus.
-2. Minimize/restore, maximize/restore; note the existing 300px minimize limitation.
+2. Minimize: only the 54px header remains. Restore: content and height return.
+   Also try minimize → maximize, snap or close/reopen: content must not stay hidden.
 3. Click Snap; use its hover popup for Right. App moves alongside chat. Zoom +/−,
    reset and Ctrl+wheel affect the app panel. Restore returns the app to normal.
 4. Drag the header to each side/top; previews appear and release snaps/maximizes.
    Resize via the upper/left edges, then release: further movement stops resizing.
 5. Close/reopen: normal geometry, no leftover split wrapper/zoom, same message.
-6. At a narrow viewport, normal chat fits; note the existing split-width limitation.
+6. At a narrow viewport, snap left/right: each panel takes half the width without
+   overlap. Header buttons and input/send controls remain inside the chat panel.
    On touch hardware, try the resize handles; physical touch acceptance is manual.
 
 This harness is available only with `--chat`; it is not part of the production

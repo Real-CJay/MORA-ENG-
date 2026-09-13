@@ -121,7 +121,7 @@
   }
 
   function clearSnapClasses(w) {
-    w.classList.remove('maximized','split-left','split-right');
+    w.classList.remove('maximized','split-left','split-right','minimized');
   }
 
   // ── Minimize ──
@@ -131,6 +131,7 @@
       // Restore
       w.style.height = _savedStyle.height || '500px';
       w.style.overflow = '';
+      w.classList.remove('minimized');
       _winState = 'normal';
       document.getElementById('chatWcMin').title = 'Minimize';
     } else {
@@ -139,6 +140,7 @@
       _savedStyle.height = w.style.height || '500px';
       w.style.height = '54px';
       w.style.overflow = 'hidden';
+      w.classList.add('minimized');
       _winState = 'minimized';
       document.getElementById('chatWcMin').title = 'Restore';
     }
@@ -150,7 +152,7 @@
     if (_winState === 'maximized') {
       chatWinRestore();
     } else {
-      if (_winState === 'minimized') { w.style.height = _savedStyle.height || '500px'; w.style.overflow = ''; }
+      if (_winState === 'minimized') chatWinRestore();
       saveGeometry();
       clearSnapClasses(w);
       w.classList.add('maximized');
@@ -228,6 +230,7 @@
   // ── Snap to side ──
   function applySnap(zone) {
     const w = getWin();
+    if (_winState === 'minimized') chatWinRestore();
     if (_winState !== 'split-left' && _winState !== 'split-right') saveGeometry();
     clearSnapClasses(w);
     clearZoom();
@@ -310,6 +313,7 @@
 
   // Allow toggleChat to reset internal state
   window._chatWinForceNormal = function() {
+    getWin()?.classList.remove('minimized');
     _winState = 'normal';
     removeShell();
     clearZoom();
@@ -405,6 +409,7 @@
       // Ignore clicks on buttons
       if (e.target.closest('button') || e.target.closest('.chat-win-controls')) return;
       if (_winState === 'maximized') return;
+      if (_winState === 'minimized') chatWinRestore();
       _dragging = true;
       _dragStartX = e.clientX;
       _dragStartY = e.clientY;

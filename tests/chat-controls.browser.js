@@ -19,16 +19,20 @@
   const start=win.getBoundingClientRect();
   check(start.width>250&&start.right<=innerWidth+1,'normal viewport fit');
   el('chatWcMin').click();await settle();
-  // Existing CSS min-height:300px prevents full collapse; this extraction preserves it.
-  check(win.style.height==='54px'&&win.getBoundingClientRect().height===300,'minimize preserves baseline CSS constraint');
+  check(win.getBoundingClientRect().height===54,'minimize collapses to header');
+  check(getComputedStyle(el('chatInputArea')).display==='none','minimized input hidden');
   el('chatWcMin').click();await settle();check(win.getBoundingClientRect().height>250,'restore minimized');
   el('chatWcMax').click();await settle();
   check(Math.abs(win.getBoundingClientRect().width-innerWidth)<2,'maximize width');
   el('chatWcMax').click();await settle();check(!win.classList.contains('maximized'),'restore maximized');
   el('chatWcSnap').click();await settle();
   check(win.classList.contains('split-left')&&el('appShell')?.contains(el('app')),'snap left wraps app');
-  // The same existing min-width:280px also limits narrow-screen split mode.
-  check(Math.abs(win.getBoundingClientRect().width-Math.max(280,innerWidth/2))<2,'split preserves baseline minimum width');
+  check(Math.abs(win.getBoundingClientRect().width-innerWidth/2)<2,'split fits half viewport');
+  check(win.getBoundingClientRect().right<=el('appShell').getBoundingClientRect().left+1,'left split does not overlap app');
+  for(const id of ['chatWcMin','chatWcMax','chatWcSnap','chatInput','chatSendBtn']){
+    const r=el(id).getBoundingClientRect(),w=win.getBoundingClientRect();
+    check(r.left>=w.left&&r.right<=w.right,'split control fits '+id);
+  }
   document.querySelector('[title="Zoom in"]').click();check(el('appZoomLabel').textContent==='110%','zoom button');
   document.dispatchEvent(new WheelEvent('wheel',{ctrlKey:true,deltaY:-100,cancelable:true}));
   check(el('appZoomLabel').textContent==='140%','pinch zoom');
@@ -36,9 +40,18 @@
   chatSnapHover({currentTarget:el('chatWcSnap')});
   const right=[...el('snapChoicePopup').querySelectorAll('button')].find(b=>b.textContent==='Right');
   right.click();await settle();check(win.classList.contains('split-right'),'popup snap right');
+  check(win.getBoundingClientRect().left>=el('appShell').getBoundingClientRect().right-1&&win.getBoundingClientRect().right<=innerWidth+1,'right split stays in viewport without overlap');
   check(document.querySelectorAll('#appShell').length===1,'no duplicate shell');
   el('chatWcSnap').click();await settle();check(!el('appShell')&&el('app').parentNode===parent,'restore original app parent');
   check(el('app').style.zoom===''&&el('appZoomBar').style.display==='none','restore clears zoom');
+  for(const target of ['maximize','snap','close']){
+    el('chatWcMin').click();
+    if(target==='maximize'){el('chatWcMax').click();chatWinRestore();}
+    if(target==='snap'){el('chatWcSnap').click();chatWinRestore();}
+    if(target==='close'){toggleChat();openJanudaChat();}
+    await settle();
+    check(!win.classList.contains('minimized')&&getComputedStyle(el('chatInputArea')).display!=='none'&&win.getBoundingClientRect().height>250,'minimize to '+target+' restores content and height');
+  }
   // Exercise real listener paths; dispatched coordinates avoid OS/window movement.
   mouse(el('chatResizeNW'),'mousedown',200,200);
   mouse(document,'mousemove',150,150);mouse(document,'mouseup',150,150);

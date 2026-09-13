@@ -66,6 +66,21 @@ test('split wraps app once, zoom is bounded, close restores original parent',()=
   assert.equal(n.app.style.zoom,'');assert.equal(n.appZoomBar.style.display,'none');
   fire('document','wheel',{ctrlKey:true,deltaY:-100});assert.equal(n.app.style.zoom,'');
 });
+test('minimized state is cleared through every restore path',()=>{
+  for(const target of ['restore','maximize','snap','close','drag']){
+    const {c,nodes:n,fire}=fixture();c.openJanudaChat();
+    n.chatWindow.style.height='420px';c.chatWinMinimize();
+    assert.ok(n.chatWindow.classList.contains('minimized'));
+    if(target==='restore')c.chatWinMinimize();
+    if(target==='maximize'){c.chatWinMaximize();c.chatWinRestore();}
+    if(target==='snap'){c.chatSnapClick();c.chatWinRestore();}
+    if(target==='close'){c.toggleChat();c.openJanudaChat();}
+    if(target==='drag')fire('header','mousedown',{clientX:800,clientY:110,target:{closest:()=>null}});
+    assert.ok(!n.chatWindow.classList.contains('minimized'),target);
+    assert.equal(n.chatWindow.style.height,target==='close'?'':'420px',target);
+    assert.equal(n.chatWindow.style.overflow,'',target);
+  }
+});
 for(const ready of ['loading','complete'])test('mouse/touch resize and drag bindings: '+ready,()=>{
   const {c,nodes:n,fire}=fixture(ready);
   if(ready==='loading')fire('document','DOMContentLoaded');
