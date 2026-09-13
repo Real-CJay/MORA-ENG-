@@ -33,6 +33,7 @@ netlify.toml
 # Source/archive files that are not needed by the web app
 *.pdf
 *.zip
+AI exports/
 
 # Accidental/generated local files
 -
