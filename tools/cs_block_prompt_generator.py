@@ -59,7 +59,11 @@ except ImportError:  # pragma: no cover - useful only if imported as a package
 DEFAULT_MODULE = "CS1033 Programming Fundamentals"
 DEFAULT_YEAR = "2024"
 SCRIPT_DIR = Path(__file__).resolve().parent
-DEFAULT_PACKAGE_ROOT = Path("AI exports") / "cs_packages"
+REPO_ROOT = SCRIPT_DIR.parent
+# Anchored to the repo root, not the current directory. A relative default here
+# silently creates a second package tree when the tool is launched from tools/
+# instead of the repo root.
+DEFAULT_PACKAGE_ROOT = REPO_ROOT / "AI exports" / "cs_packages"
 SUPPORTED_GROUP_TYPES = {
     "normal",
     "normal_code",

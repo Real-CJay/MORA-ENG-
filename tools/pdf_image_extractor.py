@@ -11,7 +11,10 @@ Also writes  questions_ready.json  with "img" paths updated to
 the full relative path (ready for quiz_manager.py import).
 
 Requirements:
-    pip install pymupdf pillow opencv-python
+    pip install pymupdf pillow
+
+The crop window uses tkinter, which ships with Python. OpenCV is deliberately not
+used here: its native DLL is unsigned, so Windows Smart App Control blocks it.
 
 Usage:
     python pdf_image_extractor.py
@@ -31,10 +34,9 @@ import json
 import textwrap
 from pathlib import Path
 
-import cv2
+import tkinter as tk
 import fitz          # PyMuPDF
-import numpy as np
-from PIL import Image
+from PIL import Image, ImageTk
 
 # ── Navigation signals ────────────────────────────────────────────────────────
 
@@ -227,9 +229,9 @@ def write_updated_payload(out_path: Path, payload, questions: list, entries: lis
 PAGE_ZOOM = 4.0
 
 
-def render_page(pdf_path: str, page_num: int) -> np.ndarray:
+def render_page(pdf_path: str, page_num: int) -> Image.Image:
     """
-    Render a PDF page (1-indexed) to an OpenCV BGR image at PAGE_ZOOM resolution.
+    Render a PDF page (1-indexed) to an RGB PIL image at PAGE_ZOOM resolution.
     """
     doc  = fitz.open(pdf_path)
     page = doc[page_num - 1]
@@ -237,46 +239,18 @@ def render_page(pdf_path: str, page_num: int) -> np.ndarray:
     pix  = page.get_pixmap(matrix=mat, alpha=False)
     doc.close()
 
-    img_pil = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
-    return cv2.cvtColor(np.array(img_pil), cv2.COLOR_RGB2BGR)
+    return Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
 
 
 # ── Crop window ───────────────────────────────────────────────────────────────
 
-# Window name constant
 WIN = "PDF Image Extractor  |  Drag to select  |  Space=confirm  R=redo  S=skip  Q=quit"
 
-# Shared state for mouse callback
-_sel = {"x1": 0, "y1": 0, "x2": 0, "y2": 0,
-        "drawing": False, "done": False}
-_base_img = None   # the unmodified page image
-
-
-def _mouse_cb(event, x, y, flags, param):
-    global _sel, _base_img
-    if event == cv2.EVENT_LBUTTONDOWN:
-        _sel.update(x1=x, y1=y, x2=x, y2=y, drawing=True, done=False)
-    elif event == cv2.EVENT_MOUSEMOVE and _sel["drawing"]:
-        _sel["x2"] = x
-        _sel["y2"] = y
-        # Draw live rectangle on a copy
-        overlay = _base_img.copy()
-        cv2.rectangle(overlay,
-                      (_sel["x1"], _sel["y1"]),
-                      (_sel["x2"], _sel["y2"]),
-                      (0, 200, 0), 2)
-        cv2.imshow(WIN, overlay)
-    elif event == cv2.EVENT_LBUTTONUP:
-        _sel["x2"]     = x
-        _sel["y2"]     = y
-        _sel["drawing"] = False
-        _sel["done"]    = True
-        overlay = _base_img.copy()
-        cv2.rectangle(overlay,
-                      (_sel["x1"], _sel["y1"]),
-                      (_sel["x2"], _sel["y2"]),
-                      (0, 255, 0), 2)
-        cv2.imshow(WIN, overlay)
+# Largest page area shown on screen; the page is scaled down to fit and the crop
+# is scaled back up to full resolution so output quality is unaffected.
+MAX_DISPLAY_W = 1400
+MAX_DISPLAY_H = 860
+MIN_SELECTION = 5      # display pixels; smaller drags are treated as misclicks
 
 
 def _norm_rect(x1, y1, x2, y2):
@@ -286,107 +260,152 @@ def _norm_rect(x1, y1, x2, y2):
     return lx, ty, rx - lx, by - ty
 
 
-def crop_figure(page_img: np.ndarray, entry: dict) -> np.ndarray | None:
+def _fit_scale(width: int, height: int) -> float:
+    return min(MAX_DISPLAY_W / width, MAX_DISPLAY_H / height, 1.0)
+
+
+class _CropWindow:
     """
-    Show the page in an OpenCV window with a fixed info bar above it.
-    The info bar is a separate black strip — it never overlaps the page.
-    Mouse coordinates are offset so the crop maps correctly to the page.
-    Returns the cropped image array, or None if skipped.
-    Raises _Exit if Q is pressed.
+    Tkinter crop window: a fixed info bar above a scaled page image.
+
+    Outcome is one of "confirm", "redo", "skip" or "quit". Canvas coordinates are
+    page-relative, so no bar offset correction is needed.
     """
-    global _sel, _base_img
 
-    h_orig, w_orig = page_img.shape[:2]
+    def __init__(self, page_img: Image.Image, entry: dict) -> None:
+        self.page_img = page_img
+        self.outcome = "quit"          # closing the window counts as quit
+        self.rect_coords: tuple[int, int, int, int] | None = None
+        self._start: tuple[int, int] | None = None
+        self._rect_id: int | None = None
 
-    # ── Fit page to screen ────────────────────────────────────────────────────
-    MAX_H = 860   # leave room for the info bar
-    MAX_W = 1400
-    scale  = min(MAX_W / w_orig, MAX_H / h_orig, 1.0)
-    disp_w = int(w_orig * scale)
-    disp_h = int(h_orig * scale)
+        w_orig, h_orig = page_img.size
+        self.scale = _fit_scale(w_orig, h_orig)
+        disp_w = max(1, int(w_orig * self.scale))
+        disp_h = max(1, int(h_orig * self.scale))
 
-    page_disp = cv2.resize(page_img, (disp_w, disp_h),
-                           interpolation=cv2.INTER_AREA)
+        self.root = tk.Tk()
+        self.root.title(WIN)
+        self.root.configure(bg="#000000")
+        self.root.protocol("WM_DELETE_WINDOW", lambda: self._finish("quit"))
 
-    # ── Build info bar ────────────────────────────────────────────────────────
-    # Fixed black strip above the page — text never touches the page area
-    BAR_H    = 80
-    bar      = np.zeros((BAR_H, disp_w, 3), dtype=np.uint8)
-    bar_lines = [
-        f"Fig: {entry['filename']}   Page {entry['page']}   Used by: {entry['questions']}",
-        f"Desc: {entry['description']}",
-        "Drag to select   Space/Enter = confirm   R = redo   S = skip   Q = quit",
-    ]
-    for i, line in enumerate(bar_lines):
-        # Truncate long lines to fit bar width
-        max_chars = disp_w // 7
-        if len(line) > max_chars:
-            line = line[:max_chars - 1] + "…"
-        cv2.putText(bar, line, (8, 18 + i * 22),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.46,
-                    (180, 180, 180), 1, cv2.LINE_AA)
+        info = "\n".join([
+            f"Fig: {entry['filename']}   Page {entry['page']}   Used by: {entry['questions']}",
+            f"Desc: {entry['description']}",
+            "Drag to select   Space/Enter = confirm   R = redo   S = skip   Q = quit",
+        ])
+        tk.Label(
+            self.root, text=info, justify="left", anchor="w",
+            bg="#000000", fg="#b4b4b4", font=("Segoe UI", 9), padx=8, pady=6,
+        ).pack(fill="x")
 
-    # ── Composite: bar on top, page below ────────────────────────────────────
-    # The mouse Y offset = BAR_H — any click below BAR_H is on the page
-    def _make_composite(page_layer: np.ndarray) -> np.ndarray:
-        return np.vstack([bar, page_layer])
+        display = page_img if self.scale == 1.0 else page_img.resize(
+            (disp_w, disp_h), Image.LANCZOS
+        )
+        # Keep a reference or Tk will garbage-collect the image and show nothing.
+        self._photo = ImageTk.PhotoImage(display)
+        self.canvas = tk.Canvas(
+            self.root, width=disp_w, height=disp_h,
+            highlightthickness=0, bg="#000000", cursor="crosshair",
+        )
+        self.canvas.pack()
+        self.canvas.create_image(0, 0, anchor="nw", image=self._photo)
 
+        self.canvas.bind("<ButtonPress-1>", self._on_press)
+        self.canvas.bind("<B1-Motion>", self._on_drag)
+        self.canvas.bind("<ButtonRelease-1>", self._on_release)
+        for sequence, outcome in (
+            ("<space>", "confirm"), ("<Return>", "confirm"), ("<KP_Enter>", "confirm"),
+            ("<r>", "redo"), ("<R>", "redo"),
+            ("<s>", "skip"), ("<S>", "skip"),
+            ("<q>", "quit"), ("<Q>", "quit"), ("<Escape>", "quit"),
+        ):
+            self.root.bind(sequence, lambda _event, o=outcome: self._on_key(o))
+
+        self.root.focus_force()
+
+    # ── Mouse ────────────────────────────────────────────────────────────────
+
+    def _on_press(self, event) -> None:
+        self._start = (event.x, event.y)
+        self.rect_coords = None
+        if self._rect_id is not None:
+            self.canvas.delete(self._rect_id)
+        self._rect_id = self.canvas.create_rectangle(
+            event.x, event.y, event.x, event.y, outline="#00c800", width=2
+        )
+
+    def _on_drag(self, event) -> None:
+        if self._start is None or self._rect_id is None:
+            return
+        self.canvas.coords(self._rect_id, self._start[0], self._start[1], event.x, event.y)
+
+    def _on_release(self, event) -> None:
+        if self._start is None:
+            return
+        self.rect_coords = (self._start[0], self._start[1], event.x, event.y)
+        if self._rect_id is not None:
+            self.canvas.itemconfig(self._rect_id, outline="#00ff00")
+
+    # ── Keyboard ─────────────────────────────────────────────────────────────
+
+    def _on_key(self, outcome: str) -> None:
+        if outcome == "confirm":
+            if self.rect_coords is None:
+                warn("Draw a box first, then press Space/Enter.")
+                return
+            x, y, w, h = _norm_rect(*self.rect_coords)
+            if w <= MIN_SELECTION or h <= MIN_SELECTION:
+                warn("Selection too small — drag a larger box.")
+                return
+        self._finish(outcome)
+
+    def _finish(self, outcome: str) -> None:
+        self.outcome = outcome
+        self.root.quit()
+
+    # ── Result ───────────────────────────────────────────────────────────────
+
+    def run(self) -> str:
+        self.root.mainloop()
+        self.root.destroy()
+        return self.outcome
+
+    def cropped(self) -> Image.Image | None:
+        """Map the display-space selection back to full page resolution."""
+        if self.rect_coords is None:
+            return None
+        w_orig, h_orig = self.page_img.size
+        x, y, w, h = _norm_rect(*self.rect_coords)
+        left   = max(0, min(int(x / self.scale), w_orig - 1))
+        top    = max(0, min(int(y / self.scale), h_orig - 1))
+        right  = max(left + 1, min(int((x + w) / self.scale), w_orig))
+        bottom = max(top + 1, min(int((y + h) / self.scale), h_orig))
+        return self.page_img.crop((left, top, right, bottom))
+
+
+def crop_figure(page_img: Image.Image, entry: dict) -> Image.Image | None:
+    """
+    Show the page with a fixed info bar above it and let the user drag a box.
+    Returns the cropped image, or None if skipped. Raises _Exit if quit.
+    """
     while True:
-        _sel.update(x1=0, y1=0, x2=0, y2=0, drawing=False, done=False)
-        _base_img = _make_composite(page_disp.copy())
-
-        total_h = BAR_H + disp_h
-        cv2.namedWindow(WIN, cv2.WINDOW_NORMAL)
-        cv2.resizeWindow(WIN, disp_w, total_h)
-        cv2.setMouseCallback(WIN, _mouse_cb)
-        cv2.imshow(WIN, _base_img)
-
-        # Wait for user action
-        while True:
-            key = cv2.waitKey(20) & 0xFF
-            if key in (ord('q'), ord('Q')):
-                cv2.destroyAllWindows()
-                raise _Exit
-            if key in (ord('s'), ord('S')):
-                cv2.destroyAllWindows()
-                return None
-            if key in (ord('r'), ord('R')):
-                break   # redo — restart outer while loop
-            if key in (13, 32):  # Enter or Space
-                if _sel["done"]:
-                    # Subtract bar offset from Y to get page-relative coords
-                    x, y, w, h = _norm_rect(
-                        _sel["x1"], _sel["y1"] - BAR_H,
-                        _sel["x2"], _sel["y2"] - BAR_H
-                    )
-                    # Clamp to page display area
-                    x = max(0, x)
-                    y = max(0, y)
-                    w = min(w, disp_w - x)
-                    h = min(h, disp_h - y)
-                    if w > 5 and h > 5:
-                        # Scale back to full resolution
-                        rx = int(x / scale)
-                        ry = int(y / scale)
-                        rw = int(w / scale)
-                        rh = int(h / scale)
-                        # Clamp to original image bounds
-                        rx = max(0, min(rx, w_orig - 1))
-                        ry = max(0, min(ry, h_orig - 1))
-                        rw = min(rw, w_orig - rx)
-                        rh = min(rh, h_orig - ry)
-                        crop = page_img[ry:ry+rh, rx:rx+rw]
-                        cv2.destroyAllWindows()
-                        return crop
-                    else:
-                        warn("Selection too small — drag a larger box.")
-                else:
-                    warn("Draw a box first, then press Space/Enter.")
+        window = _CropWindow(page_img, entry)
+        outcome = window.run()
+        if outcome == "quit":
+            raise _Exit
+        if outcome == "skip":
+            return None
+        if outcome == "redo":
+            continue
+        crop = window.cropped()
+        if crop is not None:
+            return crop
 
 
 # ── Save helper ───────────────────────────────────────────────────────────────
 
-def save_crop(crop: np.ndarray, root: Path, entry: dict) -> Path:
+def save_crop(crop: Image.Image, root: Path, entry: dict) -> Path:
     """
     Save the cropped image to   root / entry['folder'] / entry['filename'].
     Creates directories as needed.
@@ -395,7 +414,7 @@ def save_crop(crop: np.ndarray, root: Path, entry: dict) -> Path:
     dest_dir = root / Path(entry["folder"])
     dest_dir.mkdir(parents=True, exist_ok=True)
     dest     = dest_dir / entry["filename"]
-    cv2.imwrite(str(dest), crop)
+    crop.save(dest)
     return dest
 
 
