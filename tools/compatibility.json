@@ -8,6 +8,12 @@
   "excludedUntracked": ["AI exports/*", ".local-reports/*"],
   "reviewPaths": ["AGENTS.md", "docs/*", "tools/*.md", "tools/*prompt_generator.py", "tools/compatibility.json"],
   "contracts": {
+    "chat-controls": {
+      "revision": 1,
+      "paths": ["js/app_chat_controls.js", "quiz_app.js", "index.html", "quiz_style.css", "service-worker.js", "tests/chat-controls.test.cjs", "tests/chat-controls.browser.js", "tests/chat-harness.cjs", "tests/serve.cjs", "docs/stage-10-decomposition.md"],
+      "tests": ["chat-controls", "runtime", "offline"],
+      "manual": "Run the isolated chat browser harness for geometry, desktop/mobile layout and close/reopen checks. No AI requests or real content."
+    },
     "authoring-schema": {
       "revision": 1,
       "paths": ["tools/claude_prompt_generator.py", "tools/validate_questions.py", "tools/question_schema.md", "tools/tests/test_claude_prompt_generator.py", "examples/synthetic/*"],

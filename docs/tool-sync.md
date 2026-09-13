@@ -68,6 +68,8 @@ are not inventoried. Do not publish the report: even filenames can be private.
 - Existing CS intermediate extraction remains a separate, tested workflow.
 - Dedicated curriculum registry metadata checks.
 - Index/worker version agreement, required versioned assets and asset existence.
+- Chat-control script order, geometry/close/reset regression and offline inclusion;
+  actual CSS and browser behavior use the separate Stage 10 harness.
 - Focused synthetic/runtime/offline/security regression suites and checker tests.
 
 Mapping means relevant checks exist, not exhaustive coverage. The app still needs

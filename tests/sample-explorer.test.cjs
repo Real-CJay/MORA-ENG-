@@ -30,7 +30,7 @@ test('sample explorer is wired into admin, auth cleanup and offline shell only',
   assert.match(read('js/app_admin_tabs.js'), /MoraSampleExplorer.open\(/);
   assert.match(auth, /MoraSampleExplorer\?\.close\(\)/);
   assert.match(auth, /MoraSampleExplorer\?\.checkAccess\(\)/);
-  assert.match(read('index.html'), /app_sample_explorer.js\?v=85/);
+  assert.match(read('index.html'), /app_sample_explorer.js\?v=\d+/);
   assert.match(read('service-worker.js'), /versionedAppAsset\('\/js\/app_sample_explorer.js'\)/);
   assert.doesNotMatch(explorer, /\b(?:localStorage|sessionStorage|indexedDB|_sb|answerHistory|dbSave\w*|renderQuestion)\b/);
   assert.doesNotMatch(read('index.html'), /sample-explorer-test|sampleAccount/);

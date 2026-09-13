@@ -9,7 +9,8 @@ future-stage proposals are historical. Permanent guardrails remain in AGENTS.md.
 - 7.0C: closed for the approved local audit/repair scope; see [closeout](stage-7-0c-closeout.md).
 - Stage 8: implemented locally; see [sample bank and verification boundary](sample-bank-contract.md).
 - Stage 9, including approved extensions 9.5–9.7: implemented locally; see [explorer and manual checks](stage-9-sample-explorer.md).
-- Next: Stage 10 (scoped code decomposition). Stages 10-19 remain unimplemented.
+- Stage 10: scoped chat-controls pilot implemented locally; see [dependencies, checks and known baseline limits](stage-10-decomposition.md).
+- Next: Stage 11 (dynamic curriculum foundation). Stages 11-19 remain unimplemented.
 - Approved pre-Stage-10 maintenance: [tool compatibility checks and file inventory](tool-sync.md).
   This supports stage verification; it does not add or renumber a product stage.
 - Production client revision and full hosted/device acceptance remain unverified.
