@@ -3,6 +3,10 @@
 Approved direction recorded: 2026-09-09. This is the current roadmap; older
 future-stage proposals are historical. Permanent guardrails remain in AGENTS.md.
 
+Planning update approved: 2026-09-14 — gradual feature separation, R2 as the
+planned image-upload provider, and bounded Stage 12 implementation units.
+This approves the roadmap direction, not service activation or spending.
+
 ## Current position
 
 - Baseline: main at `8686330`, including repairs `1573184`, `04ff920`, `f3dd264`.
@@ -29,6 +33,37 @@ The first store release remains **free and quiz-only**, but now includes:
 - Separate enrollment and paid-access concepts, so future purchases do not require replacing enrollment.
 
 This makes curriculum management dynamic while retaining the existing web application. It reduces future redesign; it does not eliminate the later work of billing and protecting paid content.
+
+## Architecture and cost direction
+
+- Keep static HTML/CSS/JavaScript, classic scripts and the existing backend.
+  Database-driven content is compatible with static hosting. No Node/React/Next
+  rewrite, build-step migration or second application is planned.
+- Introduce focused feature files with explicit interfaces as features are built.
+  Keep curriculum administration, content loading, quizzes and later enrollment
+  separate. Extract existing code only when the current feature needs it;
+  do not turn decomposition into a prerequisite or impose file-length targets.
+- Keep question banks and image payloads outside application logic. Preserve
+  stable module/question IDs, existing saves and working offline behavior.
+- Maintain a compact feature-to-file/test map using the existing compatibility
+  manifest and feature documentation. AI should read the relevant interfaces,
+  synthetic fixtures and dependencies, not scan entire banks. Focused checks
+  supplement stage-wide regressions; reduced context is not reduced coverage.
+- Use Supabase for accounts, curriculum, progress and content references. Plan
+  R2 for new question-image uploads, retaining existing bundled images initially.
+  This does not reduce the existing progress database's size; database capacity
+  and object-storage capacity must be assessed separately.
+- R2 is a planned provider, not an activated service or a guaranteed zero-cost
+  solution. Before activation, verify current pricing, payment requirements,
+  storage/request estimates and available cost controls. Alerts are not a hard
+  spending cap. If a strict zero-spend requirement cannot be assured, report it
+  and retain the current delivery path until the user chooses otherwise.
+- Keep asset references independent of provider URLs. Resolve existing local
+  paths and new asset IDs through a small delivery boundary; no mass rewrite of
+  question banks. Never expose upload credentials in browser code.
+- Before Stage 17's LMS work, reassess framework adoption only if measured UI
+  duplication or state-management complexity warrants it. Any migration needs
+  separate approval and a bounded pilot; the working quiz is not rewritten first.
 
 ## Curriculum and enrollment rules
 
@@ -114,11 +149,67 @@ Permissions must be enforced in the backend, not just by hidden buttons. [Supaba
 ### 12 — Admin curriculum and content management
 
 - **12.1:** Semester/department/stream/module management.
+  - **12.1.a:** Map the current admin/registry interfaces and tests. Add a focused
+    curriculum admin feature behind the existing admin tabs; retain Statistics,
+    Sample bank and Settings. No general dashboard redesign or visual polish.
+  - **12.1.b:** Add a simple hierarchy browser and create/edit forms using Stage
+    11's authenticated catalog operations. Support common semesters and optional
+    departments/streams; do not automatically seed the agreed department names.
+  - **12.1.c:** Default new entries to draft. Show metadata-only modules as lacking
+    content; preserve immutable identities. Reject stale account responses, show
+    offline/error states and confirm successful writes before reporting success.
 - **12.2:** Shared-module placement, ordering, draft/publish/archive controls.
+  - **12.2.a:** Place an existing module in multiple valid curriculum locations
+    without copying its bank. Provide ordering and explicit publication controls.
+  - **12.2.b:** Explain ancestor/publication requirements, show revision conflicts
+    with reload/review instead of silent overwrite, and confirm archive effects.
+    Never delete progress or purchases when archiving a curriculum entry.
 - **12.3:** Manual content upload, validation, preview and explicit publication.
+  - **12.3.a:** Define and approve the versioned content/asset contract before
+    implementation: immutable asset IDs, module manifests, bounded file sizes,
+    allowed formats and live-compatible answer fields. Decide question-pack
+    storage separately; R2 image approval does not silently choose it.
+  - **12.3.b:** After separate activation/cost approval, introduce R2 image uploads
+    through a server-verified admin operation. Keep credentials server-side,
+    validate uploads and resolve asset references on an approved delivery origin.
+    Preserve bundled-image support; do not bulk-migrate existing banks.
+  - **12.3.c:** Validate content and resolved assets before preview/publication.
+    Keep schema-v2 preview support distinct from live scoring support. Reject
+    incompatible formats, missing images and duplicate question IDs. Academic
+    review remains the user's responsibility; AI tests use synthetic fixtures.
+  - **12.3.d:** Treat upload and publication as separate steps. Failed/interrupted
+    uploads must not publish incomplete content; retries must not duplicate it.
+    Publish an immutable validated version via a revision-checked metadata change.
+    Retain the previous version for recovery; cleanup requires explicit scope.
 - **12.4:** Enable newly published modules without editing JavaScript or redeploying the app.
+  - **12.4.a:** Add a focused, validated content loader using the approved manifest
+    contract. Preserve existing bundled loading, module/progress identities and
+    active attempt snapshots. Never execute uploaded JavaScript as content.
+  - **12.4.b:** Update import tools, previews, URL resolution and offline downloads
+    together. Confirm required assets before marking a download complete; test
+    cross-origin caching, unavailable content, explicit retry and version changes.
+  - **12.4.c:** Keep drafts inaccessible through public delivery. Design separate
+    delivery policies for published free content and future premium content;
+    do not make premium assets public or implement payments in this stage.
 
 Creating a module does not generate its questions. This stage must address content delivery too; database metadata alone cannot remove today’s hard-coded file dependency.
+
+Execute 12.1, 12.2, 12.3 and 12.4 as separate bounded implementation/checkpoint
+prompts, not one large rewrite. Commit each completed, verified approved unit
+before starting the next, with exact-file staging and synchronized tooling/docs.
+Each handoff includes manual actions and expected results. No automatic push,
+production SQL, deployment, R2 activation or spending is authorized by this plan.
+
+Immediate next implementation unit: **12.1**, using synthetic/local backend
+verification first. Stage 11's production migration remains a prerequisite for
+live admin use, not a reason to create another hosted project. Before starting
+12.3, resolve the content-storage and cost-control decisions explicitly.
+
+Stage 12 acceptance: admin/student/guest permissions; unchanged existing admin
+tabs; hierarchy and shared IDs; draft confidentiality; revision conflicts;
+failed/retried uploads; incompatible imports rejected; existing and newly
+published modules; account/navigation races; preserved saves; offline downloads;
+desktop/mobile manual checks. No real content inspection is implied.
 
 ### 13 — Enrollment and personal dashboard
 
