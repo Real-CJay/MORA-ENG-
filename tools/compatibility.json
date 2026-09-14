@@ -32,9 +32,10 @@
       "manual": "Schema/preview support never grants live import support. No real-content inspection is authorized by this check."
     },
     "curriculum": {
-      "revision": 1,
-      "paths": ["js/curriculum_registry.js", "js/curriculum_module_adapter.js", "quiz_data.js", "tools/registry_check.py", "tools/registry_schema.md", "docs/quiz-structure-contract.md"],
-      "tests": ["registry"]
+      "revision": 2,
+      "paths": ["js/curriculum_registry.js", "js/curriculum_module_adapter.js", "quiz_data.js", "quiz_app.js", "auth.js", "tools/registry_check.py", "tools/registry_schema.md", "docs/quiz-structure-contract.md", "docs/stage-11-curriculum.md", "tests/curriculum.test.cjs", "tests/curriculum-database.test.cjs", "tests/curriculum-fixture.cjs", "tests/curriculum-harness.cjs", "tests/curriculum.browser.js", "tests/serve.cjs", "supabase/migrations/*_dynamic_curriculum.sql"],
+      "tests": ["registry", "curriculum-runtime", "curriculum-database"],
+      "manual": "Synthetic browser harness checks published browsing, streams, offline recovery and safe rendering. Hosted PostgREST and production migration need separate verification."
     },
     "offline-shell": {
       "revision": 1,

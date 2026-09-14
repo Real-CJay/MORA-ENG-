@@ -78,6 +78,7 @@ test('practice count applies to unit mode but never truncates a full paper',()=>
   for(const mode of ['pastpaper','fullpaper']) {
     const state={appMode:mode,count:20};
     const ctx={state,getPracticeQuizPool:()=>({pool,fullScope:pool}),isSyntheticDevSubject:()=>false,isSyntheticDevQuestion:()=>false,getAnsweredQuestionIds:()=>[],clearBrowseState(){},resetQuizAttemptState(){},limitQuestionCount:p=>p.slice(0,state.count),ensureActiveQuizHistoryEntry(){},startTimer(){},renderApp(){},setTimeout(){},_maybeNudgeShortcuts(){}};
+    ctx.window={};
     vm.runInNewContext(section(app,'function startQuiz(', 'function startTargetQuiz('),ctx);ctx.startQuiz();
     assert.equal(state.questions.length,mode==='fullpaper'?53:20);
   }

@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Validate the Mora Quiz curriculum registry and subject metadata.
 
-This is a small static checker for js/curriculum_registry.js and quiz_data.js.
+This is a small static checker for the bundled fallback in js/curriculum_registry.js and quiz_data.js.
+It does not certify a deployed database catalog; Stage 11 runtime/SQL tests cover that contract.
 It intentionally avoids executing app JavaScript so it can run in a plain
 Python environment.
 """
@@ -364,6 +365,7 @@ def print_report(
     print(f"== {curriculum_path} + {subjects_path} ==")
     print(f"Semesters: {semester_count}")
     print(f"Subjects: {subject_count}")
+    print("Scope: bundled fallback metadata only; persistent catalogs use Stage 11 checks.")
 
     if reporter.errors:
         print(f"Errors ({len(reporter.errors)}):")

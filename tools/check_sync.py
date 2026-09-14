@@ -17,6 +17,8 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 # Fixed commands: the manifest cannot inject executable shell commands.
 TESTS = {
+    'curriculum-runtime': ['node', '--test', 'tests/curriculum.test.cjs'],
+    'curriculum-database': ['node', '--test', 'tests/curriculum-database.test.cjs'],
     'chat-controls': ['node', '--test', 'tests/chat-controls.test.cjs'],
     'prompt': ['python', '-B', '-m', 'unittest', 'discover', '-s', 'tools/tests', '-p', 'test_claude_prompt_generator.py'],
     'samples': ['python', '-B', '-m', 'unittest', 'discover', '-s', 'tools/tests', '-p', 'test_sample_bank.py'],

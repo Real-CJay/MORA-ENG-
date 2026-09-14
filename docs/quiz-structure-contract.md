@@ -6,6 +6,13 @@ CS re-import planning. It does not describe a migration log.
 
 ## 1. Subject Registry Contract
 
+Stage 11 keeps this bundled **content** registry but moves curriculum metadata
+to Supabase via `js/curriculum_registry.js`. Published placements determine
+semester/department/stream membership, not the legacy single `semesterId`.
+Metadata-only modules remain unavailable until Stage 12 content delivery; their
+creation does not create a question bank. Existing subject/progress keys stay
+unchanged. See [Stage 11](stage-11-curriculum.md).
+
 `SUBJECTS` lives in `quiz_data.js`.
 
 The subject key is the stable runtime id. Examples currently include

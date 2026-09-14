@@ -10,7 +10,8 @@ future-stage proposals are historical. Permanent guardrails remain in AGENTS.md.
 - Stage 8: implemented locally; see [sample bank and verification boundary](sample-bank-contract.md).
 - Stage 9, including approved extensions 9.5–9.7: implemented locally; see [explorer and manual checks](stage-9-sample-explorer.md).
 - Stage 10: scoped chat-controls pilot and approved minimize/mobile-split fixes implemented locally; see [dependencies and checks](stage-10-decomposition.md).
-- Next: Stage 11 (dynamic curriculum foundation). Stages 11-19 remain unimplemented.
+- Stage 11: implemented locally; see [curriculum contract, rollout and checks](stage-11-curriculum.md). Production migration has not been applied.
+- Next: Stage 12 (admin curriculum and content management). Stages 12-19 remain unimplemented.
 - Approved pre-Stage-10 maintenance: [tool compatibility checks and file inventory](tool-sync.md).
   This supports stage verification; it does not add or renumber a product stage.
 - Production client revision and full hosted/device acceptance remain unverified.
@@ -162,4 +163,4 @@ Add exercises and an editor first. Separately approve automated execution, secur
 
 Deviations from the earlier draft: Electrical is included; curriculum/enrollment precede launch and later stages are renumbered accordingly. This roadmap records approval, not implementation.
 
-Escalations: persistent curriculum and content delivery are intentional architecture changes; approve their detailed design in Stage 11 before implementation.
+Stage 11's persistent curriculum design was approved and implemented locally. Content delivery remains Stage 12 and needs its own detailed implementation plan.

@@ -6,6 +6,7 @@ import shutil
 import tempfile
 import types
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 
@@ -19,6 +20,15 @@ def load_manager():
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+class CurriculumBoundaryTests(unittest.TestCase):
+    def test_local_subject_structure_cannot_desync_persistent_catalog(self):
+        manager = load_manager()
+        with patch.object(manager, '_uses_persistent_curriculum', return_value=True), patch('builtins.input', side_effect=AssertionError('must not prompt')):
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(manager.add_subject('synthetic source'), 'synthetic source')
+                self.assertEqual(manager.delete_subject('synthetic source'), 'synthetic source')
 
 
 def counts_block():

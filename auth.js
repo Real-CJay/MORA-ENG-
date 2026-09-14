@@ -54,6 +54,7 @@ const _recoveryLinkParams = new URLSearchParams(location.hash.slice(1));
 
 function setAuthUser(user) {
   if (authUser?.id !== user?.id) {
+    window.MoraCurriculum?.invalidate();
     window.MoraSampleExplorer?.close();
     window.MoraAdminTabs?.close();
     authGeneration++;

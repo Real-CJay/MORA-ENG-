@@ -47,6 +47,7 @@ let state = {
   devCurriculumError: '',
   curriculumSemester: '',
   curriculumDepartment: '',
+  curriculumStream: '',
   curriculumError: '',
   curriculumRoute: null,
   resumeOffset: 0,      // questions already answered before this session (for display)
@@ -832,6 +833,10 @@ function startDevBlockRendererFixture() {
 }
 
 function startQuiz(onlyWrong = false) {
+  window.MoraCurriculum?.applyPending();
+  if (window.MoraCurriculum?.isModuleAvailable(state.currentSubject) === false && !isSyntheticDevSubject()) {
+    alert('This module is archived or its content is unavailable.'); return;
+  }
   const resolved = getPracticeQuizPool(onlyWrong);
   const activeMode = resolved.activeMode;
   const pool = resolved.pool;
@@ -870,6 +875,10 @@ function startQuiz(onlyWrong = false) {
 }
 
 function startTargetQuiz() {
+  window.MoraCurriculum?.applyPending();
+  if (window.MoraCurriculum?.isModuleAvailable(state.currentSubject) === false && !isSyntheticDevSubject()) {
+    alert('This module is archived or its content is unavailable.'); return;
+  }
   state.appMode = 'target';
   const sourcePool = getTargetQuizPool();
 
@@ -1288,6 +1297,10 @@ function showExamTransition(subjectLabel, callback) {
 }
 
 function startExamQuiz() {
+  window.MoraCurriculum?.applyPending();
+  if (window.MoraCurriculum?.isModuleAvailable(state.currentSubject) === false && !isSyntheticDevSubject()) {
+    alert('This module is archived or its content is unavailable.'); return;
+  }
   const resolved = getExamPool();
   const pool = resolved.pool;
   if (resolved.error) { alert(resolved.error); return; }
@@ -1671,11 +1684,12 @@ function routeSubjectKey() {
   return SUBJECTS[state.currentSubject]?.key || state.currentSubject || 'materials';
 }
 
-function curriculumPathForSelection(semesterId, departmentId, moduleKey) {
+function curriculumPathForSelection(semesterId, departmentId, moduleKey, streamId) {
   const safeSemester = String(semesterId || '').trim();
   const safeDepartment = String(departmentId || '').trim();
   const safeModule = String(moduleKey || '').trim();
   if (!safeSemester || !safeModule) return '';
+  if (safeDepartment && streamId) return `/semester/${encodeURIComponent(safeSemester)}/${encodeURIComponent(safeDepartment)}/${encodeURIComponent(streamId)}/${encodeURIComponent(safeModule)}`;
   return safeDepartment
     ? `/semester/${encodeURIComponent(safeSemester)}/${encodeURIComponent(safeDepartment)}/${encodeURIComponent(safeModule)}`
     : `/semester/${encodeURIComponent(safeSemester)}/${encodeURIComponent(safeModule)}`;
@@ -1684,7 +1698,7 @@ function curriculumPathForSelection(semesterId, departmentId, moduleKey) {
 function curriculumRouteForSubject(subjectKey) {
   const route = state.curriculumRoute;
   if (!route || route.dataKey !== subjectKey || route.moduleKey !== subjectKey) return '';
-  return curriculumPathForSelection(route.semesterId, route.departmentId, route.moduleKey);
+  return curriculumPathForSelection(route.semesterId, route.departmentId, route.moduleKey, route.streamId);
 }
 
 function routeForState() {
@@ -1730,6 +1744,7 @@ function routePayloadForState() {
     targetHardOnly: state.targetHardOnly,
     curriculumSemester: state.curriculumSemester,
     curriculumDepartment: state.curriculumDepartment,
+    curriculumStream: state.curriculumStream,
     curriculumRoute: state.curriculumRoute,
     topics: Array.isArray(state.topics) ? [...state.topics] : []
   };
@@ -1788,7 +1803,7 @@ function setupRouteDefaults(subjectKey) {
 
 function resolveCurriculumRoute(parts) {
   if (parts[0] !== 'semester') return null;
-  if (parts.length !== 3 && parts.length !== 4) {
+  if (parts.length !== 3 && parts.length !== 4 && parts.length !== 5) {
     return { ok: false, error: 'Malformed curriculum route.' };
   }
   if (typeof resolveModuleSelection !== 'function') {
@@ -1796,8 +1811,9 @@ function resolveCurriculumRoute(parts) {
   }
 
   const semesterId = parts[1] || '';
-  const departmentId = parts.length === 4 ? parts[2] : null;
-  const moduleKey = parts.length === 4 ? parts[3] : parts[2];
+  const departmentId = parts.length >= 4 ? parts[2] : null;
+  const streamId = parts.length === 5 ? parts[3] : null;
+  const moduleKey = parts[parts.length-1];
 
   if (departmentId && typeof getSemesters === 'function' && typeof getDepartments === 'function') {
     const semesterExists = getSemesters().some(semester => semester && semester.id === semesterId);
@@ -1806,17 +1822,19 @@ function resolveCurriculumRoute(parts) {
     }
   }
 
-  const resolved = resolveModuleSelection({ semesterId, departmentId, moduleKey });
+  const resolved = resolveModuleSelection({ semesterId, departmentId, streamId, moduleKey });
   if (!resolved) {
     return {
       ok: false,
       error: resolveModuleSelection.lastError || 'Curriculum route could not be resolved.'
     };
   }
-  return { ok: true, semesterId, departmentId: departmentId || '', moduleKey, dataKey: resolved.dataKey };
+  return { ok: true, semesterId, departmentId: departmentId || '', streamId:streamId || '', moduleKey, dataKey: resolved.dataKey };
 }
 
 function applyRoute(path, routeState) {
+  window.MoraCurriculum?.applyPending();
+  state.curriculumError = '';
   const parts = path.replace(/^\/+|\/+$/g, '').split('/').filter(Boolean);
   let nextScreen = 'landing';
   let subjectKey = routeState?.subject || state.currentSubject;
@@ -1834,11 +1852,13 @@ function applyRoute(path, routeState) {
       nextCurriculumRoute = {
         semesterId: curriculumRoute.semesterId,
         departmentId: curriculumRoute.departmentId || '',
+        streamId: curriculumRoute.streamId || '',
         moduleKey: curriculumRoute.moduleKey,
         dataKey: curriculumRoute.dataKey
       };
     } else {
       console.warn('[Mora Quiz] Refused curriculum route:', curriculumRoute?.error || path);
+      state.curriculumError = curriculumRoute?.error || 'This module is unavailable.';
     }
   } else if (parts[0] === 'subjects' && parts[1] && SUBJECTS[parts[1]]) {
     subjectKey = parts[1];
@@ -1891,6 +1911,11 @@ function applyRoute(path, routeState) {
     if (parts[0] === 'target-quiz') state.categoryMode = 'target';
   }
 
+  if (['subjectHome','home','paperHome','pastpaperHome','targetHome','quiz','examQuiz'].includes(nextScreen)
+      && window.MoraCurriculum?.isModuleAvailable(subjectKey) === false && !isSyntheticDevSubject(subjectKey)) {
+    nextScreen = 'landing'; nextCurriculumRoute = null;
+    state.curriculumError = 'This module is archived or its content is unavailable.';
+  }
   state.currentSubject = subjectKey;
   if (Array.isArray(routeState?.topics)) state.topics = routeState.topics;
   if (routeState?.mode) state.mode = routeState.mode;
@@ -1899,10 +1924,12 @@ function applyRoute(path, routeState) {
   if (typeof routeState?.targetHardOnly === 'boolean') state.targetHardOnly = routeState.targetHardOnly;
   if (typeof routeState?.curriculumSemester === 'string') state.curriculumSemester = routeState.curriculumSemester;
   if (typeof routeState?.curriculumDepartment === 'string') state.curriculumDepartment = routeState.curriculumDepartment;
+  state.curriculumStream = typeof routeState?.curriculumStream === 'string' ? routeState.curriculumStream : '';
   state.curriculumRoute = nextCurriculumRoute;
   if (nextCurriculumRoute) {
     state.curriculumSemester = nextCurriculumRoute.semesterId;
     state.curriculumDepartment = nextCurriculumRoute.departmentId || '';
+    state.curriculumStream = nextCurriculumRoute.streamId || '';
   }
   state.appMode = nextAppMode;
   if (enterDirectoryFromRoute) {
@@ -2096,6 +2123,7 @@ function hydrateBlockRenderSurface(methodName, root = document.getElementById('a
 }
 
 function renderApp() {
+  window.MoraCurriculum?.applyPending();
   if (state.screen !== 'admin') window.MoraAdminTabs?.close();
   _renderEpoch++;
   const navigationKey = JSON.stringify([state.screen, state.currentSubject, state.curriculumRoute]);
@@ -2230,6 +2258,18 @@ function _doRenderApp() {
   }
   else if (state.screen === 'examQuiz') app.innerHTML = renderExamQuiz();
   else if (state.screen === 'viewAll') app.innerHTML = renderViewAll();
+  if (['landing','curriculumModules'].includes(state.screen)) {
+    const catalogStatus = window.MoraCurriculum?.getStatus();
+    if (catalogStatus?.error) {
+      const notice=document.createElement('div');notice.setAttribute('role','status');
+      notice.textContent=catalogStatus.error+' ';
+      const retry=document.createElement('button');retry.type='button';retry.textContent='Retry curriculum';
+      retry.addEventListener('click',()=>window.MoraCurriculum.refresh());notice.appendChild(retry);app.prepend(notice);
+    }
+    if (state.screen==='landing' && state.curriculumError) {
+      const notice=document.createElement('p');notice.setAttribute('role','alert');notice.textContent=state.curriculumError;app.prepend(notice);
+    }
+  }
   let blockRenderHydration = null;
   if (state.screen === 'quiz' && window.MoraQuestionRenderBridge?.hydrateActiveQuestion) {
     blockRenderHydration = window.MoraQuestionRenderBridge.hydrateActiveQuestion(app);
@@ -2319,6 +2359,10 @@ function enterSubject(subjectKey) {
 }
 
 function enterSubjectMode(subjectKey, destination = 'subjectHome', options = {}) {
+  window.MoraCurriculum?.applyPending();
+  if (window.MoraCurriculum?.isModuleAvailable(subjectKey) === false && !isSyntheticDevSubject(subjectKey)) {
+    alert('This module is archived or its content is unavailable.'); return;
+  }
   const s = SUBJECTS[subjectKey];
   if (!s || subjectTotalCount(subjectKey) === 0) return;
   const entryEpoch = ++_subjectEntryEpoch, navigationEpoch = _navigationEpoch, generation = authGeneration;
@@ -2414,8 +2458,12 @@ function ensureCurriculumHomeSelection() {
     }
   }
 
+  const streams = typeof getStreams==='function' ? getStreams(state.curriculumSemester,state.curriculumDepartment) : [];
+  if(!streams.some(s=>s.id===state.curriculumStream))state.curriculumStream='';
   return {
     semesters,
+    streams,
+    streamId: state.curriculumStream,
     semesterId: state.curriculumSemester,
     departmentId: state.curriculumDepartment,
     departments
@@ -2447,6 +2495,7 @@ function selectCurriculumSemester(semesterId) {
 }
 
 function selectCurriculumDepartment(departmentId) {
+  state.curriculumStream = '';
   if (!curriculumHelpersReady()) return;
   const departments = getDepartments(state.curriculumSemester);
   if (!Array.isArray(departments) || !departments.some(department => department.id === departmentId)) return;
@@ -2470,6 +2519,7 @@ function backToCurriculumModules() {
   if (state.curriculumRoute) {
     state.curriculumSemester = state.curriculumRoute.semesterId || state.curriculumSemester;
     state.curriculumDepartment = state.curriculumRoute.departmentId || '';
+    state.curriculumStream = state.curriculumRoute.streamId || '';
   }
   state.curriculumError = '';
   state.curriculumRoute = null;
@@ -2478,14 +2528,14 @@ function backToCurriculumModules() {
   renderApp();
 }
 
-function openCurriculumModule(semesterId, departmentId, moduleKey) {
+function openCurriculumModule(semesterId, departmentId, moduleKey, streamId) {
   if (!curriculumHelpersReady()) {
     state.curriculumError = 'Curriculum registry helpers or module adapter unavailable.';
     renderApp();
     return;
   }
   const selectedDepartment = departmentId || null;
-  const resolved = resolveModuleSelection({ semesterId, departmentId: selectedDepartment, moduleKey });
+  const resolved = resolveModuleSelection({ semesterId, departmentId: selectedDepartment, streamId, moduleKey });
   if (!resolved) {
     state.curriculumError = resolveModuleSelection.lastError || 'Curriculum module selection was refused.';
     console.warn('[Mora Quiz] Curriculum navigation refused module selection:', state.curriculumError);
@@ -2496,12 +2546,14 @@ function openCurriculumModule(semesterId, departmentId, moduleKey) {
   const curriculumRoute = {
     semesterId,
     departmentId: selectedDepartment || '',
+    streamId: streamId || '',
     moduleKey,
     dataKey: resolved.dataKey
   };
-  const path = curriculumPathForSelection(semesterId, selectedDepartment, moduleKey);
+  const path = curriculumPathForSelection(semesterId, selectedDepartment, moduleKey, streamId);
   state.curriculumSemester = semesterId;
   state.curriculumDepartment = selectedDepartment || '';
+  state.curriculumStream = streamId || '';
   state.curriculumError = '';
   state.curriculumRoute = curriculumRoute;
 
@@ -2533,12 +2585,21 @@ document.addEventListener('click', event => {
     openCurriculumModule(
       moduleCard.getAttribute('data-curriculum-semester') || '',
       moduleCard.getAttribute('data-curriculum-department') || '',
-      moduleCard.getAttribute('data-curriculum-module') || ''
+      moduleCard.getAttribute('data-curriculum-module') || '',
+      moduleCard.getAttribute('data-curriculum-stream') || ''
     );
     return;
   }
 
   const semesterBtn = event.target.closest?.('[data-curriculum-semester]');
+  const streamBtn=event.target.closest?.('[data-curriculum-stream]');
+  if(streamBtn){
+    const id=streamBtn.getAttribute('data-curriculum-stream')||'';
+    if(!id||getStreams(state.curriculumSemester,state.curriculumDepartment).some(s=>s.id===id)){
+      state.curriculumStream=id;state.curriculumRoute=null;pushCurriculumHomeState();renderApp();
+    }
+    return;
+  }
   if (semesterBtn) {
     event.preventDefault();
     if (semesterBtn.hasAttribute('disabled') || semesterBtn.getAttribute('aria-disabled') === 'true') return;
@@ -3748,7 +3809,7 @@ function renderCurriculumModules() {
   const selection = ensureCurriculumHomeSelection();
   const selectedSemester = selection.semesters.find(semester => semester.id === selection.semesterId);
   const moduleList = selection.semesterId
-    ? getModules(selection.semesterId, selection.departmentId || undefined)
+    ? getModules(selection.semesterId, selection.departmentId || undefined, selection.streamId || undefined)
     : [];
   const isCommonSemester = selection.departments === null;
   const title = isCommonSemester ? 'Common Modules' : 'Modules';
@@ -3770,19 +3831,19 @@ function renderCurriculumModules() {
 
   const moduleCards = moduleList.map(module => {
     const total = subjectTotalCount(module.key);
-    const empty = total === 0;
+    const empty = total === 0 || module.available === false;
     const statusLabel = empty ? 'Unavailable' : total + ' questions';
     const statusColor = empty ? 'var(--text-muted)' : '#4ade80';
     const statusClass = empty ? 'status-coming-soon' : 'status-available';
     const arrow = !empty ? ('<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:' + module.color + ';opacity:0.7;flex-shrink:0;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>') : '';
     const iconBg = module.color + '20';
     const iconBorder = module.color + '40';
-    const routeHref = curriculumPathForSelection(selection.semesterId, selection.departmentId, module.key);
+    const routeHref = curriculumPathForSelection(selection.semesterId, selection.departmentId, module.key, selection.streamId);
     const tag = empty ? 'div' : 'a';
     const href = empty ? '' : (' href="' + routeHref + '"');
     const moduleAttrs = empty
       ? ' aria-disabled="true"'
-      : ' data-curriculum-module="' + escapeHTML(module.key) + '" data-curriculum-semester="' + escapeHTML(selection.semesterId) + '" data-curriculum-department="' + escapeHTML(selection.departmentId || '') + '"';
+      : ' data-curriculum-module="' + escapeHTML(module.key) + '" data-curriculum-semester="' + escapeHTML(selection.semesterId) + '" data-curriculum-department="' + escapeHTML(selection.departmentId || '') + '" data-curriculum-stream="' + escapeHTML(selection.streamId || '') + '"';
     return '<' + tag + href + moduleAttrs + ' class="lp-tile' + (empty ? ' lp-tile-empty' : '') + '" style="--tile-color:' + module.color + ';--tile-glow:' + module.color + '14;">'
       + '<div class="lp-tile-top">'
       +   '<div class="lp-tile-icon-wrap" style="background:' + iconBg + ';border:1.5px solid ' + iconBorder + ';">' + module.icon + '</div>'
@@ -3807,6 +3868,8 @@ function renderCurriculumModules() {
     + '</div>'
     + curriculumErrorHtml
     + departmentHtml
+    + (selection.streams?.length ? '<div role="group" aria-label="Stream"><button type="button" data-curriculum-stream="">Common modules</button>'
+      + selection.streams.map(s=>'<button type="button" data-curriculum-stream="'+escapeHTML(s.id)+'" aria-pressed="'+(s.id===selection.streamId)+'">'+escapeHTML(s.label)+'</button>').join('')+'</div>' : '')
     + '<div class="lp-section" style="padding-top:0;">'
     +   '<div class="lp-section-header"><h2 class="lp-section-title">' + title + '</h2><span class="lp-section-sub">' + subtitle + '</span></div>'
     +   '<div class="lp-tile-grid">' + (moduleCards || '<div class="lp-empty" style="padding:1.5rem;text-align:left;">No modules are available for this selection.</div>') + '</div>'
@@ -5686,7 +5749,13 @@ function exposeAppGlobals() {
 exposeAppGlobals();
 
 // Auth initialises first, then renders the app/router.
-bootAuth().then(() => {
+bootAuth().then(async () => {
+  await window.MoraCurriculum.initialize({
+    project:SUPABASE_URL, rpc:(name,args)=>_sb.rpc(name,args),
+    accountGeneration:()=>authGeneration, navigationGeneration:()=>_navigationEpoch,
+    isBusy:()=>isActiveQuizScreen(),
+    onChange:()=>{if(_routerReady && ['landing','curriculumModules'].includes(state.screen))renderApp();}
+  });
   initRouter();
   renderChatMessages();
 });

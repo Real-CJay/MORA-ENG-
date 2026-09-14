@@ -17,6 +17,14 @@ The pinned dependencies include OpenCV, NumPy, Pillow and PyMuPDF for cropper te
 
 ## Live Import Boundary
 
+Stage 11 separates backend curriculum metadata from bundled question content.
+The quiz manager's subject add/delete operations are blocked for this dynamic
+project: changing local metadata would desynchronize the backend catalog.
+Existing-module question imports remain available with the same validation.
+Unknown/metadata-only modules cannot receive live imports through these tools.
+Use the future Stage 12 administrator workflow for catalog/content creation.
+See [curriculum contract and checks](../docs/stage-11-curriculum.md).
+
 Schema-v2 extraction and previews remain supported, but block-based `body`/`answer` questions are refused by live apply. Live questions must have string `text`, string-array `opts`, and a zero-based integer `ans`, plus a valid destination module/unit, a globally unique safe ID, and existing `IMAGES/...` local paths. Literal `"None"` is not a valid image path. Schema pack-level images/stimuli are still preview-only.
 
 The manager rechecks the final post-override payload immediately before any write. Manual additions use the same compatibility checks. Do not bypass a rejected import or infer that schema round-tripping means live compatibility. Missing required figures must be recovered from verified sources, not silently hidden.

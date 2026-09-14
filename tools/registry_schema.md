@@ -1,5 +1,20 @@
 # Mora Quiz Programme Registry Schema
 
+## Current authority (Stage 11)
+
+The persistent contract is [Stage 11](../docs/stage-11-curriculum.md): separate
+semesters, departments, streams, modules and placements, exposed through the
+same classic-script registry. Placements, not `SUBJECTS.semesterId`, determine
+remote membership. `getStreams(semesterId, departmentId)` and the optional third
+argument to `getModules` support streams. Published snapshots hide archived
+entries and refuse new starts; historical progress is retained. This supersedes
+the older archived-but-browsable behavior described below for the static model.
+
+The following schema remains the bundled fallback only. `registry_check.py`
+checks this fallback; the curriculum runtime/SQL tests validate the dynamic model.
+Do not edit the fallback to create remote curriculum entries. Admin management
+and content delivery screens belong to Stage 12.
+
 Stage 6.0I moves the semester and department layer into `js/curriculum_registry.js`. It does not change question data, rendering, routes, storage keys, or the lazy-loaded `subject_data/*.js` chunks.
 
 ## Semesters

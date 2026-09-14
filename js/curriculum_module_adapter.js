@@ -21,6 +21,8 @@
       getSemesters: window.getSemesters,
       getDepartments: window.getDepartments,
       getModules: window.getModules,
+      getStreams: window.getStreams,
+      isModuleAvailable: window.MoraCurriculum?.isModuleAvailable,
       isArchived: window.isArchived
     };
   }
@@ -50,6 +52,7 @@
     const semesterId = normalizeId(selection.semesterId);
     const departmentId = normalizeId(selection.departmentId);
     const moduleKey = normalizeId(selection.moduleKey);
+    const streamId = normalizeId(selection.streamId);
 
     if (!semesterId) return fail('semesterId is required.');
     if (!moduleKey) return fail('moduleKey is required.');
@@ -66,20 +69,11 @@
     if (subjectEntry.key !== moduleKey) {
       return fail(`Module key mismatch for ${moduleKey}.`);
     }
-    if (subjectEntry.semesterId !== semesterId) {
-      return fail(`Module ${moduleKey} does not belong to semester ${semesterId}.`);
-    }
-
-    const moduleDepartmentIds = Array.isArray(subjectEntry.departmentIds)
-      ? subjectEntry.departmentIds
-      : [];
     const departments = context.getDepartments(semesterId);
     let modulesForSelection;
 
     if (departments === null) {
-      if (!moduleDepartmentIds.includes('all')) {
-        return fail(`Module ${moduleKey} is not available as a common module.`);
-      }
+      if (departmentId || streamId) return fail('Common semester does not have a department or stream.');
       modulesForSelection = context.getModules(semesterId);
     } else {
       if (!Array.isArray(departments)) {
@@ -92,10 +86,8 @@
       if (!departmentExists) {
         return fail(`Unknown department ${departmentId} for semester ${semesterId}.`);
       }
-      if (!moduleDepartmentIds.includes('all') && !moduleDepartmentIds.includes(departmentId)) {
-        return fail(`Module ${moduleKey} is not available to department ${departmentId}.`);
-      }
-      modulesForSelection = context.getModules(semesterId, departmentId);
+      if(streamId && !context.getStreams?.(semesterId,departmentId).some(s=>s.id===streamId))return fail('Unknown stream for department.');
+      modulesForSelection = context.getModules(semesterId, departmentId, streamId || undefined);
     }
 
     const moduleConfirmed = Array.isArray(modulesForSelection)
@@ -103,6 +95,7 @@
     if (!moduleConfirmed) {
       return fail(`Registry helpers did not confirm module ${moduleKey} for the selected context.`);
     }
+    if(context.isModuleAvailable && !context.isModuleAvailable(moduleKey))return fail('Module content is unavailable.');
 
     return {
       result: {

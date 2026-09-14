@@ -1383,7 +1383,17 @@ ARRAY_STUB = "const {name} = [\n];\n"
 ALL_TARGET_STUB = "const ALL_{KEY}_TARGET = [...{KEY}_TARGET_HARD, ...{KEY}_TARGET_NORMAL];\n"
 
 
+def _uses_persistent_curriculum():
+    if CURRENT_QUIZ_ROOT is None:
+        return False
+    registry = CURRENT_QUIZ_ROOT / 'js' / 'curriculum_registry.js'
+    return registry.is_file() and 'window.MoraCurriculum=' in registry.read_text(encoding='utf-8')
+
+
 def add_subject(html):
+    if _uses_persistent_curriculum():
+        warn('Curriculum modules are database-managed. Local subject creation is disabled; use the curriculum admin workflow (Stage 12).')
+        return html
     section("ADD A SUBJECT")
     hint()
     key   = ask("Subject key (lowercase, no spaces, e.g. thermo)").strip().lower()
@@ -1432,6 +1442,9 @@ def add_subject(html):
 
 
 def delete_subject(html):
+    if _uses_persistent_curriculum():
+        warn('Archive modules through the curriculum admin workflow. Local deletion would orphan catalog references and progress.')
+        return html
     section("DELETE A SUBJECT")
     hint()
     keys = get_subject_keys(html)

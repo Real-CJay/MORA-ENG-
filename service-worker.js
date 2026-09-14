@@ -1,12 +1,12 @@
 const CACHE_PREFIX = 'mora-quiz';
-const CACHE_VERSION = 'mora-quiz-v90';
+const CACHE_VERSION = 'mora-quiz-v91';
 const APP_SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const RUNTIME_CACHE   = `${CACHE_VERSION}-runtime`;
 // Subject data cache is not versioned; it survives app updates so downloaded
 // modules remain available offline even after the user gets a new app version.
 const SUBJECTS_CACHE  = `${CACHE_PREFIX}-subjects`;
 // This mirrors the cache-busting query currently used by index.html.
-const PRECACHE_ASSET_VERSION = '87';
+const PRECACHE_ASSET_VERSION = '88';
 
 const versionedAppAsset = path => `${path}?v=${PRECACHE_ASSET_VERSION}`;
 
@@ -325,4 +325,3 @@ self.addEventListener('fetch', event => {
     );
   }
 });
-
