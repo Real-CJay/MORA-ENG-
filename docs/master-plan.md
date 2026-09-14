@@ -14,7 +14,7 @@ This approves the roadmap direction, not service activation or spending.
 - Stage 8: implemented locally; see [sample bank and verification boundary](sample-bank-contract.md).
 - Stage 9, including approved extensions 9.5–9.7: implemented locally; see [explorer and manual checks](stage-9-sample-explorer.md).
 - Stage 10: scoped chat-controls pilot and approved minimize/mobile-split fixes implemented locally; see [dependencies and checks](stage-10-decomposition.md).
-- Stage 11: implemented locally; see [curriculum contract, rollout and checks](stage-11-curriculum.md). Production migration has not been applied.
+- Stage 11: implemented; curriculum migration applied to the existing live backend on 2026-09-14 to repair missing RPCs. See [verification and migration mapping](stage-11-curriculum.md). Frontend deployment remains separate.
 - Stage 12.1: implemented locally; see [curriculum administration and checks](stage-12-1-curriculum-admin.md). No production migration or deployment performed.
 - Next: Stage 12.2 (placements, ordering and publication). Remaining Stage 12 parts and Stages 13-19 remain unimplemented.
 - Approved pre-Stage-10 maintenance: [tool compatibility checks and file inventory](tool-sync.md).

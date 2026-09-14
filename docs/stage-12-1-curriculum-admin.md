@@ -5,6 +5,12 @@ Live use needs Stage 11's separately authorized migration. No new migration is
 introduced. Stage 12.2 adds placement/order/publication/archive controls; R2
 image uploads remain 12.3 and dynamic content delivery remains 12.4.
 
+Backend update, 2026-09-14: Stage 11's migration is now applied to the existing
+live project and the public curriculum endpoint returns HTTP 200. See the
+[migration mapping and verification](stage-11-curriculum.md). The local app can
+now use that backend; this does not deploy the frontend. Use `/admin` in the
+normal app for real access, not `/curriculum-admin-test` (synthetic only).
+
 ## Feature map and boundaries
 
 - `js/app_curriculum_admin.js`: classic-script `MoraCurriculumAdmin` with

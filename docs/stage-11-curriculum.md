@@ -1,7 +1,19 @@
 # Stage 11 — Dynamic curriculum foundation
 
-Local implementation only. No production migration, push or deployment is
-included. Admin editing/upload screens remain Stage 12; enrollment Stage 13.
+The reviewed curriculum migration was applied to the existing MORA QUIZ project
+on 2026-09-14 with explicit user authorization to fix missing curriculum RPCs.
+Remote migration tracking: `20260914103259_dynamic_curriculum`; local source:
+`20260913194332_dynamic_curriculum.sql`. These are the same migration; do not
+replay it because the tool-assigned timestamp differs. No frontend push/deployment.
+Admin editing/upload screens remain Stage 12; enrollment Stage 13.
+
+Verification: isolated migration test passed; the live public PostgREST snapshot
+returned HTTP 200, published visibility, revision 1 and four modules. Guest admin
+snapshot returned HTTP 401. SQL role-based admin snapshot and no-op update passed
+inside a rolled-back transaction, leaving catalog revision/content unchanged.
+Actual signed-in browser editing remains a manual check. Security advisors found
+no curriculum-specific warnings; unrelated legacy view/function/Auth notices
+remain outstanding and were not changed by this repair.
 
 ## Contract
 
