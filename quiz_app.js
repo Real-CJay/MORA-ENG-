@@ -1833,6 +1833,10 @@ function resolveCurriculumRoute(parts) {
 }
 
 function applyRoute(path, routeState) {
+  if(window.MoraCurriculumAdmin?.canLeave()===false){
+    if(canUseAppHistory())history.replaceState(routePayloadForState(),'',routeForState());
+    return;
+  }
   window.MoraCurriculum?.applyPending();
   state.curriculumError = '';
   const parts = path.replace(/^\/+|\/+$/g, '').split('/').filter(Boolean);
@@ -2123,6 +2127,7 @@ function hydrateBlockRenderSurface(methodName, root = document.getElementById('a
 }
 
 function renderApp() {
+  if(window.MoraCurriculumAdmin?.canLeave()===false){state.screen='admin';return;}
   window.MoraCurriculum?.applyPending();
   if (state.screen !== 'admin') window.MoraAdminTabs?.close();
   _renderEpoch++;

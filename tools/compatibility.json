@@ -8,6 +8,12 @@
   "excludedUntracked": ["AI exports/*", ".local-reports/*"],
   "reviewPaths": ["AGENTS.md", "docs/*", "tools/*.md", "tools/*prompt_generator.py", "tools/compatibility.json"],
   "contracts": {
+    "curriculum-admin": {
+      "revision": 1,
+      "paths": ["js/app_curriculum_admin.js", "js/app_admin_tabs.js", "quiz_app.js", "index.html", "service-worker.js", "tests/serve.cjs", "tests/curriculum-admin*", "docs/stage-12-1-curriculum-admin.md"],
+      "tests": ["curriculum-admin", "curriculum-runtime", "curriculum-database", "runtime", "offline"],
+      "manual": "Run the synthetic curriculum-admin browser harness on desktop/mobile; hosted admin writes require the separately authorized Stage 11 migration."
+    },
     "chat-controls": {
       "revision": 2,
       "paths": ["js/app_chat_controls.js", "quiz_app.js", "index.html", "quiz_style.css", "service-worker.js", "tests/chat-controls.test.cjs", "tests/chat-controls.browser.js", "tests/chat-harness.cjs", "tests/serve.cjs", "docs/stage-10-decomposition.md"],

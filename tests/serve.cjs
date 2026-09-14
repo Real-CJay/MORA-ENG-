@@ -9,6 +9,10 @@ http.createServer((req,res)=>{
   let pathname;
   try { pathname=decodeURIComponent(new URL(req.url,'http://localhost').pathname); } catch {res.writeHead(400).end();return;}
   // Explicit local-only harness; never included in production index.html.
+  if (process.argv.includes('--curriculum-admin') && pathname === '/curriculum-admin-test') {
+    res.writeHead(200, {'Content-Type':'text/html','Cache-Control':'no-store'}).end(require('./curriculum-admin-harness.cjs').html());
+    return;
+  }
   if (process.argv.includes('--curriculum') && pathname === '/curriculum-test') {
     res.writeHead(200, {'Content-Type':'text/html','Cache-Control':'no-store'}).end(require('./curriculum-harness.cjs').html());
     return;

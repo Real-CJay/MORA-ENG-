@@ -15,7 +15,8 @@ This approves the roadmap direction, not service activation or spending.
 - Stage 9, including approved extensions 9.5–9.7: implemented locally; see [explorer and manual checks](stage-9-sample-explorer.md).
 - Stage 10: scoped chat-controls pilot and approved minimize/mobile-split fixes implemented locally; see [dependencies and checks](stage-10-decomposition.md).
 - Stage 11: implemented locally; see [curriculum contract, rollout and checks](stage-11-curriculum.md). Production migration has not been applied.
-- Next: Stage 12 (admin curriculum and content management). Stages 12-19 remain unimplemented.
+- Stage 12.1: implemented locally; see [curriculum administration and checks](stage-12-1-curriculum-admin.md). No production migration or deployment performed.
+- Next: Stage 12.2 (placements, ordering and publication). Remaining Stage 12 parts and Stages 13-19 remain unimplemented.
 - Approved pre-Stage-10 maintenance: [tool compatibility checks and file inventory](tool-sync.md).
   This supports stage verification; it does not add or renumber a product stage.
 - Production client revision and full hosted/device acceptance remain unverified.
@@ -200,7 +201,7 @@ before starting the next, with exact-file staging and synchronized tooling/docs.
 Each handoff includes manual actions and expected results. No automatic push,
 production SQL, deployment, R2 activation or spending is authorized by this plan.
 
-Immediate next implementation unit: **12.1**, using synthetic/local backend
+Next implementation unit: **12.2**, using synthetic/local backend
 verification first. Stage 11's production migration remains a prerequisite for
 live admin use, not a reason to create another hosted project. Before starting
 12.3, resolve the content-storage and cost-control decisions explicitly.

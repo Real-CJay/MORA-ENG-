@@ -11,6 +11,7 @@
   function close() {
     if(active) { active.root.replaceChildren(); active=null; }
     window.MoraSampleExplorer?.close();
+    window.MoraCurriculumAdmin?.close();
     owner=null; ownerGeneration=null; selected='statistics';
   }
   function checkAccess() { if(active && !current(active)) close(); }
@@ -19,7 +20,7 @@
     return `<section id="mora-admin-tabs">
       <header class="header"><div class="header-badge">Admin Dashboard</div><h1>Dashboard</h1></header>
       <div role="tablist" aria-label="Admin sections" style="display:flex;gap:8px;overflow-x:auto;padding:8px;background:var(--surface,#1a1d27);border-radius:8px;margin-bottom:16px;">
-        ${[['statistics','Statistics'],['samples','Sample bank'],['settings','Settings']].map(([id,label])=>
+        ${[['statistics','Statistics'],['samples','Sample bank'],['settings','Settings'],['curriculum','Curriculum']].map(([id,label])=>
           `<button type="button" role="tab" id="admin-tab-${id}" data-admin-tab="${id}" aria-controls="admin-panel" aria-selected="false" tabindex="-1" style="font:inherit;color:var(--text,#eef);background:transparent;border:0;border-radius:4px;white-space:nowrap;padding:10px 18px;cursor:pointer;">${label}</button>`).join('')}
       </div><div id="admin-panel" role="tabpanel" tabindex="0"></div>
     </section>`;
@@ -33,6 +34,8 @@
     const tabs=[...root.querySelectorAll('[data-admin-tab]')], panel=root.querySelector('#admin-panel');
     async function select(id) {
       if(!current(session)) { checkAccess(); return; }
+      if(window.MoraCurriculumAdmin?.canLeave()===false)return;
+      window.MoraCurriculumAdmin?.close();
       selected=id; const request=++session.request;
       window.MoraSampleExplorer?.close(); panel.replaceChildren();
       for(const tab of tabs) {
@@ -44,6 +47,7 @@
       panel.removeAttribute('aria-busy');
       if(id==='samples') { window.MoraSampleExplorer.open({host:panel}); return; }
       if(id==='settings') { panel.innerHTML=renderAdminSettings(); return; }
+      if(id==='curriculum') { window.MoraCurriculumAdmin.open({host:panel}); return; }
       panel.textContent='Loading statistics…'; panel.setAttribute('aria-busy','true');
       try {
         const html=await renderAdminStatistics();
