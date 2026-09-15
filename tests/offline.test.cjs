@@ -9,6 +9,16 @@ function worker(fetch) {
   vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../service-worker.js'),'utf8'),ctx);
   return {handlers,puts};
 }
+test('document icons resolve to existing root assets from nested quiz routes',()=>{
+  const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
+  const links=[...html.matchAll(/<link[^>]+rel="(?:icon|apple-touch-icon)"[^>]+href="([^"]+)"/g)];
+  assert.equal(links.length,2);
+  for(const link of links)for(const page of ['/','/subjects/fluid/past-papers/full','/semester/sem2/mechanical/math']){
+    const icon=new URL(link[1],'https://mora.test'+page);
+    assert.equal(icon.pathname,'/assets/icons/icon-192.png');
+    assert.ok(fs.existsSync(path.join(__dirname,'..',icon.pathname)));
+  }
+});
 test('404 responses and standalone pages cannot overwrite the offline app shell',async()=>{
   for(const [url,status,wanted] of [['/missing',404,[]],['/short_notes/example.html',200,['https://mora.test/short_notes/example.html']],['/subjects/math',200,['/index.html']]]){
     const {handlers,puts}=worker(async()=>new Response('html',{status,headers:{'Content-Type':'text/html'}}));

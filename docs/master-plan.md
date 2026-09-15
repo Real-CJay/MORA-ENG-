@@ -16,7 +16,8 @@ This approves the roadmap direction, not service activation or spending.
 - Stage 10: scoped chat-controls pilot and approved minimize/mobile-split fixes implemented locally; see [dependencies and checks](stage-10-decomposition.md).
 - Stage 11: implemented; curriculum migration applied to the existing live backend on 2026-09-14 to repair missing RPCs. See [verification and migration mapping](stage-11-curriculum.md). Frontend deployment remains separate.
 - Stage 12.1: implemented locally; see [curriculum administration and checks](stage-12-1-curriculum-admin.md). No production migration or deployment performed.
-- Next: Stage 12.2 (placements, ordering and publication). Remaining Stage 12 parts and Stages 13-19 remain unimplemented.
+- Legacy security repair: applied to the existing backend; user reports the supplied manual checks passed on 2026-09-15. Local icon fix and verification are recorded in [repair handoff](legacy-security-repair.md).
+- Next: fix the reported first-visit tutorial redirect as a separate maintenance unit, then Stage 12.2 (placements, ordering and publication). Remaining Stage 12 parts and Stages 13-19 remain unimplemented.
 - Approved pre-Stage-10 maintenance: [tool compatibility checks and file inventory](tool-sync.md).
   This supports stage verification; it does not add or renumber a product stage.
 - Production client revision and full hosted/device acceptance remain unverified.
@@ -73,6 +74,13 @@ Hierarchy:
 **Semester → Department, where applicable → Stream, where applicable → Module**
 
 - Available department names: **ENTC, CSE, Electrical, Material, Bio Medical, Chemical, Mechanical, Civil**.
+- Clarification approved 2026-09-15: these are the same departments across
+  **Semesters 2–8**, not unrelated departments that merely share a label.
+  Give each department a stable cross-semester identity and associate its
+  semester-specific curriculum with that identity. Keep Semester 1 common.
+  A department filter must show its published modules across Semesters 2–8,
+  grouped by semester, with an optional semester/stream filter. Shared module
+  appearances keep one module identity and one progress history.
 - Mechanical’s streams: **Aeronautical, Mechatronics, Common Stream**.
 - Keep common semesters/modules supported; do not automatically attach every department to every semester.
 - Admins choose where departments, streams and modules belong.
@@ -84,6 +92,42 @@ Hierarchy:
 - Enrollment never grants premium access by itself.
 
 ## Stages
+
+### Queued maintenance — first-visit tutorial destination
+
+User report, 2026-09-15: on the first visit, completing the tutorial / Januda
+Ayya tutorial opens Materials instead of the home page. Not diagnosed or fixed
+by this roadmap update. Handle separately before 12.2; do not renumber stages.
+
+- Reproduce with a fresh isolated browser profile and synthetic content. Inspect
+  startup routing and tutorial completion/skip/close handlers; do not assume the cause.
+- A normal first visit to `/` must finish on the home/curriculum screen, without
+  automatically selecting Materials or starting a quiz. Tutorial demonstrations
+  must not leave behind a module selection, quiz attempt or saved progress.
+- Preserve intentional module deep links and returning-user navigation; test them
+  separately rather than forcing every startup to home. Preserve auth/recovery routes.
+- Test complete/skip/close for both tutorials, reload, back/forward and delayed
+  catalog/auth responses. Add regression coverage, sync docs/tools, then commit.
+- Manual acceptance: in a fresh private window open `/`, complete both tutorials:
+  home appears; repeat skipping them. Reload and follow an explicit module link:
+  each reaches its intended destination. Do not clear an existing user's saves.
+
+### Recorded deviation review — 2026-09-15
+
+Review of stage handoffs/roadmap, not a fresh full-code audit:
+
+- Stage 10 deliberately stopped after the chat-controls pilot; broad decomposition
+  is optional, not unfinished mandatory work. Its geometry fixes were approved.
+- Stage 9 preview-only matching remains typed pairs; dedicated pairing/subpart
+  grading is not implemented or silently enabled for live quizzes.
+- Stage 11 went live under separate repair authorization; Stage 12.1 required no
+  new migration. The later legacy security migrations are a separate repair unit.
+- Shared department identity across Semesters 2–8 is an approved future data-model
+  extension (12.2.c), not an already implemented feature. Plan it before placement UI.
+- R2 remains planned pending explicit storage/cost approval; no activation or
+  spending. Mechanics figures remain excluded and manual CS review is independent.
+- No unapproved architectural deviation is recorded in the reviewed handoffs.
+  The newly reported tutorial redirect is an open bug, not an approved deviation.
 
 ### 7.0C — Close the extraction-tool audit
 
@@ -165,6 +209,13 @@ Permissions must be enforced in the backend, not just by hidden buttons. [Supaba
   - **12.2.b:** Explain ancestor/publication requirements, show revision conflicts
     with reload/review instead of silent overwrite, and confirm archive effects.
     Never delete progress or purchases when archiving a curriculum entry.
+  - **12.2.c:** Before extending placement management, plan an additive stable
+    department-identity mapping across Semesters 2–8. Preserve Stage 11's existing
+    department/stream/placement IDs and URLs; never infer identity by editable
+    label matching. Admins reuse a department identity in each semester rather
+    than creating unrelated duplicates. Confirm mappings for existing records
+    before migration; do not seed semesters/departments as part of this roadmap
+    edit. Mechanical streams retain their identity within Mechanical.
 - **12.3:** Manual content upload, validation, preview and explicit publication.
   - **12.3.a:** Define and approve the versioned content/asset contract before
     implementation: immutable asset IDs, module manifests, bounded file sizes,
@@ -215,6 +266,9 @@ desktop/mobile manual checks. No real content inspection is implied.
 ### 13 — Enrollment and personal dashboard
 
 - **13.1:** Separate enrollment catalog with curriculum filters.
+  - **13.1.a:** Department-first browsing spans Semesters 2–8 and groups results
+    by semester; the semester filter is optional. Verify rename-safe matching,
+    shared modules, Mechanical streams, empty semesters and hidden drafts/archives.
 - **13.2:** Enroll/unenroll with duplicate protection.
 - **13.3:** Dashboard limited to enrolled modules, with an enrollment prompt when empty.
 - **13.4:** Preserve progress across unenrollment, renaming and shared placements.

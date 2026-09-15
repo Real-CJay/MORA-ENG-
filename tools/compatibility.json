@@ -8,6 +8,12 @@
   "excludedUntracked": ["AI exports/*", ".local-reports/*"],
   "reviewPaths": ["AGENTS.md", "docs/*", "tools/*.md", "tools/*prompt_generator.py", "tools/compatibility.json"],
   "contracts": {
+    "legacy-security": {
+      "revision": 1,
+      "paths": ["supabase/migrations/*_legacy_function_permissions.sql", "supabase/migrations/*_public_leaderboard_boundary.sql", "tests/legacy-security.test.cjs", "tests/legacy-functions-fixture.sql", "docs/legacy-security-repair.md"],
+      "tests": ["legacy-security"],
+      "manual": "Confirm hosted public rankings and admin statistics. Private schema must remain outside PostgREST; opt-in aggregate disclosure is intentional."
+    },
     "curriculum-admin": {
       "revision": 1,
       "paths": ["js/app_curriculum_admin.js", "js/app_admin_tabs.js", "quiz_app.js", "index.html", "service-worker.js", "tests/serve.cjs", "tests/curriculum-admin*", "docs/stage-12-1-curriculum-admin.md"],

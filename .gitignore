@@ -29,6 +29,7 @@ netlify.toml
 !/supabase_short_notes.sql
 !/supabase_timer_setting.sql
 !/supabase/migrations/*.sql
+!/tests/legacy-functions-fixture.sql
 
 # Source/archive files that are not needed by the web app
 *.pdf

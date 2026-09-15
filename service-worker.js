@@ -1,5 +1,5 @@
 const CACHE_PREFIX = 'mora-quiz';
-const CACHE_VERSION = 'mora-quiz-v92';
+const CACHE_VERSION = 'mora-quiz-v93';
 const APP_SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const RUNTIME_CACHE   = `${CACHE_VERSION}-runtime`;
 // Subject data cache is not versioned; it survives app updates so downloaded
