@@ -17,7 +17,7 @@ This approves the roadmap direction, not service activation or spending.
 - Stage 11: implemented; curriculum migration applied to the existing live backend on 2026-09-14 to repair missing RPCs. See [verification and migration mapping](stage-11-curriculum.md). Frontend deployment remains separate.
 - Stage 12.1: implemented locally; see [curriculum administration and checks](stage-12-1-curriculum-admin.md). No production migration or deployment performed.
 - Legacy security repair: applied to the existing backend; user reports the supplied manual checks passed on 2026-09-15. Local icon fix and verification are recorded in [repair handoff](legacy-security-repair.md).
-- Next: fix the reported first-visit tutorial redirect as a separate maintenance unit, then Stage 12.2 (placements, ordering and publication). Remaining Stage 12 parts and Stages 13-19 remain unimplemented.
+- Tutorial redirect maintenance: fixed locally; manual first-visit acceptance pending (see below). Next product stage: 12.2 (placements, ordering and publication). Remaining Stage 12 parts and Stages 13-19 remain unimplemented.
 - Approved pre-Stage-10 maintenance: [tool compatibility checks and file inventory](tool-sync.md).
   This supports stage verification; it does not add or renumber a product stage.
 - Production client revision and full hosted/device acceptance remain unverified.
@@ -93,11 +93,17 @@ Hierarchy:
 
 ## Stages
 
-### Queued maintenance — first-visit tutorial destination
+### Maintenance — first-visit tutorial destination
 
 User report, 2026-09-15: on the first visit, completing the tutorial / Januda
-Ayya tutorial opens Materials instead of the home page. Not diagnosed or fixed
-by this roadmap update. Handle separately before 12.2; do not renumber stages.
+Ayya tutorial opens Materials instead of the home page. Implemented locally:
+the timer demo previously entered the real quiz-start path when timers were
+disabled. The demo now cannot queue a quiz/Januda continuation, does not write
+navigation history, and ignores obsolete asynchronous steps. Original selection
+is restored exactly; account changes cancel without restoring stale state.
+Delivery: asset query 90 / worker v94. No deployment or production changes.
+Runtime tests use synthetic metadata only; browser/device acceptance remains
+manual. Commit after verification and before 12.2; do not renumber stages.
 
 - Reproduce with a fresh isolated browser profile and synthetic content. Inspect
   startup routing and tutorial completion/skip/close handlers; do not assume the cause.
@@ -127,7 +133,8 @@ Review of stage handoffs/roadmap, not a fresh full-code audit:
 - R2 remains planned pending explicit storage/cost approval; no activation or
   spending. Mechanics figures remain excluded and manual CS review is independent.
 - No unapproved architectural deviation is recorded in the reviewed handoffs.
-  The newly reported tutorial redirect is an open bug, not an approved deviation.
+  The tutorial redirect is a repaired local bug awaiting manual acceptance, not
+  an approved behavior deviation.
 
 ### 7.0C — Close the extraction-tool audit
 

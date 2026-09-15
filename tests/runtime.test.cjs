@@ -6,6 +6,79 @@ const path=require('node:path');
 const app=fs.readFileSync(path.join(__dirname,'../quiz_app.js'),'utf8');
 const auth=fs.readFileSync(path.join(__dirname,'../auth.js'),'utf8');
 function section(src,start,end){const a=src.indexOf(start),b=src.indexOf(end,a+start.length);assert.ok(a>=0&&b>a,start);return src.slice(a,b);}
+
+function tutorialHarness(timerEnabled=false) {
+  const elements=new Map(), saved=new Map(), routes=[];
+  const element=()=>({style:{setProperty(){}},classList:{add(){},remove(){}},remove(){},value:'',innerHTML:''});
+  const ctx={state:{screen:'landing',currentSubject:null,appMode:null,topics:[],targetHardOnly:false},
+    window:{_appSettings:{timer_enabled:timerEnabled}},localStorage:{getItem:k=>saved.get(k),setItem:(k,v)=>saved.set(k,v)},
+    document:{getElementById:id=>{if(/Overlay|authModal/.test(id))return null;if(!elements.has(id))elements.set(id,element());return elements.get(id)},
+      querySelector:()=>null,body:{classList:{add(){},remove(){}},insertAdjacentHTML(){}}},
+    isActiveQuizScreen:()=>false,ensureSubjectData:async()=>{},SUBJECTS:{materials:{units:{1:{}},pastUnit:[{unit:1}]}},
+    getQuizModeMeta:()=>({}),TIMER_PRESETS:[],_pendingStartMode:null,_pendingExamMode:false,_selectedTimerMins:null,
+    setTimeout(){},getUserId:()=> 'guest',renderApp(){ctx.syncRouteFromState()},
+    _routerReady:true,_isApplyingRoute:false,canUseAppHistory:()=>true,_lastRoutePath:'/',location:{pathname:'/'},
+    routeForState:()=>ctx.state.screen==='landing'?'/':'/materials',routePayloadForState:()=>({}),
+    history:{pushState:(a,b,p)=>routes.push(p),replaceState:(a,b,p)=>routes.push(p)},
+    maybeShowJanudaIntro(){throw Error('Tutorial must not queue Januda/quiz')},
+    startQuiz(){throw Error('Tutorial started quiz')},startExamQuiz(){throw Error('Tutorial started exam')},startTargetQuiz(){throw Error('Tutorial started target')}};
+  vm.createContext(ctx);
+  vm.runInContext('let _appTutorialStep=0,_appTutorialActive=false,_appTutorialPrevState=null,_appTutorialGeneration=0,_timerPreviewOnly=false;',ctx);
+  vm.runInContext(section(app,'function syncRouteFromState(', 'function writeRouteForCurrentState('),ctx);
+  vm.runInContext(section(app,'function appTutorialStorageKey()', 'function showGuestQuizPrompt('),ctx);
+  vm.runInContext(section(app,'function showTimerModal(', 'function janudaIntroStorageKey('),ctx);
+  vm.runInContext(section(app,'function confirmTimer(', '// RENDERERS'),ctx);
+  return {ctx,routes,saved};
+}
+
+test('tutorial timer demo never starts quiz or Januda; complete/skip restore home without history pollution',async()=>{
+  for(const enabled of [false,true]) for(const exit of ['finish','skip','timer']) {
+    const {ctx,routes}=tutorialHarness(enabled);
+    await ctx.startAppTutorial();
+    for(let i=1;i<=3;i++){vm.runInContext('_appTutorialStep='+i,ctx);await ctx.renderAppTutorialStep();}
+    assert.deepEqual(routes,[]);
+    if(exit==='timer')ctx.confirmTimer(true);else if(exit==='skip')ctx.skipAppTutorial();else ctx.finishAppTutorial();
+    assert.equal(ctx.state.screen,'landing');assert.equal(ctx.state.currentSubject,null);
+    assert.equal(ctx.state.appMode,null);assert.deepEqual(routes,[]);
+    assert.equal(ctx._pendingStartMode,null);
+  }
+});
+
+test('late tutorial loads cannot undo skip or a newer step; explicit starting screen is preserved',async()=>{
+  const {ctx}=tutorialHarness();let release;
+  await ctx.startAppTutorial();ctx.ensureSubjectData=()=>new Promise(r=>{release=r});
+  vm.runInContext('_appTutorialStep=1',ctx);const pending=ctx.renderAppTutorialStep();
+  ctx.skipAppTutorial();release();await pending;
+  assert.equal(ctx.state.screen,'landing');assert.equal(ctx.state.currentSubject,null);
+  ctx.state.screen='subjectHome';ctx.state.currentSubject='fluid';
+  await ctx.startAppTutorial();ctx.finishAppTutorial();
+  assert.equal(ctx.state.screen,'subjectHome');assert.equal(ctx.state.currentSubject,'fluid');
+  await ctx.startAppTutorial();vm.runInContext('_appTutorialStep=1',ctx);
+  const old=ctx.renderAppTutorialStep();vm.runInContext('_appTutorialStep=0',ctx);
+  await ctx.renderAppTutorialStep();release();await old;
+  assert.equal(ctx.state.screen,'landing');ctx.finishAppTutorial();
+});
+
+test('account change cancels pending tutorial without marking new account or replacing its screen',async()=>{
+  const {ctx,saved}=tutorialHarness();let release;
+  await ctx.startAppTutorial();ctx.ensureSubjectData=()=>new Promise(r=>{release=r});
+  vm.runInContext('_appTutorialStep=1',ctx);const pending=ctx.renderAppTutorialStep();
+  Object.assign(ctx,{_renderEpoch:0,_navigationEpoch:0,_navigationKey:'',_renderScheduled:false,requestAnimationFrame(){}});
+  vm.runInContext(section(app,'function renderApp()', 'function _doRenderApp()'),ctx);
+  ctx.getUserId=()=> 'new-account';ctx.state.screen='profile';ctx.renderApp();
+  release();await pending;
+  assert.equal(ctx.state.screen,'profile');assert.equal(saved.size,0);
+  assert.equal(vm.runInContext('_appTutorialActive',ctx),false);
+});
+
+test('intentional quiz start still uses Januda tutorial and continues exactly once',()=>{
+  const {ctx}=tutorialHarness();let starts=0;
+  Object.assign(ctx,{getDisplayName:()=> 'Synthetic',openJanudaChat(){},startQuiz(){starts++;}});
+  vm.runInContext(section(app,'function janudaIntroStorageKey()', 'function confirmTimer('),ctx);
+  ctx.beginPendingQuizStart('pastpaper',false);assert.equal(starts,0);
+  ctx.startJanudaTutorial();assert.equal(starts,0);
+  ctx.continueAfterJanudaIntro();ctx.continueAfterJanudaIntro();assert.equal(starts,1);
+});
 test('shuffled options retain canonical identity, including identical option text',()=>{
   const ctx={window:{},Math:Object.assign(Object.create(Math),{random:()=>0})};
   vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../js/app_quiz_utils.js'),'utf8'),ctx);

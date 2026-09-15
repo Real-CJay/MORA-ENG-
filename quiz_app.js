@@ -346,6 +346,8 @@ window.removeFromOffline  = removeFromOffline;
 let _appTutorialStep = 0;
 let _appTutorialActive = false;
 let _appTutorialPrevState = null;
+let _appTutorialGeneration = 0;
+let _timerPreviewOnly = false;
 
 let chatState = {
   isOpen: false,
@@ -1755,6 +1757,7 @@ function canUseAppHistory() {
 }
 
 function syncRouteFromState(replace = false) {
+  if (_appTutorialActive) return; // Demonstration screens are not navigation.
   if (_isApplyingRoute || !_routerReady || !canUseAppHistory() || !history.pushState) return;
   const path = routeForState();
   if (path === _lastRoutePath && location.pathname === path) return;
@@ -1838,6 +1841,7 @@ function applyRoute(path, routeState) {
     return;
   }
   window.MoraCurriculum?.applyPending();
+  if (typeof _appTutorialActive !== 'undefined' && _appTutorialActive) finishAppTutorial(false);
   state.curriculumError = '';
   const parts = path.replace(/^\/+|\/+$/g, '').split('/').filter(Boolean);
   let nextScreen = 'landing';
@@ -2128,6 +2132,8 @@ function hydrateBlockRenderSurface(methodName, root = document.getElementById('a
 
 function renderApp() {
   if(window.MoraCurriculumAdmin?.canLeave()===false){state.screen='admin';return;}
+  if (typeof _appTutorialActive !== 'undefined' && _appTutorialActive &&
+      _appTutorialPrevState?.owner !== appTutorialStorageKey()) finishAppTutorial(false, false);
   window.MoraCurriculum?.applyPending();
   if (state.screen !== 'admin') window.MoraAdminTabs?.close();
   _renderEpoch++;
@@ -2972,8 +2978,9 @@ const APP_TUTORIAL_STEPS = [
     title: 'Choose quiz type',
     text: 'Inside a subject, choose Past Papers for exam questions or Target Quiz for curated hard practice.',
     selector: '.quiz-mode-grid',
-    action: async () => {
+    action: async (isCurrent) => {
       await ensureSubjectData('materials').catch(() => {});
+      if (!isCurrent()) return;
       state.currentSubject = 'materials';
       state.topics = Object.keys(SUBJECTS.materials.units).map(Number);
       state.screen = 'subjectHome';
@@ -2984,8 +2991,9 @@ const APP_TUTORIAL_STEPS = [
     title: 'Select units and question count',
     text: 'Pick the units you want. Selected cards look different, and non-full-paper quizzes let you choose the question count.',
     selector: '.topic-grid',
-    action: async () => {
+    action: async (isCurrent) => {
       await ensureSubjectData('materials').catch(() => {});
+      if (!isCurrent()) return;
       state.currentSubject = 'materials';
       state.appMode = 'pastpaper';
       state.topics = Object.keys(SUBJECTS.materials.units).map(Number).filter(id => SUBJECTS.materials.pastUnit.some(q => q.unit === id));
@@ -2999,17 +3007,18 @@ const APP_TUTORIAL_STEPS = [
     selector: '#timerModalBox',
     action: async () => {
       closeTimerModal();
-      showTimerModal('pastpaper', true);
+      showTimerModal('pastpaper', true, true);
     }
   }
 ];
 
 async function startAppTutorial() {
-  if (_appTutorialActive) return;
+  if (_appTutorialActive || isActiveQuizScreen()) return;
   _appTutorialActive = true;
   lockTutorialInteraction();
   _appTutorialStep = 0;
   _appTutorialPrevState = {
+    owner: appTutorialStorageKey(),
     screen: state.screen,
     currentSubject: state.currentSubject,
     appMode: state.appMode,
@@ -3020,9 +3029,13 @@ async function startAppTutorial() {
 }
 
 async function renderAppTutorialStep() {
+  const generation = ++_appTutorialGeneration;
+  const owner = appTutorialStorageKey();
+  const isCurrent = () => _appTutorialActive && generation === _appTutorialGeneration && owner === appTutorialStorageKey();
   const step = APP_TUTORIAL_STEPS[_appTutorialStep];
   if (!step) return finishAppTutorial();
-  await step.action();
+  await step.action(isCurrent);
+  if (!isCurrent()) return;
   document.getElementById('appTutorialOverlay')?.remove();
   document.body.insertAdjacentHTML('beforeend', `
     <div id="appTutorialOverlay" class="app-tutorial-overlay">
@@ -3060,8 +3073,8 @@ function restoreAppTutorialState() {
   closeTimerModal();
   if (_appTutorialPrevState) {
     state.screen = _appTutorialPrevState.screen || 'landing';
-    state.currentSubject = _appTutorialPrevState.currentSubject || state.currentSubject;
-    state.appMode = _appTutorialPrevState.appMode || null;
+    state.currentSubject = _appTutorialPrevState.currentSubject;
+    state.appMode = _appTutorialPrevState.appMode;
     state.topics = Array.isArray(_appTutorialPrevState.topics) ? [..._appTutorialPrevState.topics] : state.topics;
     state.targetHardOnly = !!_appTutorialPrevState.targetHardOnly;
   } else {
@@ -3070,13 +3083,16 @@ function restoreAppTutorialState() {
   _appTutorialPrevState = null;
 }
 
-function finishAppTutorial() {
-  markAppTutorialSeen();
+function finishAppTutorial(render = true, restore = true) {
+  if (!_appTutorialActive) return;
+  if (_appTutorialPrevState?.owner === appTutorialStorageKey()) markAppTutorialSeen();
+  ++_appTutorialGeneration;
   document.getElementById('appTutorialOverlay')?.remove();
   _appTutorialActive = false;
   unlockTutorialInteraction();
-  restoreAppTutorialState();
-  renderApp();
+  if (restore) restoreAppTutorialState();
+  else { closeTimerModal(); _appTutorialPrevState = null; }
+  if (render) renderApp();
 }
 
 function skipAppTutorial() {
@@ -3084,12 +3100,14 @@ function skipAppTutorial() {
 }
 
 function nextAppTutorialStep() {
+  if (!_appTutorialActive) return;
   if (_appTutorialStep >= APP_TUTORIAL_STEPS.length - 1) return finishAppTutorial();
   _appTutorialStep++;
   renderAppTutorialStep();
 }
 
 function prevAppTutorialStep() {
+  if (!_appTutorialActive) return;
   if (_appTutorialStep <= 0) return;
   _appTutorialStep--;
   renderAppTutorialStep();
@@ -3167,17 +3185,18 @@ window.showGuestContinueConfirm = showGuestContinueConfirm;
 window.confirmGuestContinue = confirmGuestContinue;
 window.showGuestAccountReminder = showGuestAccountReminder;
 
-function showTimerModal(mode, bypassGuestPrompt = false) {
+function showTimerModal(mode, bypassGuestPrompt = false, previewOnly = false) {
+  _timerPreviewOnly = previewOnly;
   if (!bypassGuestPrompt && typeof isGuest === 'function' && isGuest() && (typeof guestModeAccepted !== 'function' || !guestModeAccepted())) {
     showGuestQuizPrompt(mode);
     return;
   }
   const modeMeta = getQuizModeMeta(mode);
   if (!modeMeta.isTarget) state.appMode = mode;
-  _pendingStartMode = mode;
+  _pendingStartMode = previewOnly ? null : mode;
   _selectedTimerMins = null;
 
-  if ((window._appSettings || {}).timer_enabled === false) {
+  if (!previewOnly && (window._appSettings || {}).timer_enabled === false) {
     state.countdownLimit = 0;
     const startMode = _pendingStartMode;
     const examMode = _pendingExamMode;
@@ -3226,6 +3245,7 @@ function showTimerModal(mode, bypassGuestPrompt = false) {
 }
 
 function beginPendingQuizStart(startMode, examMode) {
+  if (_appTutorialActive || _timerPreviewOnly || !startMode) return;
   maybeShowJanudaIntro(() => {
     if (startMode === 'target') {
       startTargetQuiz();
@@ -3257,6 +3277,7 @@ function selectCustomTimer(val) {
 }
 
 function closeTimerModal() {
+  _timerPreviewOnly = false;
   const modal = document.getElementById('timerModal');
   if (modal) modal.style.display = 'none';
   _pendingStartMode = null;
@@ -3367,6 +3388,11 @@ function highlightModelDropdownFromTutorial(e) {
 }
 
 function confirmTimer(noTimer = false) {
+  if (_timerPreviewOnly || _appTutorialActive) {
+    finishAppTutorial();
+    closeTimerModal();
+    return;
+  }
   if (noTimer) {
     state.countdownLimit = 0;
   } else {
